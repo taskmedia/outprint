@@ -1,4 +1,5 @@
-\documentclass[paper=a4, fontsize=11pt, parskip=half, foldmarks=true,
+\documentclass[paper=a4, fontsize=11pt, parskip=half,
+  foldmarks=$if(recipient)$true$else$false$endif$,
   fromalign=right, fromlogo=$if(logo)$true$else$false$endif$,
   backaddress=$if(recipient)$true$else$false$endif$, pagenumber=botcenter]{scrlttr2}
 \usepackage{xcolor}
@@ -14,20 +15,47 @@ $if(highlighting-macros)$
 $highlighting-macros$
 $endif$
 
+\newcommand{\documenttitle}{$title$}
+\newcommand{\documentauthor}{$author$}
+$if(title)$
+\hypersetup{pdftitle=\documenttitle}
+$endif$
+$if(author)$
+\hypersetup{pdfauthor=\documentauthor}
+$endif$
+$if(language)$
+\hypersetup{pdflang=$language$}
+$endif$
+
 \setkomavar{fromname}{$name$}
 $if(logo)$
 \setkomavar{fromlogo}{\includegraphics[height=18mm]{$logo$}}
+$endif$
+$if(sender)$
+\setkomavar{fromaddress}{$for(sender)$$sender$$sep$\\ $endfor$}
+$endif$
+$if(author)$
+\setkomavar{signature}{$author$}
+$endif$
+$if(reference)$
+\setkomavar{yourref}{$reference$}
 $endif$
 \setkomavar{date}{$date$}
 \setkomavar{subject}{$subject$}
 \setkomavar{firstfoot}{\parbox{\textwidth}{\centering\color{accent}\rule{\textwidth}{0.4pt}\\[1mm]\footnotesize\sffamily $name$}}
 
 \begin{document}
-\begin{letter}{$if(recipient)$$for(recipient)$$recipient$$sep$\\ $endfor$$else$\null$endif$}
+\begin{letter}{$if(recipient)$$for(recipient)$$recipient$$sep$\\ $endfor$$else$\mbox{}$endif$}
 \opening{$if(opening)$$opening$$endif$}
 
 $body$
 
 \closing{$if(closing)$$closing$$endif$}
+$if(enclosures)$
+\encl{$for(enclosures)$$enclosures$$sep$\\ $endfor$}
+$endif$
+$if(cc)$
+\cc{$for(cc)$$cc$$sep$\\ $endfor$}
+$endif$
 \end{letter}
 \end{document}

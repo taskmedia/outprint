@@ -8,14 +8,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
-
-	"gopkg.in/yaml.v3"
 
 	"github.com/taskmedia/outline-latex-pdf/internal/packages"
 )
@@ -24,15 +23,17 @@ const (
 	defaultTimeout  = 2 * time.Minute
 	maxOutputTail   = 2000
 	maxLualatexRuns = 2
-	logoFixedField  = "logo"
+	logoField       = "logo"
 	logoJobFile     = "logo.pdf"
 	pandocReader    = "markdown-raw_tex-raw_attribute-tex_math_dollars-yaml_metadata_block"
 )
 
-// Job is everything the pipeline needs to produce one PDF.
+// Job is everything the pipeline needs to produce one PDF. Markdown is the
+// Document body without its Metadata Block; Values are the merged, typed
+// field values of the Document Type (see package metadata).
 type Job struct {
 	Markdown      []byte
-	Fields        map[string]any
+	Values        map[string]any
 	Template      packages.Template
 	DocumentType  string
 	Configuration packages.Configuration
@@ -84,16 +85,20 @@ func Render(ctx context.Context, job Job) ([]byte, error) {
 		return nil, err
 	}
 
-	fixed := job.Configuration.Fixed
-	if logo, ok := fixed[logoFixedField].(string); ok {
+	values := job.Values
+	if logo, ok := values[logoField].(string); ok {
 		if err := convertLogo(ctx, job.Configuration, logo, jobDir, env); err != nil {
 			return nil, err
 		}
-		fixed = withValue(fixed, logoFixedField, logoJobFile)
+		values = withValue(values, logoField, logoJobFile)
+	}
+	values, err = formatDates(job.Template, values)
+	if err != nil {
+		return nil, err
 	}
 
 	metaPath := filepath.Join(jobDir, "meta.yaml")
-	meta, err := yaml.Marshal(mergeMetadata(job.Configuration.Defaults, job.Fields, fixed))
+	meta, err := pandocMetadata(job.Template, values)
 	if err != nil {
 		return nil, fmt.Errorf("encode metadata: %w", err)
 	}
@@ -151,23 +156,8 @@ func needsRerun(log string) bool {
 	return strings.Contains(log, "Rerun to get") || strings.Contains(log, "Label(s) may have changed")
 }
 
-// mergeMetadata layers Configuration Defaults under the Document's values
-// and Fixed Values over both.
-func mergeMetadata(defaults, document, fixed map[string]any) map[string]any {
-	merged := make(map[string]any, len(defaults)+len(document)+len(fixed))
-	for _, layer := range []map[string]any{defaults, document, fixed} {
-		for k, v := range layer {
-			merged[k] = v
-		}
-	}
-	return merged
-}
-
 func withValue(m map[string]any, key string, value any) map[string]any {
-	out := make(map[string]any, len(m))
-	for k, v := range m {
-		out[k] = v
-	}
+	out := maps.Clone(m)
 	out[key] = value
 	return out
 }

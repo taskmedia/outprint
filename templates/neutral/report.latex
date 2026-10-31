@@ -1,0 +1,63 @@
+\documentclass[paper=a4, fontsize=11pt, parskip=half, titlepage=false,
+  abstract=true]{scrartcl}
+\usepackage{xcolor}
+$if(accent_color)$
+\definecolor{accent}{HTML}{$accent_color$}
+$else$
+\definecolor{accent}{HTML}{444444}
+$endif$
+\input{shared/neutral.tex}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+$if(highlighting-macros)$
+\usepackage{fancyvrb}
+$highlighting-macros$
+$endif$
+
+\usepackage{scrlayer-scrpage}
+\clearpairofpagestyles
+% The starred forms set the same footer on the plain page style, which
+% \maketitle uses for the first page.
+\ifoot{\sffamily\footnotesize $name$}
+\cfoot{\sffamily\footnotesize\pagemark}
+\ifoot*{\sffamily\footnotesize $name$}
+\cfoot*{\sffamily\footnotesize\pagemark}
+\KOMAoptions{footsepline=0.4pt}
+\setkomafont{footsepline}{\color{accent}}
+\pagestyle{scrheadings}
+
+\newcommand{\documenttitle}{$title$}
+\newcommand{\documentauthor}{$author$}
+\hypersetup{pdftitle=\documenttitle}
+$if(author)$
+\hypersetup{pdfauthor=\documentauthor}
+$endif$
+$if(language)$
+\hypersetup{pdflang=$language$}
+$endif$
+
+\title{$title$}
+$if(subtitle)$
+\subtitle{$subtitle$}
+$endif$
+\author{$author$}
+\date{$date$}
+$if(version)$
+\publishers{Version $version$}
+$endif$
+$if(logo)$
+\titlehead{\includegraphics[height=14mm]{$logo$}}
+$endif$
+
+\begin{document}
+\maketitle
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+$if(toc)$
+\tableofcontents
+$endif$
+
+$body$
+\end{document}

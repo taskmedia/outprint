@@ -20,16 +20,33 @@ import (
 	"testing"
 )
 
+// fixedDate is the last-modified date every fixture is rendered with, so
+// that goldens do not depend on file times.
+const fixedDate = "2026-03-02"
+
 type testCase struct {
-	name         string // fixture topic under testdata/fixtures
-	template     string
-	config       string
-	documentType string
-	expectLogo   bool
+	name     string // fixture topic under testdata/fixtures
+	template string
+	config   string
+	title    string // derived title, as the Outline document title would be
+	// checkLogo asserts whether the letterhead logo is drawn in the upper
+	// right of page one; reports place theirs elsewhere and skip it.
+	checkLogo  bool
+	expectLogo bool
+	// literal lists strings that must survive into the PDF text verbatim.
+	literal []string
 }
 
 var cases = []testCase{
-	{name: "letter-basic", template: "neutral", config: "example", documentType: "letter", expectLogo: true},
+	{name: "letter-basic", template: "neutral", config: "example", checkLogo: true, expectLogo: true},
+	{name: "letter-full", template: "neutral", config: "example", title: "Spring plant sale", checkLogo: true, expectLogo: true},
+	{name: "letter-no-recipient", template: "neutral", config: "example", checkLogo: true, expectLogo: true},
+	{name: "letter-override-default", template: "neutral", config: "example", checkLogo: true, expectLogo: true},
+	{name: "letter-nonascii", template: "neutral", config: "example", checkLogo: true, expectLogo: true,
+		literal: []string{"Grüße aus Köln", "Zażółć gęślą jaźń", "Åse Müller-Łukasiewicz", "Œillets", "2. März 2026"}},
+	{name: "letter-literal-text", template: "neutral", config: "example", checkLogo: true, expectLogo: true,
+		literal: []string{"$x$", `\input{foo}`, `\textbf{not bold}`, "$5 & 10% of #7", "under_score", "^caret"}},
+	{name: "report-toc-abstract", template: "neutral", config: "example", title: "Annual garden report"},
 }
 
 func TestGoldens(t *testing.T) {
@@ -47,8 +64,16 @@ func TestGoldens(t *testing.T) {
 			checkGolden(t, root, tc.name, "facts.txt", facts)
 			checkGolden(t, root, tc.name, "text.txt", pdfText(t, pdf))
 			assertFontsEmbedded(t, pdf)
-			if got := logoDrawn(t, pdf); got != tc.expectLogo {
-				t.Errorf("logo drawn in letterhead = %v, want %v", got, tc.expectLogo)
+			if tc.checkLogo {
+				if got := logoDrawn(t, pdf); got != tc.expectLogo {
+					t.Errorf("logo drawn in letterhead = %v, want %v", got, tc.expectLogo)
+				}
+			}
+			assertLiteral(t, pdf, tc.literal)
+			if tc.title != "" {
+				if got := field(t, tool(t, "pdfinfo", pdf), "Title"); got != tc.title {
+					t.Errorf("PDF title = %q, want %q", got, tc.title)
+				}
 			}
 		})
 	}
@@ -84,11 +109,11 @@ func render(t *testing.T, root string, tc testCase) string {
 	fixture := filepath.Join(root, "testdata", "fixtures", tc.name)
 	out := filepath.Join(t.TempDir(), "out.pdf")
 	args := []string{
-		"render", "--template", tc.template, "--config", tc.config, "--type", tc.documentType,
+		"render", "--template", tc.template, "--config", tc.config, "--date", fixedDate,
 		"-o", out, filepath.Join(fixture, "input.md"),
 	}
-	if fields := filepath.Join(fixture, "fields.yaml"); fileExists(fields) {
-		args = slices.Insert(args, 1, "--fields", fields)
+	if tc.title != "" {
+		args = slices.Insert(args, 1, "--title", tc.title)
 	}
 	bin := os.Getenv("RENDERER_BIN")
 	if bin == "" {
@@ -98,6 +123,18 @@ func render(t *testing.T, root string, tc testCase) string {
 		t.Fatalf("renderer failed: %v\n%s", err, output)
 	}
 	return out
+}
+
+// assertLiteral checks that each string appears in the PDF text exactly as
+// written, after layout whitespace is collapsed.
+func assertLiteral(t *testing.T, pdf string, want []string) {
+	t.Helper()
+	text := strings.Join(strings.Fields(pdfText(t, pdf)), " ")
+	for _, w := range want {
+		if !strings.Contains(text, w) {
+			t.Errorf("PDF text lacks %q", w)
+		}
+	}
 }
 
 func pdfFacts(t *testing.T, pdf string) string {

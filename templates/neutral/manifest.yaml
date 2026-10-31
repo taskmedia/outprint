@@ -1,34 +1,109 @@
 manifest_version: 1
 
 fields:
+  # Supplied by the Configuration.
   name:
     type: string
-    description: Organisation name, shown in the footer. Supplied by the Configuration.
+    description: Organisation name, shown in the letterhead and the footer.
   logo:
     type: asset
-    description: Logo shown in the letterhead, an SVG file in the Configuration. Supplied by the Configuration.
+    description: Logo shown in the letterhead, an SVG file in the Configuration.
     pattern: '^([A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*\.svg$'
   accent_color:
     type: color
-    description: Colour of the margin stripe and the footer rule, six hex digits. Supplied by the Configuration.
+    description: Colour of the margin stripe and the footer rule, six hex digits.
     pattern: '^[0-9A-Fa-f]{6}$'
+
+  # Any Document Type.
+  title:
+    type: string
+    description: Document title. Defaults to the title of the Outline document.
   date:
     type: date
-    description: Date of the letter. Left empty when not set.
-  subject:
+    description: >-
+      Date of the document. Defaults to the last-modified date. An ISO date
+      (YYYY-MM-DD) is written out in the document language; any other text is
+      printed as written.
+  language:
     type: string
-    description: Subject line.
+    description: Document language, which sets how dates are written and the PDF language.
+    pattern: '^(en|de)$'
+    default: en
+  author:
+    type: string
+    description: Author. Signs a letter and appears in the title block of a report.
+
+  # Letter.
   recipient:
     type: list
     description: Address lines. The address window is shown only when this is set.
+  sender:
+    type: list
+    description: Sender address lines, printed under the organisation name.
+  subject:
+    type: string
+    description: Subject line.
   opening:
     type: string
     description: Salutation.
   closing:
     type: string
     description: Complimentary close.
+  reference:
+    type: string
+    description: Reference line, for example a file number.
+  enclosures:
+    type: list
+    description: Enclosures, listed under the closing.
+  cc:
+    type: list
+    description: Copy recipients, listed under the closing.
+
+  # Report.
+  subtitle:
+    type: string
+    description: Subtitle under the title.
+  version:
+    type: string
+    description: Version of the report, printed under the date.
+  abstract:
+    type: text
+    description: Summary printed before the body. Inline Markdown is allowed.
+  toc:
+    type: bool
+    description: Print a table of contents.
 
 document_types:
   letter:
     template: letter.latex
-    fields: [name, logo, accent_color, date, subject, recipient, opening, closing]
+    fields:
+      - name
+      - logo
+      - accent_color
+      - title
+      - date
+      - language
+      - author
+      - recipient
+      - sender
+      - subject
+      - opening
+      - closing
+      - reference
+      - enclosures
+      - cc
+  report:
+    template: report.latex
+    fields:
+      - name
+      - logo
+      - accent_color
+      - title:
+          required: true
+      - date
+      - language
+      - author
+      - subtitle
+      - version
+      - abstract
+      - toc
