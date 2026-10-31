@@ -45,7 +45,18 @@ templates/neutral/
   manifest.yaml        fields and Document Types
   letter.latex         one Pandoc template per Document Type
   shared/neutral.tex   shared TeX parts (inside the package only)
-  fonts/, assets/      optional
+  fonts/               optional; copied to ./fonts/ of every job
+  assets/              optional
+```
+
+Fonts are loaded by file path, never by name: the Worker's TeX engine cannot
+use the system font database (see [worker.md](worker.md)). A Template loads
+its fonts with the fontspec option `Path=./fonts/`:
+
+```tex
+\setmainfont{texgyrepagella-regular.otf}[Path=./fonts/,
+  BoldFont=texgyrepagella-bold.otf, ItalicFont=texgyrepagella-italic.otf,
+  BoldItalicFont=texgyrepagella-bolditalic.otf]
 ```
 
 ### manifest.yaml

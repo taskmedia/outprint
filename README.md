@@ -30,7 +30,8 @@ Work in progress. Tracked in the project issues.
 make build           # build bin/renderer
 make test            # tier 1: Go unit tests, no external tools
 make image           # build the renderer image
-make test-golden     # tier 2: PDF goldens, run inside the pinned image
+make test-golden     # tier 2: PDF goldens, Worker and security tests, in the pinned image
+make test-security   # security layer 1 only (hostile payload corpus, engine lockdown)
 make update-goldens  # regenerate goldens, only ever inside the pinned image
 make sanitize        # scan tree and history for forbidden strings
 make test-sanitize   # test the sanitize gate itself
@@ -60,6 +61,8 @@ See [docs/metadata.md](docs/metadata.md) for the Metadata Block authors write
 [docs/packages.md](docs/packages.md) for the package format, field types,
 typed patterns, the TeX deny-list, the drift guard and `validate`, and
 [docs/standard-fields.md](docs/standard-fields.md) for the Standard Fields.
+See [docs/worker.md](docs/worker.md) for the Worker pipeline: phases, filters,
+engine lockdown, errors, logging and the debug switch.
 See [docs/sanitize.md](docs/sanitize.md) for the sanitisation gate.
 
 ## License
