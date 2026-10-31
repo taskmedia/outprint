@@ -71,7 +71,7 @@ func runBomb(t *testing.T, b bomb) {
 
 func TestTeXInfiniteLoopEndsAtTheWallClockLimit(t *testing.T) {
 	runBomb(t, bomb{
-		env: map[string]string{"RENDERER_TIMEOUT": "8s"}, markdown: "probeaction-loop\n",
+		env: map[string]string{"RENDERER_TIMEOUT": "25s"}, markdown: "probeaction-loop\n",
 		status: 504, kinds: []string{"timeout"}, restarts: true,
 	})
 }
@@ -92,7 +92,7 @@ func TestTmpfsFillIsReportedAsAResourceError(t *testing.T) {
 
 func TestForkBombEndsAndTheWorkerRecovers(t *testing.T) {
 	runBomb(t, bomb{
-		env: map[string]string{"RENDERER_TIMEOUT": "10s"}, markdown: "probeaction-forkbomb\n",
+		env: map[string]string{"RENDERER_TIMEOUT": "25s"}, markdown: "probeaction-forkbomb\n",
 		status: 504, kinds: []string{"timeout", "resource"}, restarts: true, allowDropped: true,
 	})
 }

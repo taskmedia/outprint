@@ -5,6 +5,7 @@ package sandbox
 import (
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -54,6 +55,11 @@ func writeCanary(t *testing.T, content string) string {
 	t.Helper()
 	path := t.TempDir() + "/canary.txt"
 	if err := writeFile(path, content); err != nil {
+		t.Fatal(err)
+	}
+	// The control mounts this file into a container that runs as another
+	// uid, so it must be readable by everyone; the Worker still never sees it.
+	if err := os.Chmod(path, 0o644); err != nil {
 		t.Fatal(err)
 	}
 	return path

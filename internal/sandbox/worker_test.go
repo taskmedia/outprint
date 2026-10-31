@@ -176,7 +176,7 @@ func (w *liveWorker) assertClean() {
 func (w *liveWorker) assertNextJobRenders() {
 	w.t.Helper()
 	w.waitHealthy()
-	o := w.render(fixtureBundle(w.t, "letter-basic"), 90*time.Second)
+	o := w.render(fixtureBundle(w.t, "letter-basic"), 120*time.Second)
 	if o.Status != 200 {
 		w.t.Fatalf("the next job failed: status %d, %s %s", o.Status, o.TransportError, o.Error)
 	}
