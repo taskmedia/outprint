@@ -14,15 +14,17 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
+	"github.com/taskmedia/outline-latex-pdf/internal/limits"
 	"github.com/taskmedia/outline-latex-pdf/internal/packages"
 )
 
 const (
 	// DefaultTimeout is the wall-clock limit of one job.
-	DefaultTimeout  = 60 * time.Second
-	maxLualatexRuns = 2
+	DefaultTimeout  = limits.WallClock
+	maxLualatexRuns = limits.MaxTeXRuns
 	logoField       = "logo"
 	logoJobFile     = "logo.pdf"
 	pandocReader    = "markdown-raw_tex-raw_attribute-tex_math_dollars-yaml_metadata_block"
@@ -46,6 +48,10 @@ type Job struct {
 	// Timeout is the wall-clock limit for the whole job; zero means
 	// DefaultTimeout.
 	Timeout time.Duration
+	// MaxPages and MaxPDFBytes limit the result; zero means the starting
+	// limits of package limits.
+	MaxPages    int
+	MaxPDFBytes int64
 	// WorkRoot is where the job directory is created. A tmpfs in production.
 	// Empty means the system temporary directory.
 	WorkRoot string
@@ -131,6 +137,9 @@ func (p *pipeline) run() ([]byte, error) {
 	if err := p.typeset(); err != nil {
 		return nil, err
 	}
+	if err := p.checkOutput(); err != nil {
+		return nil, err
+	}
 	if p.afterTeX != nil {
 		if err := p.afterTeX(p.dir); err != nil {
 			return nil, p.fail(PhaseSetup, KindInternal, err)
@@ -141,6 +150,28 @@ func (p *pipeline) run() ([]byte, error) {
 		return nil, p.fail(PhaseTeX, KindNoOutput, errors.New("no PDF was produced"))
 	}
 	return pdf, nil
+}
+
+// checkOutput enforces the page and PDF size limits before the PDF is read
+// into memory. LuaLaTeX has to finish before either is known, so the
+// wall-clock limit is what bounds a job that makes pages endlessly.
+func (p *pipeline) checkOutput() error {
+	max := limits.Job{MaxPages: p.job.MaxPages, MaxPDFBytes: p.job.MaxPDFBytes}.WithDefaults()
+	info, err := os.Stat(filepath.Join(p.dir, texJobName+".pdf"))
+	if err != nil {
+		return p.fail(PhaseTeX, KindNoOutput, errors.New("no PDF was produced"))
+	}
+	pages, ok := pagesFromTeXLog(p.readTeXLog(toolResult{}))
+	if !ok {
+		return p.fail(PhaseTeX, KindNoOutput, errors.New("the TeX log does not report a page count"))
+	}
+	if pages > max.MaxPages {
+		return p.fail(PhaseOutput, KindPagesExceeded, fmt.Errorf("%d pages, at most %d", pages, max.MaxPages))
+	}
+	if info.Size() > max.MaxPDFBytes {
+		return p.fail(PhaseOutput, KindPDFTooLarge, fmt.Errorf("%d bytes, at most %d", info.Size(), max.MaxPDFBytes))
+	}
+	return nil
 }
 
 func (p *pipeline) prepare() error {
@@ -288,6 +319,10 @@ func (p *pipeline) texFailure(res toolResult, texLog string, err error) error {
 		return p.toolError(PhaseTeX, res, err)
 	}
 	p.logPhase(slog.LevelWarn, PhaseTeX, res, first)
+	if p.outOfResources(res) {
+		return &Error{Phase: PhaseTeX, Kind: KindResource, JobID: p.id,
+			Err: errors.New("the job ran out of memory or scratch space"), FirstTeXError: first}
+	}
 	return &Error{Phase: PhaseTeX, Kind: KindTeXError, JobID: p.id,
 		Err: fmt.Errorf("lualatex exited with code %d", res.ExitCode), FirstTeXError: first}
 }
@@ -319,6 +354,9 @@ func (p *pipeline) toolError(phase Phase, res toolResult, err error) error {
 		return p.timeoutError(phase, res)
 	}
 	p.logPhase(slog.LevelWarn, phase, res, "")
+	if p.outOfResources(res) {
+		return &Error{Phase: phase, Kind: KindResource, JobID: p.id, Err: errors.New("the job ran out of memory or scratch space")}
+	}
 	return &Error{Phase: phase, Kind: KindToolFailed, JobID: p.id,
 		Err: fmt.Errorf("exit code %d", res.ExitCode)}
 }
@@ -333,6 +371,9 @@ func (p *pipeline) timeoutError(during Phase, res toolResult) error {
 func (p *pipeline) fail(phase Phase, kind Kind, cause error) error {
 	if p.ctx != nil && p.ctx.Err() != nil {
 		return p.timeoutError(phase, toolResult{ExitCode: exitCodeUnknown})
+	}
+	if errors.Is(cause, syscall.ENOSPC) {
+		kind = KindResource
 	}
 	p.log.Warn("job failed", "job", p.id, "phase", phase, "kind", kind)
 	return &Error{Phase: phase, Kind: kind, JobID: p.id, Err: cause}

@@ -400,6 +400,9 @@ func TestWorkerFailuresAreMapped(t *testing.T) {
 		{"busy", 503, workerapi.ErrorBody{Phase: "queue", Kind: "busy"}, 429, true},
 		{"timeout", 504, workerapi.ErrorBody{Phase: "timeout", Kind: "timeout", JobID: "j1"}, 504, false},
 		{"too large", 413, workerapi.ErrorBody{Phase: "bundle", Kind: "too_large"}, 413, false},
+		{"too many pages", 413, workerapi.ErrorBody{Phase: "output", Kind: "pages_exceeded", JobID: "j3"}, 413, false},
+		{"pdf too large", 413, workerapi.ErrorBody{Phase: "output", Kind: "pdf_too_large", JobID: "j4"}, 413, false},
+		{"resource", 500, workerapi.ErrorBody{Phase: "tex", Kind: "resource", JobID: "j5"}, 413, false},
 		{"tex error", 500, workerapi.ErrorBody{Phase: "tex", Kind: "tex_error", JobID: "j2"}, 500, false},
 		{"unauthorized", 401, workerapi.ErrorBody{Phase: "auth", Kind: "unauthorized"}, 500, false},
 	}

@@ -92,3 +92,16 @@ func TestServiceLoggerLevel(t *testing.T) {
 		t.Error("RENDERER_LOG_LEVEL=error still logs info")
 	}
 }
+
+func TestWorkerRefusesAMalformedLimit(t *testing.T) {
+	var b strings.Builder
+	env := func(k string) string {
+		if k == "RENDERER_MAX_PAGES" {
+			return "lots"
+		}
+		return ""
+	}
+	if code := runWorker(nil, env, &b); code != 2 || !strings.Contains(b.String(), "RENDERER_MAX_PAGES") {
+		t.Errorf("code %d, output %q", code, b.String())
+	}
+}

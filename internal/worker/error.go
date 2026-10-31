@@ -12,6 +12,7 @@ const (
 	PhaseFilter  Phase = "filter"
 	PhaseTeX     Phase = "tex"
 	PhaseTimeout Phase = "timeout"
+	PhaseOutput  Phase = "output"
 )
 
 // Kind says what went wrong within a phase.
@@ -28,6 +29,12 @@ const (
 	KindTeXError   Kind = "tex_error"
 	KindNoOutput   Kind = "no_output"
 	KindTimeout    Kind = "timeout"
+	// KindPagesExceeded and KindPDFTooLarge are limits on the result.
+	KindPagesExceeded Kind = "pages_exceeded"
+	KindPDFTooLarge   Kind = "pdf_too_large"
+	// KindResource means the job ran out of memory or scratch space: a tool
+	// was killed by the system, or the job directory is full.
+	KindResource Kind = "resource"
 )
 
 // Error is the only failure the pipeline reports. It names where and what

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/taskmedia/outline-latex-pdf/internal/gateway"
+	"github.com/taskmedia/outline-latex-pdf/internal/limits"
 	"github.com/taskmedia/outline-latex-pdf/internal/startup"
 	"github.com/taskmedia/outline-latex-pdf/internal/workerserver"
 )
@@ -32,7 +33,8 @@ const (
 const serveUsage = `       renderer gateway [--listen ADDR] [--service-config FILE]
                         (env: OUTLINE_URL, RENDERER_WORKER_URL, RENDERER_WORKER_TOKEN)
        renderer worker  [--listen ADDR] [--service-config FILE]
-                        (env: RENDERER_WORK_DIR, RENDERER_WORKER_TOKEN, RENDERER_TIMEOUT)
+                        (env: RENDERER_WORK_DIR, RENDERER_WORKER_TOKEN, RENDERER_TIMEOUT,
+                         RENDERER_MAX_PAGES, RENDERER_MAX_PDF_BYTES)
        renderer healthcheck URL`
 
 type serveOptions struct {
@@ -121,6 +123,11 @@ func runWorker(args []string, getenv func(string) string, stderr io.Writer) int 
 		return 2
 	}
 	log := serviceLogger(stderr, getenv)
+	jobLimits, err := limits.FromEnv(getenv)
+	if err != nil {
+		fmt.Fprintf(stderr, "renderer: %v\n", err)
+		return 2
+	}
 	started, err := loadStartup(o, getenv, log)
 	if err != nil {
 		fmt.Fprintf(stderr, "renderer: %v\n", err)
@@ -131,7 +138,7 @@ func runWorker(args []string, getenv func(string) string, stderr io.Writer) int 
 	err = workerserver.Run(ctx, workerserver.RunConfig{
 		Listen: o.Listen, Token: getenv(envWorkerToken), WorkDir: getenv(envWorkDir),
 		CacheDir: firstNonEmpty(getenv(envCacheDir), defaultCacheDir), Timeout: timeoutFromEnv(getenv),
-		Startup: started, Logger: log,
+		Limits: jobLimits, Startup: started, Logger: log,
 	})
 	if err != nil {
 		log.Error("worker stopped", "error", err.Error())

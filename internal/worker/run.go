@@ -3,6 +3,7 @@ package worker
 import (
 	"bytes"
 	"context"
+	"os"
 	"os/exec"
 	"syscall"
 	"time"
@@ -23,6 +24,9 @@ type toolResult struct {
 	Duration time.Duration
 	// TimedOut is true when the job context ended while the tool ran.
 	TimedOut bool
+	// Signaled is true when a signal ended the tool that the Worker did not
+	// send: the kernel killed it, typically for lack of memory.
+	Signaled bool
 }
 
 // cappedBuffer keeps the first maxCapturedOutput bytes and drops the rest,
@@ -62,8 +66,14 @@ func runTool(ctx context.Context, dir string, env []string, name string, args []
 	}
 	if cmd.ProcessState != nil {
 		res.ExitCode = cmd.ProcessState.ExitCode()
+		res.Signaled = wasSignaled(cmd.ProcessState)
 	}
 	return res, err
+}
+
+func wasSignaled(state *os.ProcessState) bool {
+	status, ok := state.Sys().(syscall.WaitStatus)
+	return ok && status.Signaled()
 }
 
 func killGroup(cmd *exec.Cmd) error {

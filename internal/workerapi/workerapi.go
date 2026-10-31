@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
+	"github.com/taskmedia/outline-latex-pdf/internal/limits"
 )
 
 const (
@@ -25,7 +26,7 @@ const (
 	HealthPath = "/healthz"
 
 	// MaxPDFBytes is the largest PDF the Worker returns.
-	MaxPDFBytes = 50 << 20
+	MaxPDFBytes = limits.MaxPDFBytes
 	// MaxErrorBytes caps the error body the client reads.
 	MaxErrorBytes = 4 << 10
 
@@ -52,6 +53,10 @@ const (
 	// KindTimeout is the pipeline's timeout kind, repeated here because the
 	// Gateway maps it without importing the pipeline.
 	KindTimeout = "timeout"
+	// The pipeline's limit kinds, repeated for the same reason.
+	KindPagesExceeded = "pages_exceeded"
+	KindPDFTooLarge   = "pdf_too_large"
+	KindResource      = "resource"
 )
 
 // ErrorBody is what the Worker answers on failure. It names the phase, the
