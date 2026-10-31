@@ -48,6 +48,16 @@ Goldens compare `pdfinfo`/`pdffonts` facts and `pdftotext -layout` text, never
 PDF bytes. Fixtures live in `testdata/fixtures/<topic>/`, goldens in
 `testdata/golden/<topic>/`.
 
+Check Templates and Configurations before deploying them:
+
+```sh
+docker run --rm renderer validate                  # the packages shipped in the image
+renderer validate --templates-root ./templates --configs-root ./configurations
+```
+
+See [docs/packages.md](docs/packages.md) for the package format, field types,
+typed patterns, the TeX deny-list, the drift guard and `validate`, and
+[docs/standard-fields.md](docs/standard-fields.md) for the Standard Fields.
 See [docs/sanitize.md](docs/sanitize.md) for the sanitisation gate.
 
 ## License

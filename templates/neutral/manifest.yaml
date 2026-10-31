@@ -6,10 +6,12 @@ fields:
     description: Organisation name, shown in the footer. Supplied by the Configuration.
   logo:
     type: asset
-    description: Logo shown in the letterhead. Supplied by the Configuration.
+    description: Logo shown in the letterhead, an SVG file in the Configuration. Supplied by the Configuration.
+    pattern: '^([A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*\.svg$'
   accent_color:
     type: color
-    description: Colour of the margin stripe and the footer rule. Supplied by the Configuration.
+    description: Colour of the margin stripe and the footer rule, six hex digits. Supplied by the Configuration.
+    pattern: '^[0-9A-Fa-f]{6}$'
   date:
     type: date
     description: Date of the letter. Left empty when not set.

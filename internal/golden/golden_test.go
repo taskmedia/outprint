@@ -54,6 +54,31 @@ func TestGoldens(t *testing.T) {
 	}
 }
 
+// TestValidateShippedPackages runs `renderer validate` against the packages
+// shipped in the image: once as a service would load them (service
+// configuration from the image environment), once as the pair an author
+// would check.
+func TestValidateShippedPackages(t *testing.T) {
+	bin := os.Getenv("RENDERER_BIN")
+	if bin == "" {
+		bin = "renderer"
+	}
+	for name, args := range map[string][]string{
+		"service configuration": {"validate"},
+		"explicit pair":         {"validate", "--template", "neutral", "--config", "example"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			output, err := exec.Command(bin, args...).CombinedOutput()
+			if err != nil {
+				t.Fatalf("renderer %v failed: %v\n%s", args, err, output)
+			}
+			if !strings.Contains(string(output), "validate: ok, 0 warning(s)") {
+				t.Fatalf("expected a clean validation, got:\n%s", output)
+			}
+		})
+	}
+}
+
 func render(t *testing.T, root string, tc testCase) string {
 	t.Helper()
 	fixture := filepath.Join(root, "testdata", "fixtures", tc.name)

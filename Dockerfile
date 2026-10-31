@@ -20,8 +20,10 @@ RUN apt-get update \
 COPY --from=build /out/renderer /usr/local/bin/renderer
 COPY templates /opt/renderer/templates
 COPY configurations /opt/renderer/configurations
+COPY config/service.yaml /opt/renderer/service.yaml
 ENV RENDERER_TEMPLATES_ROOT=/opt/renderer/templates \
-    RENDERER_CONFIGURATIONS_ROOT=/opt/renderer/configurations
+    RENDERER_CONFIGURATIONS_ROOT=/opt/renderer/configurations \
+    RENDERER_SERVICE_CONFIG=/opt/renderer/service.yaml
 RUN useradd --system --create-home --uid 10001 render
 USER render
 ENTRYPOINT ["/usr/local/bin/renderer"]
