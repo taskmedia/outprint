@@ -1,0 +1,11 @@
+# Proof-of-concept directory: never part of the repository
+/__tmp/
+
+# Local state and build output
+*.db
+agentdb.rvf*
+bin/
+.env
+*.pdf
+!testdata/**/*.pdf
+profile/
