@@ -3,11 +3,11 @@ package cli
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"time"
 
@@ -19,7 +19,10 @@ import (
 
 const usage = `usage: renderer render --template NAME --config NAME [--title TEXT] [--date YYYY-MM-DD]
                        [--json-errors] [--templates-root DIR] [--configs-root DIR]
+                       [--timeout DURATION] [--debug-tex-log]
                        -o OUTPUT.pdf INPUT.md
+       renderer warm-cache --template NAME --config NAME --out DIR
+                           [--templates-root DIR] [--configs-root DIR]
        renderer validate [--service-config FILE]
                          [--templates-root DIR] [--configs-root DIR]
                          [--template NAME] [--config NAME]`
@@ -30,6 +33,14 @@ const (
 
 	defaultTemplatesRoot = "./templates"
 	defaultConfigsRoot   = "./configurations"
+
+	envTimeout     = "RENDERER_TIMEOUT"
+	envDebugTeXLog = "RENDERER_DEBUG_TEX_LOG"
+	envWorkDir     = "RENDERER_WORK_DIR"
+	envLogLevel    = "RENDERER_LOG_LEVEL"
+	envCacheDir    = "RENDERER_TEXCACHE_DIR"
+
+	defaultCacheDir = "/opt/renderer/texcache"
 
 	isoDateLayout = "2006-01-02"
 )
@@ -44,6 +55,11 @@ type renderOptions struct {
 	JSONErrors    bool
 	Output        string
 	Input         string
+	Timeout       time.Duration
+	DebugTeXLog   bool
+	LogLevel      slog.Level
+	WorkDir       string
+	CacheDir      string
 }
 
 // Run executes the command line and returns the process exit code:
@@ -58,6 +74,8 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return runRender(args[1:], stdout, stderr)
 	case "validate":
 		return runValidate(args[1:], os.Getenv, stdout, stderr)
+	case "warm-cache":
+		return runWarmCache(args[1:], os.Getenv, stderr)
 	}
 	fmt.Fprintln(stderr, usage)
 	return 2
@@ -69,31 +87,11 @@ func runRender(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "renderer: %v\n%s\n", err, usage)
 		return 2
 	}
-	if err := render(context.Background(), opts); err != nil {
+	if err := render(context.Background(), opts, stderr); err != nil {
 		reportRenderError(err, opts, stdout, stderr)
 		return 1
 	}
 	return 0
-}
-
-// reportRenderError prints metadata problems readably, or as the JSON error
-// body with --json-errors, and any other failure as a single line.
-func reportRenderError(err error, opts renderOptions, stdout, stderr io.Writer) {
-	var list *metadata.ErrorList
-	if !errors.As(err, &list) {
-		fmt.Fprintf(stderr, "renderer: %v\n", err)
-		return
-	}
-	if opts.JSONErrors {
-		if encodeErr := json.NewEncoder(stdout).Encode(list); encodeErr != nil {
-			fmt.Fprintf(stderr, "renderer: encode errors: %v\n", encodeErr)
-		}
-		return
-	}
-	fmt.Fprintf(stderr, "renderer: %s has %d problem(s):\n", opts.Input, len(list.Errors))
-	for _, e := range list.Errors {
-		fmt.Fprintf(stderr, "  %s\n", e)
-	}
 }
 
 func parseRender(args []string, getenv func(string) string) (renderOptions, error) {
@@ -108,6 +106,12 @@ func parseRender(args []string, getenv func(string) string) (renderOptions, erro
 	fs.StringVar(&o.Date, "date", "", "last-modified date, ISO (default: the input file's modification date)")
 	fs.BoolVar(&o.JSONErrors, "json-errors", false, "print metadata problems as the JSON error body on stdout")
 	fs.StringVar(&o.Output, "o", "", "output PDF path")
+	fs.DurationVar(&o.Timeout, "timeout", timeoutFromEnv(getenv), "wall-clock limit for the render")
+	fs.BoolVar(&o.DebugTeXLog, "debug-tex-log", getenv(envDebugTeXLog) == "1",
+		"print the full TeX log to stderr (UNSAFE: may contain document content)")
+	o.WorkDir = getenv(envWorkDir)
+	o.LogLevel = logLevelFromEnv(getenv)
+	o.CacheDir = firstNonEmpty(getenv(envCacheDir), defaultCacheDir)
 	if err := fs.Parse(args); err != nil {
 		return renderOptions{}, err
 	}
@@ -118,6 +122,8 @@ func parseRender(args []string, getenv func(string) string) (renderOptions, erro
 		return renderOptions{}, errors.New("--config is required")
 	case o.Output == "":
 		return renderOptions{}, errors.New("-o is required")
+	case o.Timeout <= 0:
+		return renderOptions{}, errors.New("--timeout must be positive")
 	case fs.NArg() != 1:
 		return renderOptions{}, errors.New("exactly one input file is required")
 	}
@@ -128,7 +134,7 @@ func parseRender(args []string, getenv func(string) string) (renderOptions, erro
 	return o, nil
 }
 
-func render(ctx context.Context, o renderOptions) error {
+func render(ctx context.Context, o renderOptions, stderr io.Writer) error {
 	tpl, err := packages.LoadTemplate(o.TemplatesRoot, o.Template)
 	if err != nil {
 		return err
@@ -156,13 +162,7 @@ func render(ctx context.Context, o renderOptions) error {
 		return err
 	}
 
-	pdf, err := worker.Render(ctx, worker.Job{
-		Markdown:      resolved.Body,
-		Values:        resolved.Values,
-		Template:      tpl,
-		DocumentType:  resolved.DocumentType,
-		Configuration: cfg,
-	})
+	pdf, err := worker.Render(ctx, workerJob(o, resolved, tpl, cfg, stderr))
 	if err != nil {
 		return err
 	}
@@ -192,4 +192,40 @@ func firstNonEmpty(values ...string) string {
 		}
 	}
 	return ""
+}
+
+func workerJob(o renderOptions, r metadata.Result, tpl packages.Template, cfg packages.Configuration, stderr io.Writer) worker.Job {
+	job := worker.Job{
+		Markdown:      r.Body,
+		Values:        r.Values,
+		Template:      tpl,
+		DocumentType:  r.DocumentType,
+		Configuration: cfg,
+		Timeout:       o.Timeout,
+		WorkRoot:      o.WorkDir,
+		CacheDir:      o.CacheDir,
+		Logger:        slog.New(slog.NewTextHandler(stderr, &slog.HandlerOptions{Level: o.LogLevel})),
+	}
+	if o.DebugTeXLog {
+		job.DebugTeXLog = stderr
+	}
+	return job
+}
+
+func timeoutFromEnv(getenv func(string) string) time.Duration {
+	if d, err := time.ParseDuration(getenv(envTimeout)); err == nil && d > 0 {
+		return d
+	}
+	return worker.DefaultTimeout
+}
+
+// logLevelFromEnv reads RENDERER_LOG_LEVEL (debug, info, warn, error). The
+// default, warn, logs only failures.
+func logLevelFromEnv(getenv func(string) string) slog.Level {
+	var level slog.Level
+	name := getenv(envLogLevel)
+	if name == "" || level.UnmarshalText([]byte(name)) != nil {
+		return slog.LevelWarn
+	}
+	return level
 }

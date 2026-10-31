@@ -9,7 +9,14 @@ $else$
 \definecolor{accent}{HTML}{444444}
 $endif$
 \input{shared/neutral.tex}
-\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+% scrlttr2 has no sectioning commands, but the Pandoc writer emits them for
+% Markdown headings. In a letter a heading is a bold line of its own.
+\newcommand{\neutralheading}[2]{\par\medskip\noindent{#1 #2}\par\nopagebreak\smallskip}
+\ifdef{\section}{}{\NewDocumentCommand{\section}{s m}{\neutralheading{\large\bfseries}{#2}}}
+\ifdef{\subsection}{}{\NewDocumentCommand{\subsection}{s m}{\neutralheading{\normalsize\bfseries}{#2}}}
+\ifdef{\subsubsection}{}{\NewDocumentCommand{\subsubsection}{s m}{\neutralheading{\normalsize\bfseries\itshape}{#2}}}
+\ifdef{\paragraph}{}{\NewDocumentCommand{\paragraph}{s m}{\neutralheading{\normalsize\bfseries}{#2}}}
+\ifdef{\subparagraph}{}{\NewDocumentCommand{\subparagraph}{s m}{\neutralheading{\normalsize\itshape}{#2}}}
 $if(highlighting-macros)$
 \usepackage{fancyvrb}
 $highlighting-macros$

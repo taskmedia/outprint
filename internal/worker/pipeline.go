@@ -1,31 +1,33 @@
-// Package worker turns a job into a PDF: SVG logo to PDF, Pandoc, LuaLaTeX.
-// It runs in a fresh job directory with an environment rebuilt from scratch.
-// Document values reach TeX only as Pandoc metadata.
+// Package worker turns a job into a PDF: SVG logo to PDF, Pandoc with Lua
+// filters, LuaLaTeX. Every job runs in a fresh job directory with an
+// environment rebuilt from scratch and an engine configuration of the
+// Worker's own. Document values reach TeX only as Pandoc metadata.
 package worker
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"log/slog"
 	"maps"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/taskmedia/outline-latex-pdf/internal/packages"
 )
 
 const (
-	defaultTimeout  = 2 * time.Minute
-	maxOutputTail   = 2000
+	// DefaultTimeout is the wall-clock limit of one job.
+	DefaultTimeout  = 60 * time.Second
 	maxLualatexRuns = 2
 	logoField       = "logo"
 	logoJobFile     = "logo.pdf"
 	pandocReader    = "markdown-raw_tex-raw_attribute-tex_math_dollars-yaml_metadata_block"
+	texJobName      = "doc"
+	filterMarker    = "renderer-filter:"
 )
 
 // Job is everything the pipeline needs to produce one PDF. Markdown is the
@@ -37,210 +39,333 @@ type Job struct {
 	Template      packages.Template
 	DocumentType  string
 	Configuration packages.Configuration
-	Timeout       time.Duration
-}
+	// Images are the canonical image files of the Document by bundle name.
+	// Markdown may refer to them as images/<name> and to nothing else.
+	Images map[string][]byte
 
-// Error reports the failing phase together with the tool output.
-type Error struct {
-	Phase  string
-	Err    error
-	Output string
+	// Timeout is the wall-clock limit for the whole job; zero means
+	// DefaultTimeout.
+	Timeout time.Duration
+	// WorkRoot is where the job directory is created. A tmpfs in production.
+	// Empty means the system temporary directory.
+	WorkRoot string
+	// CacheDir is a pre-built luaotfload cache. It is copied into the job's
+	// own cache directory; the original is never written to. Ignored if it
+	// does not exist.
+	CacheDir string
+	// Logger receives job, phase, duration, exit code and the first TeX error
+	// line, never Document content. Nil logs warnings to stderr.
+	Logger *slog.Logger
+	// DebugTeXLog, if set, receives the full TeX log after a loud warning.
+	// The log can contain Document content. Never set it by default.
+	DebugTeXLog io.Writer
 }
-
-func (e *Error) Error() string {
-	out := e.Output
-	if len(out) > maxOutputTail {
-		out = out[len(out)-maxOutputTail:]
-	}
-	return fmt.Sprintf("%s: %v\n%s", e.Phase, e.Err, out)
-}
-
-func (e *Error) Unwrap() error { return e.Err }
 
 // Render runs the pipeline and returns the PDF bytes.
 func Render(ctx context.Context, job Job) ([]byte, error) {
-	tplFile, err := job.Template.DocumentTypeFile(job.DocumentType)
-	if err != nil {
-		return nil, err
-	}
+	var pdf []byte
+	err := runJob(ctx, job, nil, &pdf)
+	return pdf, err
+}
 
+// runJob is Render with a hook that sees the finished job directory before
+// it is removed.
+func runJob(ctx context.Context, job Job, afterTeX func(jobDir string) error, pdf *[]byte) error {
+	id, err := newJobID()
+	if err != nil {
+		return &Error{Phase: PhaseSetup, Kind: KindInternal, JobID: "unknown", Err: err}
+	}
+	p := &pipeline{job: job, id: id, log: job.Logger, afterTeX: afterTeX}
+	if p.log == nil {
+		p.log = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))
+	}
 	timeout := job.Timeout
 	if timeout <= 0 {
-		timeout = defaultTimeout
+		timeout = DefaultTimeout
 	}
-	ctx, cancel := context.WithTimeout(ctx, timeout)
+	var cancel context.CancelFunc
+	p.ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
+	p.timeout = timeout
 
-	jobDir, err := os.MkdirTemp("", "render-*")
+	out, err := p.run()
 	if err != nil {
-		return nil, fmt.Errorf("create job dir: %w", err)
+		return err
 	}
-	defer os.RemoveAll(jobDir)
+	*pdf = out
+	return nil
+}
 
-	env := buildEnv(jobDir, os.LookupEnv)
-	if err := prepareDirs(jobDir); err != nil {
+type pipeline struct {
+	job      Job
+	id       string
+	ctx      context.Context
+	timeout  time.Duration
+	log      *slog.Logger
+	dir      string
+	env      []string
+	afterTeX func(jobDir string) error
+}
+
+func (p *pipeline) run() ([]byte, error) {
+	tplFile, err := p.job.Template.DocumentTypeFile(p.job.DocumentType)
+	if err != nil {
+		return nil, p.fail(PhaseSetup, KindInvalidJob, err)
+	}
+	p.dir, err = createJobDir(p.job.WorkRoot, p.id)
+	if err != nil {
+		return nil, p.fail(PhaseSetup, KindInternal, err)
+	}
+	defer os.RemoveAll(p.dir)
+
+	if err := p.prepare(); err != nil {
+		return nil, p.fail(PhaseSetup, KindInternal, err)
+	}
+	values, err := p.prepareValues()
+	if err != nil {
 		return nil, err
 	}
-	if err := copyShared(job.Template, jobDir); err != nil {
+	if err := p.pandoc(tplFile, values); err != nil {
 		return nil, err
 	}
-
-	values := job.Values
-	if logo, ok := values[logoField].(string); ok {
-		if err := convertLogo(ctx, job.Configuration, logo, jobDir, env); err != nil {
-			return nil, err
+	if err := p.typeset(); err != nil {
+		return nil, err
+	}
+	if p.afterTeX != nil {
+		if err := p.afterTeX(p.dir); err != nil {
+			return nil, p.fail(PhaseSetup, KindInternal, err)
 		}
-		values = withValue(values, logoField, logoJobFile)
 	}
-	values, err = formatDates(job.Template, values)
+	pdf, err := os.ReadFile(filepath.Join(p.dir, texJobName+".pdf"))
 	if err != nil {
-		return nil, err
-	}
-
-	metaPath := filepath.Join(jobDir, "meta.yaml")
-	meta, err := pandocMetadata(job.Template, values)
-	if err != nil {
-		return nil, fmt.Errorf("encode metadata: %w", err)
-	}
-	inputPath := filepath.Join(jobDir, "input.md")
-	for path, data := range map[string][]byte{metaPath: meta, inputPath: job.Markdown} {
-		if err := os.WriteFile(path, data, 0o600); err != nil {
-			return nil, fmt.Errorf("write job file: %w", err)
-		}
-	}
-
-	texPath := filepath.Join(jobDir, "doc.tex")
-	if _, err := run(ctx, "pandoc", jobDir, env, "pandoc", pandocArgs(tplFile, metaPath, inputPath, texPath)); err != nil {
-		return nil, err
-	}
-	if err := typeset(ctx, jobDir, env); err != nil {
-		return nil, err
-	}
-	pdf, err := os.ReadFile(filepath.Join(jobDir, "doc.pdf"))
-	if err != nil {
-		return nil, fmt.Errorf("read pdf: %w", err)
+		return nil, p.fail(PhaseTeX, KindNoOutput, errors.New("no PDF was produced"))
 	}
 	return pdf, nil
 }
 
-func typeset(ctx context.Context, jobDir string, env []string) error {
-	for i := 0; i < maxLualatexRuns; i++ {
-		out, err := run(ctx, "lualatex", jobDir, env, "lualatex", lualatexArgs("doc.tex"))
-		if err != nil {
+func (p *pipeline) prepare() error {
+	if err := prepareDirs(p.dir); err != nil {
+		return err
+	}
+	install, err := discoverInstall(p.ctx, p.dir)
+	if err != nil {
+		return err
+	}
+	cnf, err := engineSetup(p.dir, install)
+	if err != nil {
+		return err
+	}
+	p.env = buildEnv(p.dir, cnf, os.LookupEnv)
+
+	steps := []func() error{
+		func() error { return copyShared(p.job.Template, p.dir) },
+		func() error { return copyTemplateFonts(p.job.Template, p.dir) },
+		func() error { return writeImages(p.dir, p.job.Images) },
+		p.copyCache,
+	}
+	for _, step := range steps {
+		if err := step(); err != nil {
 			return err
 		}
-		if !needsRerun(out) {
+	}
+	return nil
+}
+
+func (p *pipeline) copyCache() error {
+	if p.job.CacheDir == "" || !dirExists(p.job.CacheDir) {
+		return nil
+	}
+	return copyTree(p.job.CacheDir, filepath.Join(p.dir, texmfVarDir), false)
+}
+
+// prepareValues converts the logo and formats dates.
+func (p *pipeline) prepareValues() (map[string]any, error) {
+	values := p.job.Values
+	if logo, ok := values[logoField].(string); ok {
+		if err := p.convertLogo(logo); err != nil {
+			return nil, err
+		}
+		values = withValue(values, logoField, logoJobFile)
+	}
+	values, err := formatDates(p.job.Template, values)
+	if err != nil {
+		return nil, p.fail(PhaseSetup, KindInvalidJob, err)
+	}
+	return values, nil
+}
+
+func (p *pipeline) convertLogo(logo string) error {
+	src, err := p.job.Configuration.AssetPath(logo)
+	if err != nil {
+		return p.fail(PhaseSVG, KindInvalidJob, fmt.Errorf("logo: %w", err))
+	}
+	if !strings.EqualFold(filepath.Ext(src), ".svg") {
+		return p.fail(PhaseSVG, KindInvalidJob, fmt.Errorf("logo %q: only SVG is supported", logo))
+	}
+	args := []string{"-f", "pdf", "-o", filepath.Join(p.dir, logoJobFile), src}
+	return p.tool(PhaseSVG, "rsvg-convert", args)
+}
+
+func (p *pipeline) pandoc(templateFile string, values map[string]any) error {
+	meta, err := pandocMetadata(p.job.Template, values)
+	if err != nil {
+		return p.fail(PhaseSetup, KindInvalidJob, fmt.Errorf("encode metadata: %w", err))
+	}
+	metaPath := filepath.Join(p.dir, "meta.yaml")
+	inputPath := filepath.Join(p.dir, "input.md")
+	for path, data := range map[string][]byte{metaPath: meta, inputPath: p.job.Markdown} {
+		if err := os.WriteFile(path, data, 0o600); err != nil {
+			return p.fail(PhaseSetup, KindInternal, fmt.Errorf("write job file: %w", err))
+		}
+	}
+	filters, err := writeFilters(p.dir)
+	if err != nil {
+		return p.fail(PhaseSetup, KindInternal, err)
+	}
+	texPath := filepath.Join(p.dir, texJobName+".tex")
+	res, err := runTool(p.ctx, p.dir, p.env, "pandoc", pandocArgs(templateFile, metaPath, inputPath, texPath, filters))
+	if err != nil {
+		return p.pandocFailure(res, err)
+	}
+	p.logPhase(slog.LevelDebug, PhasePandoc, res, "")
+	return nil
+}
+
+// pandocFailure tells a deliberate filter failure from any other Pandoc
+// failure. Only the failure kind is taken from the output.
+func (p *pipeline) pandocFailure(res toolResult, err error) error {
+	kind, ok := filterKind(res.Output)
+	if !ok {
+		return p.toolError(PhasePandoc, res, err)
+	}
+	p.logPhase(slog.LevelWarn, PhaseFilter, res, "")
+	return &Error{Phase: PhaseFilter, Kind: kind, JobID: p.id, Err: errors.New("a filter rejected the document")}
+}
+
+func filterKind(output string) (Kind, bool) {
+	_, rest, found := strings.Cut(output, filterMarker)
+	if !found {
+		return "", false
+	}
+	name, _, _ := strings.Cut(rest, ":")
+	switch Kind(name) {
+	case KindRawTeX, KindRawFormat, KindMath, KindImagePath:
+		return Kind(name), true
+	}
+	return KindInternal, true
+}
+
+func (p *pipeline) typeset() error {
+	for run := 1; run <= maxLualatexRuns; run++ {
+		res, err := runTool(p.ctx, p.dir, p.env, "lualatex", lualatexArgs(texJobName+".tex"))
+		texLog := p.readTeXLog(res)
+		p.debugLog(texLog)
+		if err != nil {
+			return p.texFailure(res, texLog, err)
+		}
+		p.logPhase(slog.LevelDebug, PhaseTeX, res, "")
+		if !needsRerun(texLog) {
 			return nil
 		}
 	}
 	return nil
 }
 
-func pandocArgs(templateFile, metadataFile, input, output string) []string {
-	return []string{
+func (p *pipeline) readTeXLog(res toolResult) string {
+	data, err := os.ReadFile(filepath.Join(p.dir, texJobName+".log"))
+	if err != nil {
+		return res.Output
+	}
+	return string(data)
+}
+
+func (p *pipeline) texFailure(res toolResult, texLog string, err error) error {
+	first := firstTeXErrorLine(texLog)
+	if first == "" {
+		first = firstTeXErrorLine(res.Output)
+	}
+	if p.ctx.Err() != nil {
+		return p.toolError(PhaseTeX, res, err)
+	}
+	p.logPhase(slog.LevelWarn, PhaseTeX, res, first)
+	return &Error{Phase: PhaseTeX, Kind: KindTeXError, JobID: p.id,
+		Err: fmt.Errorf("lualatex exited with code %d", res.ExitCode), FirstTeXError: first}
+}
+
+// debugLog prints the full TeX log to the debug writer, behind a banner.
+func (p *pipeline) debugLog(texLog string) {
+	if p.job.DebugTeXLog == nil {
+		return
+	}
+	fmt.Fprintf(p.job.DebugTeXLog, "%s\njob %s\n%s\n%s\n%s\n", debugBanner, p.id, debugBanner, texLog, debugBanner)
+}
+
+const debugBanner = "!!!!!!!! DEBUG TEX LOG: MAY CONTAIN DOCUMENT CONTENT. NEVER ENABLE IN PRODUCTION. !!!!!!!!"
+
+// tool runs a tool whose output is of no interest beyond success or failure.
+func (p *pipeline) tool(phase Phase, name string, args []string) error {
+	res, err := runTool(p.ctx, p.dir, p.env, name, args)
+	if err != nil {
+		return p.toolError(phase, res, err)
+	}
+	p.logPhase(slog.LevelDebug, phase, res, "")
+	return nil
+}
+
+// toolError reports a failed tool. A job that ran out of time is reported
+// as a timeout whichever tool was running.
+func (p *pipeline) toolError(phase Phase, res toolResult, err error) error {
+	if res.TimedOut {
+		return p.timeoutError(phase, res)
+	}
+	p.logPhase(slog.LevelWarn, phase, res, "")
+	return &Error{Phase: phase, Kind: KindToolFailed, JobID: p.id,
+		Err: fmt.Errorf("exit code %d", res.ExitCode)}
+}
+
+func (p *pipeline) timeoutError(during Phase, res toolResult) error {
+	p.logPhase(slog.LevelWarn, PhaseTimeout, res, "")
+	return &Error{Phase: PhaseTimeout, Kind: KindTimeout, JobID: p.id,
+		Err: fmt.Errorf("exceeded %s while in phase %s", p.timeout, during)}
+}
+
+// fail builds an error for a problem found outside a tool run.
+func (p *pipeline) fail(phase Phase, kind Kind, cause error) error {
+	if p.ctx != nil && p.ctx.Err() != nil {
+		return p.timeoutError(phase, toolResult{ExitCode: exitCodeUnknown})
+	}
+	p.log.Warn("job failed", "job", p.id, "phase", phase, "kind", kind)
+	return &Error{Phase: phase, Kind: kind, JobID: p.id, Err: cause}
+}
+
+func (p *pipeline) logPhase(level slog.Level, phase Phase, res toolResult, firstTeXError string) {
+	attrs := []any{"job", p.id, "phase", phase, "duration_ms", res.Duration.Milliseconds(), "exit_code", res.ExitCode}
+	if firstTeXError != "" {
+		attrs = append(attrs, "tex_error", firstTeXError)
+	}
+	p.log.Log(context.Background(), level, "phase finished", attrs...)
+}
+
+func pandocArgs(templateFile, metadataFile, input, output string, filters []string) []string {
+	args := []string{
 		"--sandbox",
 		"-f", pandocReader,
 		"-t", "latex",
 		"--template", templateFile,
 		"--metadata-file", metadataFile,
-		"-o", output,
-		input,
 	}
+	for _, f := range filters {
+		args = append(args, "--lua-filter", f)
+	}
+	return append(args, "-o", output, input)
 }
 
 func lualatexArgs(texFile string) []string {
 	return []string{"-interaction=nonstopmode", "-halt-on-error", "-no-shell-escape", texFile}
 }
 
-func needsRerun(log string) bool {
-	return strings.Contains(log, "Rerun to get") || strings.Contains(log, "Label(s) may have changed")
-}
-
 func withValue(m map[string]any, key string, value any) map[string]any {
 	out := maps.Clone(m)
 	out[key] = value
 	return out
-}
-
-// buildEnv returns the only environment child processes see. Nothing is
-// inherited except the reproducibility variables.
-func buildEnv(jobDir string, lookup func(string) (string, bool)) []string {
-	env := []string{
-		"PATH=/usr/local/bin:/usr/bin:/bin",
-		"LC_ALL=C.UTF-8",
-		"HOME=" + filepath.Join(jobDir, "home"),
-		"TEXMFVAR=" + filepath.Join(jobDir, "texmf-var"),
-		"TEXMFCONFIG=" + filepath.Join(jobDir, "texmf-config"),
-		"TMPDIR=" + jobDir,
-		"shell_escape=f",
-	}
-	for _, name := range []string{"SOURCE_DATE_EPOCH", "FORCE_SOURCE_DATE"} {
-		if v, ok := lookup(name); ok {
-			env = append(env, name+"="+v)
-		}
-	}
-	return env
-}
-
-func prepareDirs(jobDir string) error {
-	for _, d := range []string{"home", "texmf-var", "texmf-config", "shared"} {
-		if err := os.Mkdir(filepath.Join(jobDir, d), 0o700); err != nil {
-			return fmt.Errorf("create job dir: %w", err)
-		}
-	}
-	return nil
-}
-
-func copyShared(t packages.Template, jobDir string) error {
-	names, err := t.SharedFiles()
-	if err != nil {
-		return err
-	}
-	for _, name := range names {
-		src, err := t.SharedPath(name)
-		if err != nil {
-			return err
-		}
-		data, err := os.ReadFile(src)
-		if err != nil {
-			return fmt.Errorf("read shared file: %w", err)
-		}
-		if err := os.WriteFile(filepath.Join(jobDir, "shared", name), data, 0o600); err != nil {
-			return fmt.Errorf("write shared file: %w", err)
-		}
-	}
-	return nil
-}
-
-func convertLogo(ctx context.Context, cfg packages.Configuration, logo, jobDir string, env []string) error {
-	src, err := cfg.AssetPath(logo)
-	if err != nil {
-		return fmt.Errorf("logo: %w", err)
-	}
-	if !strings.EqualFold(filepath.Ext(src), ".svg") {
-		return fmt.Errorf("logo %q: only SVG is supported", logo)
-	}
-	args := []string{"-f", "pdf", "-o", filepath.Join(jobDir, logoJobFile), src}
-	_, err = run(ctx, "rsvg-convert", jobDir, env, "rsvg-convert", args)
-	return err
-}
-
-// run executes one tool with the given environment and returns its combined
-// output. On cancellation the whole process group is killed.
-func run(ctx context.Context, phase, dir string, env []string, name string, args []string) (string, error) {
-	cmd := exec.CommandContext(ctx, name, args...)
-	cmd.Dir = dir
-	cmd.Env = env
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	cmd.Cancel = func() error { return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL) }
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-	if err := cmd.Run(); err != nil {
-		if ctxErr := ctx.Err(); ctxErr != nil {
-			err = errors.Join(err, ctxErr)
-		}
-		return out.String(), &Error{Phase: phase, Err: err, Output: out.String()}
-	}
-	return out.String(), nil
 }
