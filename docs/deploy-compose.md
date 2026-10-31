@@ -49,6 +49,11 @@ image lists the allowed Bindings and the default Binding.
 | `mem_limit: 1g`, `cpus: 1`, `pids_limit: 128` | a resource bomb ends at the container |
 | `restart: always` | the Worker exits after a timeout or kill; this gives the next job a clean process |
 
+The baseline is enforced by the build: `internal/sandbox` reads this file,
+fails if any row above is weakened or if the service uses a key it does not
+know, and the security suite runs the Worker with exactly these settings
+([security.md](security.md)).
+
 At start the Worker logs its posture (`worker security posture`); anything
 weaker than this table is logged as `worker posture is weaker than the shipped
 baseline`.

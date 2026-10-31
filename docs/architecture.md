@@ -115,6 +115,10 @@ types are checked, and the limits below apply. The limits live in
 | images | 50, 10 MiB each, 50 MiB in total |
 | values | 200 names, 64 KiB per value, 200 list items, 1 MiB in total |
 | PDF returned by the Worker | 50 MiB |
+| pages of the PDF | 500 |
+
+The per-job limits (time, pages, PDF size, TeX runs) and the container limits
+are named in one place, `internal/limits`; see [security.md](security.md).
 
 ## Request flow
 
@@ -194,6 +198,8 @@ response carries a log excerpt, TeX output, Document content or a cause.
 | invalid Binding block | 422 | errors with `source: collection` and a `binding_*` code, see [binding.md](binding.md) |
 | Outline answers 403 or 404 for the Collection | 403 / 404 | `phase: binding`, no fallback |
 | Markdown, bundle or PDF over a limit | 413 | |
+| too many pages (`pages_exceeded`), PDF too large (`pdf_too_large`) | 413 | `phase: output` |
+| the job ran out of memory or scratch space (`resource`) | 413 | the Worker restarts |
 | Worker busy | 429 | with `Retry-After` |
 | Worker timeout | 504 | `phase: timeout` |
 | Outline or Worker unreachable, TeX error, any other failure | 500 | only phase and job id |
