@@ -33,6 +33,11 @@ plain link: the browser sends the user's cookie by itself and downloads the
 file. The endpoint changes nothing on the server, and the response is
 `Cache-Control: no-store`. `GET /healthz` answers 200.
 
+`GET /status/{documentId}` tells the button script whether to show the button
+(see [Status endpoint](#status-endpoint)). The Template and Configuration come
+from the Collection's Binding block ([binding.md](binding.md)) and nowhere
+else: no query parameter or header selects or overrides them.
+
 Configuration (environment):
 
 | Variable | Meaning | Default |
@@ -118,9 +123,15 @@ types are checked, and the limits below apply. The limits live in
    a cookie is present.
 3. It calls Outline `documents.info` with that cookie and no other credential.
    Outline's own permissions decide whether the user may read the Document.
-4. It selects the Binding: the default Binding of the service configuration.
-   (Collection Bindings come with `collections.info`, which the client already
-   offers.) No default Binding is an error, never a fallback.
+4. It selects the Binding. It reads the overview of the Document's Collection
+   with `collections.info` and the same cookie, on every render and without a
+   cache, and `binding.Resolve` turns it into a Binding: the first `yaml
+   binding` block, or the default Binding of the service configuration only
+   when the overview has no block at all. A broken block, a second block, an
+   unknown name or a pair off the allow-list is a 422 with `source:
+   collection`, never a fallback to the default. No block and no default is a
+   422 `no_binding`. A Document without a Collection has no block. See
+   [binding.md](binding.md).
 5. `metadata.Resolve` merges the Metadata Block with the derived values: `title`
    is the Outline title and `date` is the last-modified date (`updatedAt`, in
    UTC, as an ISO date).
@@ -128,9 +139,26 @@ types are checked, and the limits below apply. The limits live in
 7. It streams the PDF back with `Content-Disposition` and `Cache-Control:
    no-store`.
 
-The user's cookie leaves the Gateway at step 3 only, and only to the origin in
-`OUTLINE_URL`. The Outline client never follows a redirect, so a redirect
+The user's cookie leaves the Gateway at steps 3 and 4 only, and only to the
+origin in `OUTLINE_URL`. The Outline client never follows a redirect, so a redirect
 cannot carry the cookie elsewhere.
+
+### Status endpoint
+
+`GET /status/{documentId}` (cookie forwarded, nothing rendered) answers
+`200 {"available": true|false, "reason": "..."}` with `Cache-Control: no-store`:
+
+| available | reason | when |
+|-----------|--------|------|
+| true | `collection_binding` | the Collection has a valid block |
+| true | `collection_binding_invalid` | the Collection has a block that does not validate; the author sees the error on click |
+| true | `default_binding` | no block, and the installation has a default Binding |
+| false | `no_binding` | no block and no default Binding |
+
+Failures are `{"message","phase"}` with the status of the cause: 400 for a bad
+id, 401 without a cookie or when Outline answers 401, 403 and 404 when the
+user cannot read the Document or its Collection, 500 otherwise. A client must
+treat any non-200 answer as "do not decide" and may keep the button hidden.
 
 The place for admission control (global slot limit, per-user limit keyed by the
 Outline-confirmed user id from `UserID`) is between steps 5 and 6, in
@@ -163,6 +191,8 @@ response carries a log excerpt, TeX output, Document content or a cause.
 | Outline answers 404 | 404 | |
 | metadata errors | 422 | the error list; all problems at once |
 | no Binding | 422 | one error with `source: collection`, `code: no_binding` |
+| invalid Binding block | 422 | errors with `source: collection` and a `binding_*` code, see [binding.md](binding.md) |
+| Outline answers 403 or 404 for the Collection | 403 / 404 | `phase: binding`, no fallback |
 | Markdown, bundle or PDF over a limit | 413 | |
 | Worker busy | 429 | with `Retry-After` |
 | Worker timeout | 504 | `phase: timeout` |

@@ -39,6 +39,7 @@ type fakeOutline struct {
 	srv  *httptest.Server
 	mu   sync.Mutex
 	docs map[string]outlineDoc
+	cols map[string]outlineDoc
 	seen []seenRequest
 }
 
@@ -46,13 +47,18 @@ type seenRequest struct{ path, cookie string }
 
 func newFakeOutline(t *testing.T) *fakeOutline {
 	t.Helper()
-	f := &fakeOutline{docs: map[string]outlineDoc{}}
+	f := &fakeOutline{docs: map[string]outlineDoc{}, cols: map[string]outlineDoc{}}
+	f.addCollection("c1", 200, "")
 	f.srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body map[string]string
 		_ = json.NewDecoder(r.Body).Decode(&body)
 		f.mu.Lock()
 		f.seen = append(f.seen, seenRequest{r.URL.Path, r.Header.Get("Cookie")})
-		d, ok := f.docs[body["id"]]
+		table := f.docs
+		if r.URL.Path == "/api/collections.info" {
+			table = f.cols
+		}
+		d, ok := table[body["id"]]
 		f.mu.Unlock()
 		if !ok {
 			http.NotFound(w, r)
@@ -71,6 +77,24 @@ func (f *fakeOutline) add(id string, status int, title, text string) {
 	f.docs[id] = outlineDoc{status: status, doc: map[string]any{
 		"id": id, "title": title, "text": text, "updatedAt": "2026-03-02T23:30:00.000Z", "collectionId": "c1",
 	}}
+}
+
+func (f *fakeOutline) addCollection(id string, status int, overview string) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.cols[id] = outlineDoc{status: status, doc: map[string]any{"id": id, "name": "Team", "description": overview}}
+}
+
+func (f *fakeOutline) calls(path string) int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	n := 0
+	for _, r := range f.seen {
+		if r.path == path {
+			n++
+		}
+	}
+	return n
 }
 
 // fakeWorker implements the Worker HTTP contract and records what arrived.
@@ -144,7 +168,12 @@ func newEnv(t *testing.T, defaultBinding bool) *env {
 
 func (e *env) get(t *testing.T, id, cookie string) (*http.Response, []byte) {
 	t.Helper()
-	req, _ := http.NewRequest(http.MethodGet, e.gw.URL+"/render/"+id, nil)
+	return e.getPath(t, "/render/"+id, cookie)
+}
+
+func (e *env) getPath(t *testing.T, path, cookie string) (*http.Response, []byte) {
+	t.Helper()
+	req, _ := http.NewRequest(http.MethodGet, e.gw.URL+path, nil)
 	if cookie != "" {
 		req.Header.Set("Cookie", cookie)
 	}
@@ -197,8 +226,14 @@ func TestHappyPath(t *testing.T) {
 		t.Errorf("Content-Disposition = %q (%v, %v)", resp.Header.Get("Content-Disposition"), params, err)
 	}
 
-	if len(e.outline.seen) != 1 || e.outline.seen[0].cookie != cookieCanary || e.outline.seen[0].path != "/api/documents.info" {
-		t.Errorf("outline saw %+v", e.outline.seen)
+	wantPaths := []string{"/api/documents.info", "/api/collections.info"}
+	if len(e.outline.seen) != len(wantPaths) {
+		t.Fatalf("outline saw %+v", e.outline.seen)
+	}
+	for i, seen := range e.outline.seen {
+		if seen.path != wantPaths[i] || seen.cookie != cookieCanary {
+			t.Errorf("outline call %d = %+v", i, seen)
+		}
 	}
 	if len(e.worker.bodies) != 1 {
 		t.Fatalf("worker got %d requests", len(e.worker.bodies))
@@ -471,6 +506,10 @@ func TestPanicIs500WithoutDetail(t *testing.T) {
 }
 
 type panicOutline struct{}
+
+func (panicOutline) Collection(_ context.Context, _ string, _ outline.Session) (outline.Collection, error) {
+	panic(contentCanary)
+}
 
 func (panicOutline) Document(_ context.Context, _ string, _ outline.Session) (outline.Document, error) {
 	panic(contentCanary)

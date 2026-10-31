@@ -15,6 +15,7 @@ const (
 	SourceDocument      = "document"
 	SourceConfiguration = "configuration"
 	SourceTemplate      = "template"
+	SourceCollection    = "collection"
 )
 
 // Codes of an error. Consumers must tolerate codes they do not know:
