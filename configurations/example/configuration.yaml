@@ -1,0 +1,13 @@
+manifest_version: 1
+
+# A Document may override these.
+defaults:
+  document_type: letter
+  opening: Dear Sir or Madam,
+  closing: Kind regards
+
+# Fixed Values: a Document cannot change these.
+fields:
+  name: Example Garden Society
+  logo: logo.svg
+  accent_color: "2F6F5E"

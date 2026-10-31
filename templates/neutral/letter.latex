@@ -1,0 +1,33 @@
+\documentclass[paper=a4, fontsize=11pt, parskip=half, foldmarks=true,
+  fromalign=right, fromlogo=$if(logo)$true$else$false$endif$,
+  backaddress=$if(recipient)$true$else$false$endif$, pagenumber=botcenter]{scrlttr2}
+\usepackage{xcolor}
+$if(accent_color)$
+\definecolor{accent}{HTML}{$accent_color$}
+$else$
+\definecolor{accent}{HTML}{444444}
+$endif$
+\input{shared/neutral.tex}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+$if(highlighting-macros)$
+\usepackage{fancyvrb}
+$highlighting-macros$
+$endif$
+
+\setkomavar{fromname}{$name$}
+$if(logo)$
+\setkomavar{fromlogo}{\includegraphics[height=18mm]{$logo$}}
+$endif$
+\setkomavar{date}{$date$}
+\setkomavar{subject}{$subject$}
+\setkomavar{firstfoot}{\parbox{\textwidth}{\centering\color{accent}\rule{\textwidth}{0.4pt}\\[1mm]\footnotesize\sffamily $name$}}
+
+\begin{document}
+\begin{letter}{$if(recipient)$$for(recipient)$$recipient$$sep$\\ $endfor$$else$\null$endif$}
+\opening{$if(opening)$$opening$$endif$}
+
+$body$
+
+\closing{$if(closing)$$closing$$endif$}
+\end{letter}
+\end{document}

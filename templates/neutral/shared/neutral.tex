@@ -1,0 +1,17 @@
+% Typography, colours and page furniture shared by the Document Types of
+% the neutral Template. The Document Type loads xcolor and defines the
+% colour "accent" before including this file.
+\usepackage{fontspec}
+\setmainfont{texgyrepagella}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold,
+  ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+\setsansfont{texgyreheros}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold,
+  ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\neutralstripewidth}{6mm}
+
+% Margin stripe on every page, drawn behind the text.
+\AddToHook{shipout/background}{%
+  \put(0,-\paperheight){\color{accent}\rule{\neutralstripewidth}{\paperheight}}}

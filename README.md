@@ -27,9 +27,26 @@ Work in progress. Tracked in the project issues.
 ## Development
 
 ```sh
+make build           # build bin/renderer
+make test            # tier 1: Go unit tests, no external tools
+make image           # build the renderer image
+make test-golden     # tier 2: PDF goldens, run inside the pinned image
+make update-goldens  # regenerate goldens, only ever inside the pinned image
 make sanitize        # scan tree and history for forbidden strings
 make test-sanitize   # test the sanitize gate itself
 ```
+
+Render a letter with the shipped Template and Configuration:
+
+```sh
+docker build -t renderer .
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" renderer render --template neutral \
+  --config example -o /data/out.pdf /data/testdata/fixtures/letter-basic/input.md
+```
+
+Goldens compare `pdfinfo`/`pdffonts` facts and `pdftotext -layout` text, never
+PDF bytes. Fixtures live in `testdata/fixtures/<topic>/`, goldens in
+`testdata/golden/<topic>/`.
 
 See [docs/sanitize.md](docs/sanitize.md) for the sanitisation gate.
 

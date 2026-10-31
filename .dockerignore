@@ -1,0 +1,13 @@
+.git
+.github
+.sanitize
+__tmp
+bin
+profile
+docs
+scripts
+*.db
+agentdb.rvf*
+.env
+*.pdf
+!testdata/**/*.pdf

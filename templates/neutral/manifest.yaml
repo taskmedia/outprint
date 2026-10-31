@@ -1,0 +1,32 @@
+manifest_version: 1
+
+fields:
+  name:
+    type: string
+    description: Organisation name, shown in the footer. Supplied by the Configuration.
+  logo:
+    type: asset
+    description: Logo shown in the letterhead. Supplied by the Configuration.
+  accent_color:
+    type: color
+    description: Colour of the margin stripe and the footer rule. Supplied by the Configuration.
+  date:
+    type: date
+    description: Date of the letter. Left empty when not set.
+  subject:
+    type: string
+    description: Subject line.
+  recipient:
+    type: list
+    description: Address lines. The address window is shown only when this is set.
+  opening:
+    type: string
+    description: Salutation.
+  closing:
+    type: string
+    description: Complimentary close.
+
+document_types:
+  letter:
+    template: letter.latex
+    fields: [name, logo, accent_color, date, subject, recipient, opening, closing]
