@@ -78,9 +78,31 @@ func outlineFailure(err error) *failure {
 	return fail(http.StatusInternalServerError, PhaseOutline, "unavailable", "the document could not be rendered", err)
 }
 
+// collectionFailure maps a failed read of the Collection overview. There is
+// no fallback: without the overview the Binding is unknown.
+func collectionFailure(err error) *failure {
+	switch {
+	case errors.Is(err, outline.ErrUnauthorized):
+		return fail(http.StatusUnauthorized, PhaseBinding, "unauthorized", "sign in to Outline to download this document", err)
+	case errors.Is(err, outline.ErrForbidden):
+		return fail(http.StatusForbidden, PhaseBinding, "collection_forbidden",
+			"you are not allowed to read the collection that holds this document's binding", err)
+	case errors.Is(err, outline.ErrNotFound):
+		return fail(http.StatusNotFound, PhaseBinding, "collection_not_found",
+			"the collection that holds this document's binding was not found", err)
+	case errors.Is(err, outline.ErrTooLarge):
+		return fail(http.StatusRequestEntityTooLarge, PhaseBinding, "too_large", "the collection overview is too large to read", err)
+	}
+	return fail(http.StatusInternalServerError, PhaseBinding, "unavailable", "the document could not be rendered", err)
+}
+
+func bindingFailure(list *metadata.ErrorList) *failure {
+	return &failure{status: http.StatusUnprocessableEntity, body: list, phase: PhaseBinding, kind: "invalid_binding", cause: list}
+}
+
 func noBindingFailure() *failure {
 	list := metadata.ErrorList{Errors: []metadata.Error{{
-		Source:  "collection",
+		Source:  metadata.SourceCollection,
 		Code:    codeNoBinding,
 		Message: "no binding: this installation has no default Binding and the Document's Collection has none",
 	}}}

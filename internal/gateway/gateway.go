@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
+	"github.com/taskmedia/outline-latex-pdf/internal/config"
 	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
 	"github.com/taskmedia/outline-latex-pdf/internal/outline"
 	"github.com/taskmedia/outline-latex-pdf/internal/packages"
@@ -33,6 +34,7 @@ var documentIDRE = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$`)
 // Outline is what the Gateway needs from the Outline client.
 type Outline interface {
 	Document(ctx context.Context, id string, s outline.Session) (outline.Document, error)
+	Collection(ctx context.Context, id string, s outline.Session) (outline.Collection, error)
 }
 
 // Worker is what the Gateway needs from the Worker client.
@@ -61,7 +63,8 @@ func New(cfg Config) *Gateway {
 	return &Gateway{cfg: cfg}
 }
 
-// Handler serves GET /render/{documentId} and GET /healthz.
+// Handler serves GET /render/{documentId}, GET /status/{documentId} and
+// GET /healthz.
 //
 // The render endpoint is a GET with the document id in the path so that a
 // button can be a plain link: the browser sends the user's cookie by itself
@@ -70,6 +73,7 @@ func (g *Gateway) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.HandleFunc("GET /render/{documentId}", g.render)
+	mux.HandleFunc("GET /status/{documentId}", g.status)
 	return g.recoverPanic(mux)
 }
 
@@ -103,8 +107,8 @@ func (g *Gateway) render(w http.ResponseWriter, r *http.Request) {
 		"duration_ms", time.Since(start).Milliseconds(), "bytes", len(out.pdf))
 }
 
-// process is the whole request up to the PDF. The cookie leaves this
-// function in exactly one place: the Outline call.
+// process is the whole request up to the PDF. The cookie leaves the Gateway
+// only in Outline calls: the Document and its Collection.
 func (g *Gateway) process(r *http.Request, docID string) (rendered, *failure) {
 	if !documentIDRE.MatchString(docID) {
 		return rendered{}, fail(http.StatusBadRequest, PhaseRequest, "bad_document_id", "invalid document id", nil)
@@ -120,7 +124,11 @@ func (g *Gateway) process(r *http.Request, docID string) (rendered, *failure) {
 	if len(doc.Text) > bundle.MaxMarkdownBytes {
 		return rendered{}, bundleFailure(&bundle.LimitError{What: "markdown"})
 	}
-	b, f := g.buildBundle(doc)
+	sel, f := g.selectBinding(r.Context(), doc, session)
+	if f != nil {
+		return rendered{}, f
+	}
+	b, f := g.buildBundle(doc, sel.Binding)
 	if f != nil {
 		return rendered{}, f
 	}
@@ -133,13 +141,9 @@ func (g *Gateway) process(r *http.Request, docID string) (rendered, *failure) {
 	return rendered{pdf: pdf, title: doc.Title}, nil
 }
 
-// buildBundle selects the Binding, resolves the Metadata Block with the
-// derived title and date, and validates the result.
-func (g *Gateway) buildBundle(doc outline.Document) (bundle.Bundle, *failure) {
-	binding, ok := g.cfg.Registry.DefaultBinding()
-	if !ok {
-		return bundle.Bundle{}, noBindingFailure()
-	}
+// buildBundle resolves the Metadata Block with the derived title and date
+// for the selected Binding, and validates the result.
+func (g *Gateway) buildBundle(doc outline.Document, binding config.Binding) (bundle.Bundle, *failure) {
 	tpl, okT := g.cfg.Registry.Template(binding.Template)
 	cfg, okC := g.cfg.Registry.Configuration(binding.Configuration)
 	if !okT || !okC {

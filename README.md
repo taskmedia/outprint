@@ -61,6 +61,8 @@ See [docs/metadata.md](docs/metadata.md) for the Metadata Block authors write
 [docs/packages.md](docs/packages.md) for the package format, field types,
 typed patterns, the TeX deny-list, the drift guard and `validate`, and
 [docs/standard-fields.md](docs/standard-fields.md) for the Standard Fields.
+See [docs/binding.md](docs/binding.md) for the `yaml binding` block a
+Collection admin uses to choose the Template and Configuration.
 See [docs/worker.md](docs/worker.md) for the Worker pipeline: phases, filters,
 engine lockdown, errors, logging and the debug switch.
 See [docs/architecture.md](docs/architecture.md) for the Gateway and Worker
