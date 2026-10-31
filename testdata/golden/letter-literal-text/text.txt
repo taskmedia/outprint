@@ -1,0 +1,37 @@
+                                                                            Example Garden Society
+
+
+
+
+Example Garden Society
+
+
+
+
+$5 & 10% of #7
+\textbf{not bold}
+
+
+
+
+                                                                                2 March 2026
+
+        Costs $x$ and \input{foo} in *plain* text
+
+
+        Dear Sir or Madam,
+
+        Prices such as $5 and $10 appear as written, and so does $x$.
+        The command \input{foo} is shown literally, as is \textbf{this} and 100%.
+        A code span \input{bar} and the words under_score and ^caret stay as written.
+
+               Kind regards
+
+
+        Example Garden Society
+
+
+
+
+                                         Example Garden Society
+

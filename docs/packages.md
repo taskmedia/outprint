@@ -225,6 +225,9 @@ fields:
 - A Default that is shadowed by a Fixed Value of the same name produces a
   warning.
 
+How a Document's Metadata Block, the Configuration Defaults and the manifest
+defaults combine into field values is described in [metadata.md](metadata.md).
+
 ## Path confinement
 
 For both package kinds:

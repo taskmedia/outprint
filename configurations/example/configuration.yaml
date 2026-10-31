@@ -2,7 +2,8 @@ manifest_version: 1
 
 # A Document may override these.
 defaults:
-  document_type: letter
+  document_type: letter     # a Document may choose another with `type`
+  language: en
   opening: Dear Sir or Madam,
   closing: Kind regards
 

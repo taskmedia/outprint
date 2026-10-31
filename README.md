@@ -41,7 +41,7 @@ Render a letter with the shipped Template and Configuration:
 ```sh
 docker build -t renderer .
 docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" renderer render --template neutral \
-  --config example -o /data/out.pdf /data/testdata/fixtures/letter-basic/input.md
+  --config example --date 2026-03-02 -o /data/out.pdf /data/testdata/fixtures/letter-full/input.md
 ```
 
 Goldens compare `pdfinfo`/`pdffonts` facts and `pdftotext -layout` text, never
@@ -55,7 +55,9 @@ docker run --rm renderer validate                  # the packages shipped in the
 renderer validate --templates-root ./templates --configs-root ./configurations
 ```
 
-See [docs/packages.md](docs/packages.md) for the package format, field types,
+See [docs/metadata.md](docs/metadata.md) for the Metadata Block authors write
+(syntax, layering, field types, errors),
+[docs/packages.md](docs/packages.md) for the package format, field types,
 typed patterns, the TeX deny-list, the drift guard and `validate`, and
 [docs/standard-fields.md](docs/standard-fields.md) for the Standard Fields.
 See [docs/sanitize.md](docs/sanitize.md) for the sanitisation gate.

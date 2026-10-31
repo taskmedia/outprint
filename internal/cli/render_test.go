@@ -1,24 +1,29 @@
 package cli
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func noEnv(string) string { return "" }
 
 func TestParseRenderOptions(t *testing.T) {
 	opts, err := parseRender([]string{
-		"--template", "neutral", "--config", "example", "--type", "letter",
-		"--templates-root", "/t", "--configs-root", "/c", "--fields", "f.yaml",
+		"--template", "neutral", "--config", "example", "--title", "Spring sale",
+		"--date", "2026-03-02", "--json-errors",
+		"--templates-root", "/t", "--configs-root", "/c",
 		"-o", "out.pdf", "in.md",
 	}, noEnv)
 	if err != nil {
 		t.Fatal(err)
 	}
 	want := renderOptions{
-		Template: "neutral", Config: "example", DocumentType: "letter",
-		TemplatesRoot: "/t", ConfigsRoot: "/c", FieldsFile: "f.yaml",
+		Template: "neutral", Config: "example", Title: "Spring sale", Date: "2026-03-02", JSONErrors: true,
+		TemplatesRoot: "/t", ConfigsRoot: "/c",
 		Output: "out.pdf", Input: "in.md",
 	}
 	if opts != want {
@@ -65,6 +70,9 @@ func TestParseRenderRejectsBadUsage(t *testing.T) {
 		"missing input":    {"--template", "a", "--config", "b", "-o", "o.pdf"},
 		"extra input":      {"--template", "a", "--config", "b", "-o", "o.pdf", "in.md", "more.md"},
 		"unknown flag":     {"--template", "a", "--config", "b", "-o", "o.pdf", "--bogus", "in.md"},
+		"removed --type":   {"--template", "a", "--config", "b", "--type", "letter", "-o", "o.pdf", "in.md"},
+		"removed --fields": {"--template", "a", "--config", "b", "--fields", "f.yaml", "-o", "o.pdf", "in.md"},
+		"bad date":         {"--template", "a", "--config", "b", "--date", "2 March", "-o", "o.pdf", "in.md"},
 	}
 	for name, args := range cases {
 		if _, err := parseRender(args, noEnv); err == nil {
@@ -87,14 +95,78 @@ func TestRunUnknownSubcommand(t *testing.T) {
 	}
 }
 
-func TestResolveDocumentType(t *testing.T) {
-	if got, err := resolveDocumentType("report", map[string]any{"document_type": "letter"}); err != nil || got != "report" {
-		t.Fatalf("flag wins: %q %v", got, err)
+const brokenDocument = "```yaml metadata\nsubjct: typo\nname: Somebody\nside: x\n```\nBody\n"
+
+// renderBroken runs render on a Document with metadata problems against the
+// shipped packages. It fails before any external tool is needed.
+func renderBroken(t *testing.T, extra ...string) (code int, stdout, stderr string, output string) {
+	t.Helper()
+	dir := t.TempDir()
+	input := filepath.Join(dir, "in.md")
+	if err := os.WriteFile(input, []byte(brokenDocument), 0o644); err != nil {
+		t.Fatal(err)
 	}
-	if got, err := resolveDocumentType("", map[string]any{"document_type": "letter"}); err != nil || got != "letter" {
-		t.Fatalf("default: %q %v", got, err)
+	output = filepath.Join(dir, "out.pdf")
+	args := append([]string{"render", "--template", "neutral", "--config", "example",
+		"--templates-root", "../../templates", "--configs-root", "../../configurations"}, extra...)
+	args = append(args, "-o", output, input)
+	var out, errOut strings.Builder
+	code = Run(args, &out, &errOut)
+	return code, out.String(), errOut.String(), output
+}
+
+func TestRenderPrintsMetadataProblemsReadably(t *testing.T) {
+	code, stdout, stderr, output := renderBroken(t)
+
+	if code != 1 {
+		t.Fatalf("exit code %d, stderr:\n%s", code, stderr)
 	}
-	if _, err := resolveDocumentType("", nil); err == nil {
-		t.Fatal("expected error without flag or default")
+	for _, want := range []string{"subjct", "did you mean", "Fixed Value", "document line 2"} {
+		if !strings.Contains(stderr, want) {
+			t.Errorf("stderr lacks %q:\n%s", want, stderr)
+		}
+	}
+	if stdout != "" {
+		t.Errorf("stdout = %q, want empty", stdout)
+	}
+	if _, err := os.Stat(output); err == nil {
+		t.Error("no PDF may be written on error")
+	}
+}
+
+func TestRenderJSONErrorsPrintsTheErrorBody(t *testing.T) {
+	code, stdout, _, _ := renderBroken(t, "--json-errors")
+
+	if code != 1 {
+		t.Fatalf("exit code %d", code)
+	}
+	var body struct {
+		Errors []struct {
+			Field, Source, Code, Message string
+			Line                         *int
+		}
+	}
+	if err := json.Unmarshal([]byte(stdout), &body); err != nil {
+		t.Fatalf("stdout is not the error body: %v\n%s", err, stdout)
+	}
+	if len(body.Errors) != 3 {
+		t.Fatalf("want all 3 problems at once, got %+v", body.Errors)
+	}
+}
+
+func TestLastModifiedUsesFlagThenFileDate(t *testing.T) {
+	if got, err := lastModified(renderOptions{Date: "2026-03-02"}); err != nil || got != "2026-03-02" {
+		t.Fatalf("flag: %q %v", got, err)
+	}
+	path := filepath.Join(t.TempDir(), "in.md")
+	if err := os.WriteFile(path, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	when := time.Date(2025, 11, 5, 23, 30, 0, 0, time.UTC)
+	if err := os.Chtimes(path, when, when); err != nil {
+		t.Fatal(err)
+	}
+	if got, err := lastModified(renderOptions{Input: path}); err != nil || got != "2025-11-05" {
+		t.Fatalf("file: %q %v", got, err)
 	}
 }

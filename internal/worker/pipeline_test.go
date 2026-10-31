@@ -1,35 +1,10 @@
 package worker
 
 import (
-	"reflect"
 	"slices"
 	"strings"
 	"testing"
 )
-
-func TestMergeMetadataLayering(t *testing.T) {
-	defaults := map[string]any{"closing": "Regards", "subject": "default subject"}
-	document := map[string]any{"subject": "own subject", "logo": "evil.svg"}
-	fixed := map[string]any{"logo": "logo.svg", "name": "Sample Club"}
-
-	got := mergeMetadata(defaults, document, fixed)
-
-	want := map[string]any{
-		"closing": "Regards",
-		"subject": "own subject",
-		"logo":    "logo.svg",
-		"name":    "Sample Club",
-	}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("got %v, want %v", got, want)
-	}
-}
-
-func TestMergeMetadataAllowsNilLayers(t *testing.T) {
-	if got := mergeMetadata(nil, nil, nil); len(got) != 0 {
-		t.Fatalf("got %v", got)
-	}
-}
 
 func TestBuildEnvIsRebuiltFromScratch(t *testing.T) {
 	host := map[string]string{

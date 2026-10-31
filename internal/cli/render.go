@@ -3,21 +3,22 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
-
-	"gopkg.in/yaml.v3"
+	"time"
 
 	"github.com/taskmedia/outline-latex-pdf/internal/config"
+	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
 	"github.com/taskmedia/outline-latex-pdf/internal/packages"
 	"github.com/taskmedia/outline-latex-pdf/internal/worker"
 )
 
-const usage = `usage: renderer render --template NAME --config NAME [--type NAME]
-                       [--fields FILE] [--templates-root DIR] [--configs-root DIR]
+const usage = `usage: renderer render --template NAME --config NAME [--title TEXT] [--date YYYY-MM-DD]
+                       [--json-errors] [--templates-root DIR] [--configs-root DIR]
                        -o OUTPUT.pdf INPUT.md
        renderer validate [--service-config FILE]
                          [--templates-root DIR] [--configs-root DIR]
@@ -30,16 +31,17 @@ const (
 	defaultTemplatesRoot = "./templates"
 	defaultConfigsRoot   = "./configurations"
 
-	defaultTypeField = "document_type"
+	isoDateLayout = "2006-01-02"
 )
 
 type renderOptions struct {
 	Template      string
 	Config        string
-	DocumentType  string
 	TemplatesRoot string
 	ConfigsRoot   string
-	FieldsFile    string
+	Title         string
+	Date          string
+	JSONErrors    bool
 	Output        string
 	Input         string
 }
@@ -53,7 +55,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	}
 	switch args[0] {
 	case "render":
-		return runRender(args[1:], stderr)
+		return runRender(args[1:], stdout, stderr)
 	case "validate":
 		return runValidate(args[1:], os.Getenv, stdout, stderr)
 	}
@@ -61,17 +63,37 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	return 2
 }
 
-func runRender(args []string, stderr io.Writer) int {
+func runRender(args []string, stdout, stderr io.Writer) int {
 	opts, err := parseRender(args, os.Getenv)
 	if err != nil {
 		fmt.Fprintf(stderr, "renderer: %v\n%s\n", err, usage)
 		return 2
 	}
 	if err := render(context.Background(), opts); err != nil {
-		fmt.Fprintf(stderr, "renderer: %v\n", err)
+		reportRenderError(err, opts, stdout, stderr)
 		return 1
 	}
 	return 0
+}
+
+// reportRenderError prints metadata problems readably, or as the JSON error
+// body with --json-errors, and any other failure as a single line.
+func reportRenderError(err error, opts renderOptions, stdout, stderr io.Writer) {
+	var list *metadata.ErrorList
+	if !errors.As(err, &list) {
+		fmt.Fprintf(stderr, "renderer: %v\n", err)
+		return
+	}
+	if opts.JSONErrors {
+		if encodeErr := json.NewEncoder(stdout).Encode(list); encodeErr != nil {
+			fmt.Fprintf(stderr, "renderer: encode errors: %v\n", encodeErr)
+		}
+		return
+	}
+	fmt.Fprintf(stderr, "renderer: %s has %d problem(s):\n", opts.Input, len(list.Errors))
+	for _, e := range list.Errors {
+		fmt.Fprintf(stderr, "  %s\n", e)
+	}
 }
 
 func parseRender(args []string, getenv func(string) string) (renderOptions, error) {
@@ -80,10 +102,11 @@ func parseRender(args []string, getenv func(string) string) (renderOptions, erro
 	fs.SetOutput(io.Discard)
 	fs.StringVar(&o.Template, "template", "", "Template name")
 	fs.StringVar(&o.Config, "config", "", "Template Configuration name")
-	fs.StringVar(&o.DocumentType, "type", "", "Document Type (default: the Configuration's document_type)")
 	fs.StringVar(&o.TemplatesRoot, "templates-root", firstNonEmpty(getenv(envTemplatesRoot), defaultTemplatesRoot), "Templates root")
 	fs.StringVar(&o.ConfigsRoot, "configs-root", firstNonEmpty(getenv(envConfigsRoot), defaultConfigsRoot), "Configurations root")
-	fs.StringVar(&o.FieldsFile, "fields", "", "YAML file with Document field values")
+	fs.StringVar(&o.Title, "title", "", "Document title, the default for the title field")
+	fs.StringVar(&o.Date, "date", "", "last-modified date, ISO (default: the input file's modification date)")
+	fs.BoolVar(&o.JSONErrors, "json-errors", false, "print metadata problems as the JSON error body on stdout")
 	fs.StringVar(&o.Output, "o", "", "output PDF path")
 	if err := fs.Parse(args); err != nil {
 		return renderOptions{}, err
@@ -98,6 +121,9 @@ func parseRender(args []string, getenv func(string) string) (renderOptions, erro
 	case fs.NArg() != 1:
 		return renderOptions{}, errors.New("exactly one input file is required")
 	}
+	if _, err := time.Parse(isoDateLayout, o.Date); o.Date != "" && err != nil {
+		return renderOptions{}, fmt.Errorf("--date %q is not an ISO date (YYYY-MM-DD)", o.Date)
+	}
 	o.Input = fs.Arg(0)
 	return o, nil
 }
@@ -111,24 +137,30 @@ func render(ctx context.Context, o renderOptions) error {
 	if err != nil {
 		return err
 	}
-	documentType, err := resolveDocumentType(o.DocumentType, cfg.Defaults)
-	if err != nil {
-		return err
-	}
 	markdown, err := os.ReadFile(o.Input)
 	if err != nil {
 		return fmt.Errorf("read input: %w", err)
 	}
-	fields, err := readFields(o.FieldsFile)
+	modified, err := lastModified(o)
+	if err != nil {
+		return err
+	}
+	resolved, err := metadata.Resolve(metadata.Input{
+		Markdown:      markdown,
+		Title:         o.Title,
+		Modified:      modified,
+		Template:      tpl,
+		Configuration: cfg,
+	})
 	if err != nil {
 		return err
 	}
 
 	pdf, err := worker.Render(ctx, worker.Job{
-		Markdown:      markdown,
-		Fields:        fields,
+		Markdown:      resolved.Body,
+		Values:        resolved.Values,
 		Template:      tpl,
-		DocumentType:  documentType,
+		DocumentType:  resolved.DocumentType,
 		Configuration: cfg,
 	})
 	if err != nil {
@@ -140,29 +172,17 @@ func render(ctx context.Context, o renderOptions) error {
 	return nil
 }
 
-func resolveDocumentType(flagValue string, defaults map[string]any) (string, error) {
-	if flagValue != "" {
-		return flagValue, nil
+// lastModified is the date given by --date, else the input file's
+// modification date in UTC.
+func lastModified(o renderOptions) (string, error) {
+	if o.Date != "" {
+		return o.Date, nil
 	}
-	if def, ok := defaults[defaultTypeField].(string); ok && def != "" {
-		return def, nil
-	}
-	return "", errors.New("no document type: pass --type or set document_type in the Configuration defaults")
-}
-
-func readFields(path string) (map[string]any, error) {
-	if path == "" {
-		return nil, nil
-	}
-	data, err := os.ReadFile(path)
+	info, err := os.Stat(o.Input)
 	if err != nil {
-		return nil, fmt.Errorf("read fields: %w", err)
+		return "", fmt.Errorf("stat input: %w", err)
 	}
-	var fields map[string]any
-	if err := yaml.Unmarshal(data, &fields); err != nil {
-		return nil, fmt.Errorf("parse fields: %w", err)
-	}
-	return fields, nil
+	return info.ModTime().UTC().Format(isoDateLayout), nil
 }
 
 func firstNonEmpty(values ...string) string {

@@ -1,0 +1,34 @@
+                                                                       Example Garden Society
+
+
+
+
+Example Garden Society
+
+
+
+
+Ada Example
+
+
+
+
+                                                                           2 March 2026
+
+        Greenhouse key
+
+
+
+        The Configuration supplies a salutation and a complimentary close. This Document
+        replaces the close and leaves the salutation out by setting an empty value.
+
+            With best wishes
+
+
+        Example Garden Society
+
+
+
+
+                                      Example Garden Society
+
