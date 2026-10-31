@@ -34,7 +34,7 @@ func RefuseRoot(uid int) error {
 // Posture is what the Worker can tell about the sandbox it runs in. It is
 // logged at start so an operator can see the baseline is in effect. It holds
 // no secret value: only the names of environment variables that look like
-// one.
+// one and are set.
 type Posture struct {
 	UID, GID       int
 	NoNewPrivs     string
@@ -77,7 +77,7 @@ func CollectPosture(src PostureSource) Posture {
 	}
 	if src.Interfaces != nil {
 		if ifaces, err := src.Interfaces(); err == nil {
-			p.NetInterfaces = fmt.Sprint(countNonLoopback(ifaces))
+			p.NetInterfaces = fmt.Sprint(countUpNonLoopback(ifaces))
 		}
 	}
 	return p
@@ -162,10 +162,12 @@ func hasOption(options, want string) bool {
 	return false
 }
 
-func countNonLoopback(ifaces []net.Interface) int {
+// countUpNonLoopback counts interfaces that are up and not loopback. The
+// kernel's idle tunnel devices (tunl0, sit0, ...) are down and not counted.
+func countUpNonLoopback(ifaces []net.Interface) int {
 	n := 0
 	for _, i := range ifaces {
-		if i.Flags&net.FlagLoopback == 0 {
+		if i.Flags&net.FlagLoopback == 0 && i.Flags&net.FlagUp != 0 {
 			n++
 		}
 	}
@@ -175,8 +177,8 @@ func countNonLoopback(ifaces []net.Interface) int {
 func secretEnvNames(environ []string) []string {
 	var names []string
 	for _, kv := range environ {
-		name, _, _ := strings.Cut(kv, "=")
-		if secretNameRE.MatchString(name) {
+		name, value, _ := strings.Cut(kv, "=")
+		if value != "" && secretNameRE.MatchString(name) {
 			names = append(names, name)
 		}
 	}

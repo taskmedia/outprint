@@ -1,0 +1,183 @@
+# Architecture
+
+One image, `renderer`, runs in two roles. The reasons for the split are in
+[ADR 0001](adr/0001-split-renderer-into-gateway-and-worker.md); this page
+describes the roles, the contract between them, the request flow and how
+errors are mapped.
+
+```
+browser --cookie--> Gateway --cookie--> Outline
+                       |
+                       | job bundle (no cookie, no URL, no secret)
+                       v
+                    Worker (no network, no secrets) --> PDF
+```
+
+## Roles
+
+| Role | Command | Talks to | Holds |
+|------|---------|----------|-------|
+| Gateway | `renderer gateway` | the browser, Outline, the Worker | the user's cookie, for one request |
+| Worker | `renderer worker` | the Gateway only | nothing; at most a shared bearer token |
+
+Both load and validate all packages at startup and refuse to start, naming
+every cause, if anything is wrong (the same check as `renderer validate`). The
+Gateway needs the packages to resolve the Metadata Block; the Worker needs
+them to render.
+
+### Gateway
+
+`GET /render/{documentId}` renders the Document and answers with the PDF. It
+is a GET with the id in the path so that the "Download PDF" button can be a
+plain link: the browser sends the user's cookie by itself and downloads the
+file. The endpoint changes nothing on the server, and the response is
+`Cache-Control: no-store`. `GET /healthz` answers 200.
+
+Configuration (environment):
+
+| Variable | Meaning | Default |
+|----------|---------|---------|
+| `OUTLINE_URL` | base URL of Outline; the only origin the cookie is sent to | required |
+| `RENDERER_WORKER_URL` | base URL of the Worker | required |
+| `RENDERER_WORKER_TOKEN` | optional shared bearer token | none |
+| `RENDERER_LISTEN` | listen address | `:8080` |
+| `RENDERER_TIMEOUT` | render limit; the Gateway waits 30 s longer for the Worker | `60s` |
+| `RENDERER_SERVICE_CONFIG` | service configuration file | |
+| `RENDERER_LOG_LEVEL` | `debug`, `info`, `warn`, `error` | `info` |
+
+### Worker
+
+`POST /render` takes a bundle and answers `application/pdf` or a JSON error
+`{"phase", "kind", "job_id"}`. `GET /healthz` answers 200 and needs no token.
+The pipeline behind it is described in [worker.md](worker.md).
+
+- One job per instance. While a job runs, a second request gets `503` with
+  kind `busy`.
+- A fresh `0700` job directory below `RENDERER_WORK_DIR` per job, removed
+  afterwards. Production mounts the work root as a tmpfs.
+- After a timeout, a kill, a panic or any unexpected failure the Worker sends
+  its response, then shuts down and exits non-zero. While it is shutting down it
+  answers `busy`. The container runtime restarts it (`restart: always`), so the
+  next job starts in a clean process. Ordinary document failures (a TeX error,
+  an image problem) do not restart it.
+- If `RENDERER_WORKER_TOKEN` is set, `/render` requires
+  `Authorization: Bearer <token>`; the comparison is constant-time and a
+  mismatch is `401`.
+- It refuses to start as UID 0 and logs its security posture: uid, gid,
+  `no_new_privs`, whether the root file system is read-only, the effective
+  capabilities, the number of network interfaces that are up, and the *names*
+  (never values) of environment variables that look like secrets. Anything weaker
+  than the shipped baseline is logged as a warning.
+- Server limits: request body capped by `bundle.MaxEncodedBytes`, header read
+  10 s, body read 2 min, idle 60 s.
+
+## The job bundle
+
+The bundle (`internal/bundle`) is the only thing that crosses from the Gateway
+to the Worker. It is JSON, `Content-Type: application/json`:
+
+```json
+{
+  "markdown": "Dear ...\n",
+  "values": {"title": "Spring plant sale", "recipient": ["Ada Example", "1 Sample Lane"]},
+  "template": "neutral",
+  "documentType": "letter",
+  "configuration": "example",
+  "images": {"fig-1.png": "<base64>"}
+}
+```
+
+| Field | Meaning |
+|-------|---------|
+| `markdown` | the Document body, without its Metadata Block |
+| `values` | the merged, typed field values of the Document Type: string, list of strings or bool |
+| `template`, `configuration` | package names; the Worker also checks the pairing against its allow-list |
+| `documentType` | one of the Template's Document Types |
+| `images` | image files by bundle name (`images/<name>` in the Markdown). Empty until images are fetched by the Gateway |
+
+There is no field for a cookie, a URL or a secret, and unknown fields are
+rejected, so none can be added by accident. A test serialises a bundle built
+from a request with a canary cookie and asserts that neither the canary nor the
+Outline host reaches the Worker.
+
+The Worker validates every bundle: names must be identifiers, value names and
+types are checked, and the limits below apply. The limits live in
+`internal/bundle`:
+
+| Limit | Value |
+|-------|-------|
+| Markdown | 1 MiB |
+| images | 50, 10 MiB each, 50 MiB in total |
+| values | 200 names, 64 KiB per value, 200 list items, 1 MiB in total |
+| PDF returned by the Worker | 50 MiB |
+
+## Request flow
+
+1. The browser calls `GET /render/{documentId}` with the user's cookie.
+2. The Gateway checks the id (`[A-Za-z0-9_-]`, at most 100 characters) and that
+   a cookie is present.
+3. It calls Outline `documents.info` with that cookie and no other credential.
+   Outline's own permissions decide whether the user may read the Document.
+4. It selects the Binding: the default Binding of the service configuration.
+   (Collection Bindings come with `collections.info`, which the client already
+   offers.) No default Binding is an error, never a fallback.
+5. `metadata.Resolve` merges the Metadata Block with the derived values: `title`
+   is the Outline title and `date` is the last-modified date (`updatedAt`, in
+   UTC, as an ISO date).
+6. The Gateway builds and validates the bundle and posts it to the Worker.
+7. It streams the PDF back with `Content-Disposition` and `Cache-Control:
+   no-store`.
+
+The user's cookie leaves the Gateway at step 3 only, and only to the origin in
+`OUTLINE_URL`. The Outline client never follows a redirect, so a redirect
+cannot carry the cookie elsewhere.
+
+The place for admission control (global slot limit, per-user limit keyed by the
+Outline-confirmed user id from `UserID`) is between steps 5 and 6, in
+`gateway.process`.
+
+### File name
+
+The file name comes from the Outline title: control characters (CR and LF
+included), path separators, quotes and `: * ? < > | ; %` are replaced by a
+space, whitespace is collapsed, leading and trailing dots and spaces are
+trimmed, and the name is cut at 100 characters. An empty result is `document`.
+The header carries an ASCII fallback and the UTF-8 name per RFC 5987:
+
+```
+Content-Disposition: attachment; filename="Gruesse aus Koeln.pdf"; filename*=UTF-8''Gr%C3%BC%C3%9Fe%20aus%20K%C3%B6ln.pdf
+```
+
+## Error mapping
+
+Validation problems are the structured body of [metadata.md](metadata.md):
+`{"errors":[{"field","source","code","message","line"}]}`. Every other error is
+`{"message", "phase", "job_id"}`, where the message is a fixed sentence. No
+response carries a log excerpt, TeX output, Document content or a cause.
+
+| Situation | Status | Notes |
+|-----------|--------|-------|
+| invalid document id | 400 | |
+| no cookie, or Outline answers 401 | 401 | |
+| Outline answers 403 | 403 | |
+| Outline answers 404 | 404 | |
+| metadata errors | 422 | the error list; all problems at once |
+| no Binding | 422 | one error with `source: collection`, `code: no_binding` |
+| Markdown, bundle or PDF over a limit | 413 | |
+| Worker busy | 429 | with `Retry-After` |
+| Worker timeout | 504 | `phase: timeout` |
+| Outline or Worker unreachable, TeX error, any other failure | 500 | only phase and job id |
+
+## Logging
+
+Both roles log with `log/slog` to stderr.
+
+- The Gateway logs one line per request: `job`, `document` (Outline's id),
+  `phase`, `kind`, `status`, `duration_ms`. A 5xx adds the cause, which is an
+  error of the clients and carries no response text. The `job` is the Worker's
+  job id when the Worker answered, else a Gateway request id.
+- The Worker logs, per failed job, `job`, `phase`, `duration_ms`, `exit_code`
+  and the first TeX error line, see [worker.md](worker.md#logging). The first
+  TeX error line stays in the Worker's log and does not travel to the Gateway;
+  find it by the job id.
+- Neither role logs Document content, metadata values or the cookie.

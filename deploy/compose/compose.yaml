@@ -1,0 +1,103 @@
+# Gateway and Worker from one image (docs/deploy-compose.md, ADR 0001).
+#
+#   OUTLINE_URL=https://wiki.example.test docker compose \
+#     -f deploy/compose/compose.yaml up --build
+#
+# The worker service block is the shipped Worker baseline. Security tests
+# read it (see docs/deploy-compose.md): weaken it and the build breaks.
+
+name: outline-latex-pdf
+
+x-renderer-image: &renderer-image
+  image: outline-latex-pdf-renderer
+  build:
+    context: ../..
+    dockerfile: Dockerfile
+
+services:
+  worker:
+    <<: *renderer-image
+    command: ["worker"]
+    user: "10001:10001"
+    security_opt:
+      - no-new-privileges:true
+      # No seccomp entry: Docker's default profile (RuntimeDefault) applies.
+      # Never set seccomp:unconfined here.
+    cap_drop: [ALL]
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=64m,uid=10001,gid=10001
+      - /work:mode=0700,size=256m,uid=10001,gid=10001
+    environment:
+      RENDERER_LISTEN: ":8081"
+      RENDERER_WORK_DIR: /work
+      # The one optional secret: a token shared with the gateway. Set the same
+      # value in the environment of both services; empty means no token.
+      RENDERER_WORKER_TOKEN: ${RENDERER_WORKER_TOKEN:-}
+    volumes:
+      - type: bind
+        source: ../../templates
+        target: /opt/renderer/templates
+        read_only: true
+      - type: bind
+        source: ../../configurations
+        target: /opt/renderer/configurations
+        read_only: true
+    networks: [worker-net]
+    mem_limit: 1g
+    cpus: 1
+    pids_limit: 128
+    restart: always
+    healthcheck:
+      test: ["CMD", "renderer", "healthcheck", "http://127.0.0.1:8081/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  gateway:
+    <<: *renderer-image
+    command: ["gateway"]
+    user: "10001:10001"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    read_only: true
+    environment:
+      RENDERER_LISTEN: ":8080"
+      RENDERER_WORKER_URL: http://worker:8081
+      RENDERER_WORKER_TOKEN: ${RENDERER_WORKER_TOKEN:-}
+      # Required: the base URL of your Outline. The gateway refuses to start
+      # without it.
+      OUTLINE_URL: ${OUTLINE_URL:-}
+    volumes:
+      - type: bind
+        source: ../../templates
+        target: /opt/renderer/templates
+        read_only: true
+      - type: bind
+        source: ../../configurations
+        target: /opt/renderer/configurations
+        read_only: true
+    networks: [worker-net, frontend]
+    ports:
+      - "${RENDERER_PORT:-8080}:8080"
+    depends_on:
+      worker:
+        condition: service_healthy
+    mem_limit: 256m
+    cpus: 1
+    pids_limit: 128
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "renderer", "healthcheck", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+networks:
+  # No route out: the Worker cannot reach the internet, Outline or the host.
+  worker-net:
+    internal: true
+  frontend: {}

@@ -53,7 +53,7 @@ func TestCollectPostureHardened(t *testing.T) {
 	p := CollectPosture(PostureSource{
 		UID: 10001, GID: 10001, ProcDir: fakeProc(t, hardenedStatus, hardenedMounts),
 		Environ:    []string{"PATH=/bin", "RENDERER_WORKER_TOKEN=very-secret-value"},
-		Interfaces: ifaces(net.FlagLoopback, net.FlagUp),
+		Interfaces: ifaces(net.FlagLoopback|net.FlagUp, net.FlagUp, 0),
 	})
 	if p.NoNewPrivs != "true" || p.ReadOnlyRoot != "true" || p.CapEff != "0000000000000000" || p.NetInterfaces != "1" {
 		t.Errorf("posture = %+v", p)
@@ -73,6 +73,10 @@ func TestPostureWeaknessesAndNoSecretValues(t *testing.T) {
 	})
 	if len(p.Weaknesses()) != 4 {
 		t.Errorf("weaknesses = %v", p.Weaknesses())
+	}
+	empty := CollectPosture(PostureSource{UID: 1, ProcDir: t.TempDir(), Environ: []string{"RENDERER_WORKER_TOKEN="}})
+	if len(empty.SecretEnvNames) != 0 {
+		t.Errorf("an empty token is no secret: %v", empty.SecretEnvNames)
 	}
 	var buf bytes.Buffer
 	p.Log(slog.New(slog.NewTextHandler(&buf, nil)))
