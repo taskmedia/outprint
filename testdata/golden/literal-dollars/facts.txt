@@ -1,0 +1,7 @@
+pages: 1
+page size: 595.276 x 841.89 pts (A4)
+fonts:
+  LMMono10-Regular | CID Type 0C | embedded=yes
+  TeXGyreHeros-Regular | CID Type 0C | embedded=yes
+  TeXGyrePagella-Bold | CID Type 0C | embedded=yes
+  TeXGyrePagella-Regular | CID Type 0C | embedded=yes

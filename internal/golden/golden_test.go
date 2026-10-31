@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -35,6 +36,16 @@ type testCase struct {
 	expectLogo bool
 	// literal lists strings that must survive into the PDF text verbatim.
 	literal []string
+	// forbidden lists strings that must not appear in the PDF text.
+	forbidden []string
+	// ownLine lists strings that must each stand on a line of their own, as
+	// they do after a line break.
+	ownLine []string
+	// minPages is the least page count the document must reach.
+	minPages int
+	// repeatHeader is the table header text that every page showing a row
+	// containing rowMarker must repeat.
+	repeatHeader, rowMarker string
 }
 
 var cases = []testCase{
@@ -47,6 +58,27 @@ var cases = []testCase{
 	{name: "letter-literal-text", template: "neutral", config: "example", checkLogo: true, expectLogo: true,
 		literal: []string{"$x$", `\input{foo}`, `\textbf{not bold}`, "$5 & 10% of #7", "under_score", "^caret"}},
 	{name: "report-toc-abstract", template: "neutral", config: "example", title: "Annual garden report"},
+	{name: "tables-narrow", template: "neutral", config: "example", title: "Garden inventory",
+		literal: []string{"Tulip 12", "Crocus 140", "long cell mid 1.5"}},
+	{name: "tables-wide", template: "neutral", config: "example", title: "Plot schedule",
+		literal:   []string{"Sunny corner by the old fence", "secretary-of-the-garden-society@mail.example.org", "Needs a lot of"},
+		forbidden: []string{"<br", "|---"}},
+	{name: "tables-long", template: "neutral", config: "example", title: "Seed catalogue",
+		minPages: 3, repeatHeader: "Ref Description Qty", rowMarker: "Item number",
+		literal: []string{"Item number 1 with a short note", "Item number 90 with a short note", "End of the catalogue."}},
+	{name: "linebreaks", template: "neutral", config: "example", checkLogo: true, expectLogo: true,
+		ownLine:   []string{"First line", "second line", "third line", "fourth line", "A backslash break", "and a two-space break", "both end a line.", "1 Sample Lane", "12345 Exampleton"},
+		literal:   []string{"The raw HTML bold-looking text keeps its words, and a span too.", "A div keeps its text."},
+		forbidden: []string{"<br", "<b>", "<script", "alert", "not shown", "textless"}},
+	{name: "address-block", template: "neutral", config: "example", checkLogo: true, expectLogo: true,
+		ownLine: []string{"Ada Example", "Flat 4, 1 Sample Lane", "12345 Exampleton", "Sampleland"}},
+	{name: "nonascii-words", template: "neutral", config: "example", checkLogo: true, expectLogo: true,
+		literal: []string{"Błażej Łukasiewicz", "Őrség utca 5", "Çiğdem Öztürk-Weiß", "İstanbul", "Ångström", "Dvořák", "Žižek", "Ærø", "Ñandú",
+			"Søren", "Wałęsa", "Szőke", "Straße", "Fuß", "Çelik", "Şahin", "Łódź und Kraków", "Brașov und Tîrgu Mureș", "São Paulo und Curaçao"},
+		forbidden: []string{"\uFFFD", "\ufffd"}},
+	{name: "literal-dollars", template: "neutral", config: "example", checkLogo: true, expectLogo: true,
+		literal: []string{"$5 per bag and $10 for two", "$5.00 against $6.00", "$x$", "$a + b$", "$$y = 2$$", "Escaped $ signs and US$ 1,000",
+			"cost = $5 + $6", "total=$(( $a + $b ))", `echo "$HOME"`, "100% of $#1 & {braces} ~tilde^ under_score."}},
 }
 
 func TestGoldens(t *testing.T) {
@@ -70,6 +102,10 @@ func TestGoldens(t *testing.T) {
 				}
 			}
 			assertLiteral(t, pdf, tc.literal)
+			assertForbidden(t, pdf, tc.forbidden)
+			assertOwnLines(t, pdf, tc.ownLine)
+			assertPages(t, pdf, tc.minPages)
+			assertHeaderRepeats(t, pdf, tc.repeatHeader, tc.rowMarker)
 			if tc.title != "" {
 				if got := field(t, tool(t, "pdfinfo", pdf), "Title"); got != tc.title {
 					t.Errorf("PDF title = %q, want %q", got, tc.title)
@@ -134,6 +170,75 @@ func assertLiteral(t *testing.T, pdf string, want []string) {
 		if !strings.Contains(text, w) {
 			t.Errorf("PDF text lacks %q", w)
 		}
+	}
+}
+
+func assertForbidden(t *testing.T, pdf string, forbidden []string) {
+	t.Helper()
+	text := pdfText(t, pdf)
+	for _, f := range forbidden {
+		if strings.Contains(text, f) {
+			t.Errorf("PDF text contains %q", f)
+		}
+	}
+}
+
+// assertOwnLines checks that each string is the whole text of some line of
+// the layout text, or a prefix or suffix of it, but never shares a line with
+// another string of the list.
+func assertOwnLines(t *testing.T, pdf string, want []string) {
+	t.Helper()
+	lines := strings.Split(pdfText(t, pdf), "\n")
+	for _, w := range want {
+		found := false
+		for _, line := range lines {
+			if !strings.Contains(line, w) {
+				continue
+			}
+			found = true
+			for _, other := range want {
+				if other != w && !strings.Contains(w, other) && strings.Contains(line, other) {
+					t.Errorf("%q shares a line with %q: %q", w, other, strings.TrimSpace(line))
+				}
+			}
+		}
+		if !found {
+			t.Errorf("no line contains %q", w)
+		}
+	}
+}
+
+func assertPages(t *testing.T, pdf string, minPages int) {
+	t.Helper()
+	if minPages == 0 {
+		return
+	}
+	pages, err := strconv.Atoi(field(t, tool(t, "pdfinfo", pdf), "Pages"))
+	if err != nil || pages < minPages {
+		t.Errorf("PDF has %d pages (%v), want at least %d", pages, err, minPages)
+	}
+}
+
+// assertHeaderRepeats checks that every page that shows a table row also
+// shows the table header, which proves the header repeats across pages.
+func assertHeaderRepeats(t *testing.T, pdf, header, rowMarker string) {
+	t.Helper()
+	if header == "" {
+		return
+	}
+	rowPages := 0
+	for i, page := range strings.Split(pdfText(t, pdf), "\f") {
+		flat := strings.Join(strings.Fields(page), " ")
+		if !strings.Contains(flat, rowMarker) {
+			continue
+		}
+		rowPages++
+		if !strings.Contains(flat, header) {
+			t.Errorf("page %d shows table rows but not the header %q", i+1, header)
+		}
+	}
+	if rowPages < 2 {
+		t.Errorf("table rows appear on %d page(s), want at least 2", rowPages)
 	}
 }
 

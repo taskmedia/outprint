@@ -1,0 +1,50 @@
+                                                                  Example Garden Society
+
+
+
+
+                                                                      2 March 2026
+
+Line breaks
+
+
+Dear all,
+
+First line
+second line
+third line
+fourth line
+A backslash break
+and a two-space break
+both end a line.
+
+Name                                       Address
+Ada Example                                1 Sample Lane
+                                           12345 Exampleton
+Sam Sample                                 2 Orchard Road
+                                           54321 Exampleton
+                                           Sampleland
+
+   • item one
+     continued
+   • item two
+
+The raw HTML bold-looking text keeps its words, and a span too.
+A div keeps its text.
+
+
+
+
+                               Example Garden Society
+Last paragraph.
+
+       Regards
+
+
+Example Garden Society
+
+
+
+
+                         Page 2
+

@@ -1,0 +1,20 @@
+```yaml metadata
+subject: Prices and symbols
+opening: Hello,
+closing: Bye
+```
+Seeds cost $5 per bag and $10 for two, or $5.00 against $6.00 elsewhere.
+
+The variable $x$ and the pair $a + b$ are shown as written, and so is $$y = 2$$
+on one line.
+
+Escaped \$ signs and US$ 1,000 also stay as typed.
+
+A code span `cost = $5 + $6` and a block:
+
+```
+total=$(( $a + $b ))
+echo "$HOME"
+```
+
+Mixed: 100% of $#1 & {braces} ~tilde^ under_score.
