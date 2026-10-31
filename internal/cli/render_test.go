@@ -74,15 +74,15 @@ func TestParseRenderRejectsBadUsage(t *testing.T) {
 }
 
 func TestRunUnknownSubcommand(t *testing.T) {
-	var stderr strings.Builder
-	if code := Run([]string{"frobnicate"}, &stderr); code != 2 {
+	var stdout, stderr strings.Builder
+	if code := Run([]string{"frobnicate"}, &stdout, &stderr); code != 2 {
 		t.Fatalf("exit code %d", code)
 	}
 	if !strings.Contains(stderr.String(), "usage") {
 		t.Fatalf("stderr %q", stderr.String())
 	}
 	stderr.Reset()
-	if code := Run(nil, &stderr); code != 2 {
+	if code := Run(nil, &stdout, &stderr); code != 2 {
 		t.Fatalf("exit code %d", code)
 	}
 }

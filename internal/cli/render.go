@@ -11,17 +11,21 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/taskmedia/outline-latex-pdf/internal/config"
 	"github.com/taskmedia/outline-latex-pdf/internal/packages"
 	"github.com/taskmedia/outline-latex-pdf/internal/worker"
 )
 
 const usage = `usage: renderer render --template NAME --config NAME [--type NAME]
                        [--fields FILE] [--templates-root DIR] [--configs-root DIR]
-                       -o OUTPUT.pdf INPUT.md`
+                       -o OUTPUT.pdf INPUT.md
+       renderer validate [--service-config FILE]
+                         [--templates-root DIR] [--configs-root DIR]
+                         [--template NAME] [--config NAME]`
 
 const (
-	envTemplatesRoot = "RENDERER_TEMPLATES_ROOT"
-	envConfigsRoot   = "RENDERER_CONFIGURATIONS_ROOT"
+	envTemplatesRoot = config.EnvTemplatesRoot
+	envConfigsRoot   = config.EnvConfigurationsRoot
 
 	defaultTemplatesRoot = "./templates"
 	defaultConfigsRoot   = "./configurations"
@@ -40,13 +44,25 @@ type renderOptions struct {
 	Input         string
 }
 
-// Run executes the command line and returns the process exit code.
-func Run(args []string, stderr io.Writer) int {
-	if len(args) == 0 || args[0] != "render" {
+// Run executes the command line and returns the process exit code:
+// 0 on success, 1 on failure, 2 on bad usage.
+func Run(args []string, stdout, stderr io.Writer) int {
+	if len(args) == 0 {
 		fmt.Fprintln(stderr, usage)
 		return 2
 	}
-	opts, err := parseRender(args[1:], os.Getenv)
+	switch args[0] {
+	case "render":
+		return runRender(args[1:], stderr)
+	case "validate":
+		return runValidate(args[1:], os.Getenv, stdout, stderr)
+	}
+	fmt.Fprintln(stderr, usage)
+	return 2
+}
+
+func runRender(args []string, stderr io.Writer) int {
+	opts, err := parseRender(args, os.Getenv)
 	if err != nil {
 		fmt.Fprintf(stderr, "renderer: %v\n%s\n", err, usage)
 		return 2

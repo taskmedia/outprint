@@ -1,0 +1,14 @@
+# Service configuration shipped in the image. The roots can be overridden
+# with RENDERER_TEMPLATES_ROOT and RENDERER_CONFIGURATIONS_ROOT; the
+# allow-list names the only Template and Configuration pairings that may be
+# bound to a Collection.
+templatesRoot: /opt/renderer/templates
+configurationsRoot: /opt/renderer/configurations
+
+bindings:
+  - template: neutral
+    configuration: example
+
+defaultBinding:
+  template: neutral
+  configuration: example
