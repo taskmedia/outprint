@@ -3,7 +3,7 @@ GOLDEN_IMAGE ?= $(IMAGE)-golden
 # Fixed so that PDFs are reproducible across runs.
 SOURCE_DATE_EPOCH ?= 1700000000
 
-.PHONY: build test image test-golden update-goldens sanitize test-sanitize
+.PHONY: build test image test-golden test-security update-goldens sanitize test-sanitize
 
 build:
 	go build -o bin/renderer ./cmd/renderer
@@ -20,6 +20,12 @@ image:
 test-golden:
 	docker build --target golden -t $(GOLDEN_IMAGE) .
 	docker run --rm $(GOLDEN_IMAGE)
+
+# Security layer 1 only: the hostile-payload corpus and the engine lockdown
+# tests. Part of test-golden as well; this target is the quick way to run it.
+test-security:
+	docker build --target golden -t $(GOLDEN_IMAGE) .
+	docker run --rm -e GOLDEN_RUN='Security|TestEngine|TestFilters|TestRender' $(GOLDEN_IMAGE) -test.v
 
 # Regenerates goldens inside the pinned image only, never on the host.
 update-goldens:
