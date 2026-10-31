@@ -47,8 +47,11 @@ Measured on a developer machine with a warm Docker layer cache (Docker Desktop,
 | layers 2 and 3 (`go test -tags sandbox -parallel 4`) | about 50 s |
 | whole `make test-security` (layer 1, release and sandbox images, layers 2 and 3) | about 1 min 32 s |
 
-The test time is well below three minutes, so the job runs on every push and
-pull request. The cost that grows with the repository is the image build on a
+On the GitHub runner the job took about 6 to 7 minutes, almost all of it the
+cold image builds (the `goldens` job takes as long for the same reason); the
+tests themselves are the 50 to 90 seconds above. The job runs in parallel with
+the others and is kept on every push and pull request for now; the maintainer
+should decide whether the wall clock justifies the filter below. The cost that grows with the repository is the image build on a
 cold runner: the job builds the same images as the `goldens` job and runs in
 parallel with it. If the wall clock of the job passes three minutes in CI, move
 the triggers of `security.yml` to this filter, which is already written there
