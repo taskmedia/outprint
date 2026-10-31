@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Optional pre-commit hook. Install with:
+#   cp scripts/pre-commit.sample .git/hooks/pre-commit
+# Point SANITIZE_DENYLIST at your private denylist (outside the repository).
+exec make sanitize
