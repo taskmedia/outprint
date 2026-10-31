@@ -45,8 +45,7 @@ Measured on a developer machine with a warm Docker layer cache (Docker Desktop,
 | Step | Time |
 |------|------|
 | layers 2 and 3 (`go test -tags sandbox -parallel 4`) | about 50 s |
-| the same through `make test-sandbox`, images cached | about 63 s |
-| layer 1 (golden image, security tests only) | under 1 minute |
+| whole `make test-security` (layer 1, release and sandbox images, layers 2 and 3) | about 1 min 32 s |
 
 The test time is well below three minutes, so the job runs on every push and
 pull request. The cost that grows with the repository is the image build on a
