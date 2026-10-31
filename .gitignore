@@ -9,3 +9,4 @@ bin/
 *.pdf
 !testdata/**/*.pdf
 profile/
+.security-logs/

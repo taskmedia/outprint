@@ -20,6 +20,9 @@ jobs:
 
       - run: make test
 
+      - name: skip guard
+        run: make test-guard
+
       - name: compose file is valid
         run: docker compose -f deploy/compose/compose.yaml config --quiet
 
