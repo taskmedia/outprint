@@ -293,3 +293,40 @@ func TestClientAgainstServer(t *testing.T) {
 		t.Errorf("err = %v", err)
 	}
 }
+
+func TestLimitFailuresAnswer413WithoutRestart(t *testing.T) {
+	for _, kind := range []worker.Kind{worker.KindPagesExceeded, worker.KindPDFTooLarge} {
+		f := &fakeRenderer{err: &worker.Error{Phase: worker.PhaseOutput, Kind: kind, JobID: "job1"}}
+		h := newHarness(t, "", f)
+		resp, data := h.post(t, encoded(t, sample()), "")
+		body := errorBody(t, data)
+		if resp.StatusCode != 413 || body.Phase != "output" || body.Kind != string(kind) || body.JobID != "job1" {
+			t.Errorf("%s: status %d body %s", kind, resp.StatusCode, data)
+		}
+		select {
+		case reason := <-h.restarts:
+			t.Errorf("%s: unexpected restart %q", kind, reason)
+		case <-time.After(100 * time.Millisecond):
+		}
+		if resp, _ = h.post(t, encoded(t, sample()), ""); resp.StatusCode == http.StatusServiceUnavailable {
+			t.Errorf("%s: the Worker stays busy after a limit failure", kind)
+		}
+	}
+}
+
+func TestResourceFailureAnswersStructuredErrorThenRestarts(t *testing.T) {
+	f := &fakeRenderer{err: &worker.Error{Phase: worker.PhaseTeX, Kind: worker.KindResource, JobID: "job1"}}
+	h := newHarness(t, "", f)
+	resp, data := h.post(t, encoded(t, sample()), "")
+	if body := errorBody(t, data); resp.StatusCode != 500 || body.Kind != "resource" {
+		t.Fatalf("status %d body %s", resp.StatusCode, data)
+	}
+	select {
+	case reason := <-h.restarts:
+		if reason != "resource exhaustion" {
+			t.Errorf("restart reason = %q", reason)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("no restart was requested")
+	}
+}

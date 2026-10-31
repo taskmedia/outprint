@@ -1,8 +1,15 @@
 package worker
 
 import (
+	"errors"
+	"fmt"
+	"io"
+	"log/slog"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
+	"syscall"
 	"testing"
 )
 
@@ -110,5 +117,60 @@ func TestEmbeddedFiltersExistInRunOrder(t *testing.T) {
 	}
 	if filterFiles[0] != "sanitize.lua" {
 		t.Errorf("sanitize.lua must run first, got %v", filterFiles)
+	}
+}
+
+func finishedJob(t *testing.T, job Job, log string, pdfBytes int) *pipeline {
+	t.Helper()
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "doc.pdf"), make([]byte, pdfBytes), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "doc.log"), []byte(log), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return &pipeline{job: job, id: "0123456789abcdef", dir: dir, log: slog.New(slog.NewTextHandler(io.Discard, nil))}
+}
+
+func TestCheckOutput(t *testing.T) {
+	const log = "Output written on doc.pdf (30 pages, 2000 bytes).\n"
+	cases := map[string]struct {
+		job  Job
+		log  string
+		size int
+		kind Kind
+	}{
+		"within limits": {Job{MaxPages: 30, MaxPDFBytes: 2000}, log, 2000, ""},
+		"too many":      {Job{MaxPages: 29}, log, 2000, KindPagesExceeded},
+		"too big":       {Job{MaxPDFBytes: 1999}, log, 2000, KindPDFTooLarge},
+		"no page count": {Job{}, "! Emergency stop.\n", 10, KindNoOutput},
+		"defaults":      {Job{}, log, 2000, ""},
+	}
+	for name, c := range cases {
+		err := finishedJob(t, c.job, c.log, c.size).checkOutput()
+		var failure *Error
+		switch {
+		case c.kind == "" && err != nil:
+			t.Errorf("%s: unexpected %v", name, err)
+		case c.kind != "" && (!errors.As(err, &failure) || failure.Kind != c.kind):
+			t.Errorf("%s: err = %v, want kind %s", name, err, c.kind)
+		}
+	}
+}
+
+func TestPagesExceededNamesNoDocumentContent(t *testing.T) {
+	err := finishedJob(t, Job{MaxPages: 1}, "Output written on doc.pdf (2 pages, 9 bytes).\n", 9).checkOutput()
+	var failure *Error
+	if !errors.As(err, &failure) || failure.Phase != PhaseOutput || failure.JobID == "" {
+		t.Fatalf("err = %#v", err)
+	}
+}
+
+func TestFailWithNoSpaceIsAResourceError(t *testing.T) {
+	p := &pipeline{id: "x", log: slog.New(slog.NewTextHandler(io.Discard, nil))}
+	err := p.fail(PhaseSetup, KindInternal, fmt.Errorf("write job file: %w", syscall.ENOSPC))
+	var failure *Error
+	if !errors.As(err, &failure) || failure.Kind != KindResource {
+		t.Errorf("err = %v, want kind resource", err)
 	}
 }

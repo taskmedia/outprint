@@ -31,7 +31,8 @@ make build           # build bin/renderer
 make test            # tier 1: Go unit tests, no external tools
 make image           # build the renderer image
 make test-golden     # tier 2: PDF goldens, Worker and security tests, in the pinned image
-make test-security   # security layer 1 only (hostile payload corpus, engine lockdown)
+make test-security   # security layers 1-3: hostile payloads, sandbox, resource bombs
+make test-sandbox    # security layers 2 and 3 only (needs a Docker daemon)
 make update-goldens  # regenerate goldens, only ever inside the pinned image
 make sanitize        # scan tree and history for forbidden strings
 make test-sanitize   # test the sanitize gate itself
@@ -69,6 +70,9 @@ See [docs/architecture.md](docs/architecture.md) for the Gateway and Worker
 roles, the job bundle, the request flow and the error mapping, and
 [docs/deploy-compose.md](docs/deploy-compose.md) for running both with Docker
 Compose and the Worker security baseline.
+See [docs/security.md](docs/security.md) for the security layers, what each
+proves, the limits and how to run the suite, and
+[docs/testing.md](docs/testing.md) for the test tiers and the CI schedule.
 See [docs/sanitize.md](docs/sanitize.md) for the sanitisation gate.
 
 ## License

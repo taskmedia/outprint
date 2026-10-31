@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
+	"github.com/taskmedia/outline-latex-pdf/internal/limits"
 	"github.com/taskmedia/outline-latex-pdf/internal/startup"
 	"github.com/taskmedia/outline-latex-pdf/internal/worker"
 )
@@ -40,8 +41,11 @@ type RunConfig struct {
 	WorkDir  string
 	CacheDir string
 	Timeout  time.Duration
-	Startup  *startup.Result
-	Logger   *slog.Logger
+	// Limits are the page and PDF size limits; zero fields mean the starting
+	// limits.
+	Limits  limits.Job
+	Startup *startup.Result
+	Logger  *slog.Logger
 	// Source is where the posture is read from; the zero value reads the
 	// running process.
 	Source *PostureSource
@@ -72,7 +76,7 @@ func Run(ctx context.Context, cfg RunConfig) error {
 	restart := make(chan string, 1)
 	renderer := cfg.Renderer
 	if renderer == nil {
-		renderer = PackageRenderer{Registry: cfg.Startup.Registry, WorkRoot: cfg.WorkDir, CacheDir: cfg.CacheDir, Timeout: timeout, Logger: cfg.Logger}
+		renderer = PackageRenderer{Registry: cfg.Startup.Registry, WorkRoot: cfg.WorkDir, CacheDir: cfg.CacheDir, Timeout: timeout, Limits: cfg.Limits.WithDefaults(), Logger: cfg.Logger}
 	}
 	handler := New(Config{
 		Token: cfg.Token, Logger: cfg.Logger,
@@ -94,7 +98,8 @@ func Run(ctx context.Context, cfg RunConfig) error {
 	serveErr := make(chan error, 1)
 	go func() { serveErr <- srv.Serve(ln) }()
 	cfg.Logger.Info("worker listening", "addr", ln.Addr().String(), "token_required", cfg.Token != "",
-		"max_markdown_bytes", bundle.MaxMarkdownBytes, "timeout", timeout.String())
+		"max_markdown_bytes", bundle.MaxMarkdownBytes, "timeout", timeout.String(),
+		"max_pages", cfg.Limits.WithDefaults().MaxPages, "max_pdf_bytes", cfg.Limits.WithDefaults().MaxPDFBytes)
 
 	select {
 	case err := <-serveErr:

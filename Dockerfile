@@ -6,7 +6,8 @@ COPY cmd ./cmd
 COPY internal ./internal
 RUN CGO_ENABLED=0 go build -trimpath -o /out/renderer ./cmd/renderer \
  && CGO_ENABLED=0 go test -c -tags golden -o /out/golden.test ./internal/golden \
- && CGO_ENABLED=0 go test -c -tags golden -o /out/worker.test ./internal/worker
+ && CGO_ENABLED=0 go test -c -tags golden -o /out/worker.test ./internal/worker \
+ && CGO_ENABLED=0 go build -trimpath -o /out/sandbox-probe ./cmd/sandbox-probe
 
 FROM debian:trixie-20261027-slim AS renderer
 RUN apt-get update \
@@ -53,6 +54,19 @@ ENV RENDERER_REPO_ROOT=/work \
     FORCE_SOURCE_DATE=1
 ENTRYPOINT ["/usr/local/bin/run-golden.sh"]
 CMD ["-test.v"]
+
+# Security layers 2 and 3 run the Worker image with an intentionally unsafe
+# pipeline: the probe stands in for lualatex ahead of the real one on PATH and
+# runs hostile actions on request (cmd/sandbox-probe). It exists in this stage
+# only; the release image must not contain it (checked by the sandbox tests).
+FROM renderer AS sandbox
+USER root
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends poppler-utils \
+ && rm -rf /var/lib/apt/lists/*
+COPY --from=build /out/sandbox-probe /usr/local/bin/sandbox-probe
+COPY --from=build /out/sandbox-probe /usr/local/bin/lualatex
+USER render
 
 # The release image is the default target.
 FROM renderer

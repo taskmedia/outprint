@@ -137,6 +137,12 @@ func workerFailure(err error) *failure {
 		f.retryAfter = retryAfterSeconds
 	case we.Kind == workerapi.KindTimeout:
 		f = fail(http.StatusGatewayTimeout, we.Phase, we.Kind, "rendering took too long; shorten the document", err)
+	case we.Kind == workerapi.KindPagesExceeded:
+		f = fail(http.StatusRequestEntityTooLarge, we.Phase, we.Kind, "the document has too many pages; shorten it", err)
+	case we.Kind == workerapi.KindPDFTooLarge:
+		f = fail(http.StatusRequestEntityTooLarge, we.Phase, we.Kind, "the resulting PDF is too large; remove or shrink images", err)
+	case we.Kind == workerapi.KindResource:
+		f = fail(http.StatusRequestEntityTooLarge, we.Phase, we.Kind, "the document needs more memory or space than the renderer allows; simplify it", err)
 	case we.Kind == workerapi.KindTooLarge:
 		f = fail(http.StatusRequestEntityTooLarge, we.Phase, we.Kind, "the document is too large to render", err)
 	default:

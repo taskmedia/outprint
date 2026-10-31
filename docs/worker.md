@@ -201,6 +201,8 @@ Document.
 | `filter` | `raw_tex`, `raw_format`, `math`, `image_path` | A filter rejected the document. `raw_tex`, `raw_format` and `math` are internal errors. |
 | `tex` | `tex_error`, `no_output` | LuaLaTeX failed or produced no PDF. |
 | `timeout` | `timeout` | The wall-clock limit ended the job. |
+| `output` | `pages_exceeded`, `pdf_too_large` | The PDF has more than `RENDERER_MAX_PAGES` pages, or is larger than `RENDERER_MAX_PDF_BYTES`. The Worker answers 413 and keeps running. |
+| any | `resource` | A tool was killed by the system (out of memory), or the job directory (tmpfs) is full. The Worker answers with the error and then exits, so the container runtime starts a fresh process. |
 
 The CLI prints the phase, kind and job id, and a hint:
 
@@ -233,6 +235,8 @@ a deployment.
 | Setting | Flag | Environment | Default |
 |---------|------|-------------|---------|
 | Time limit | `--timeout` | `RENDERER_TIMEOUT` | `60s` |
+| Page limit | | `RENDERER_MAX_PAGES` | `500` |
+| PDF size limit | | `RENDERER_MAX_PDF_BYTES` | `52428800` (50 MiB; can be lowered, not raised) |
 | Full TeX log | `--debug-tex-log` | `RENDERER_DEBUG_TEX_LOG=1` | off |
 | Work root | | `RENDERER_WORK_DIR` | system temporary directory |
 | Font cache | | `RENDERER_TEXCACHE_DIR` | `/opt/renderer/texcache` |
@@ -260,7 +264,10 @@ a deployment.
 - Tier 2 (`make test-golden`, in the image): PDF goldens for every fixture
   topic; the Worker tests (filters on hand-made ASTs, engine lockdown with
   hostile TeX, timeout, run count, debug log, cache); security layer 1.
-- Security layer 1 (`make test-security`): a corpus of hostile Documents,
+- Security layers 2 and 3 (`make test-sandbox`): the Worker image under the
+  flags of the shipped Compose file, with hostile actions and resource bombs.
+  See [security.md](security.md).
+- Security layer 1 (`make test-security-layer1`): a corpus of hostile Documents,
   metadata values included, rendered through the real binary. Each payload
   class has one outcome, `literal`, `dropped` or `rejected`. A random canary
   file is created per test and its content must never reach the PDF; a payload

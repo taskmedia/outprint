@@ -15,12 +15,13 @@ import (
 	"sort"
 
 	"github.com/taskmedia/outline-latex-pdf/internal/config"
+	"github.com/taskmedia/outline-latex-pdf/internal/limits"
 )
 
 // Limits of a bundle. The Gateway pre-checks them to answer 413; the Worker
 // enforces them again because it trusts nobody.
 const (
-	MaxMarkdownBytes   = 1 << 20
+	MaxMarkdownBytes   = limits.MaxMarkdownBytes
 	MaxImages          = 50
 	MaxImageBytes      = 10 << 20
 	MaxImagesTotal     = 50 << 20

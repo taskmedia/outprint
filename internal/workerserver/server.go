@@ -160,8 +160,13 @@ func (s *Server) classify(err error) (int, workerapi.ErrorBody, string) {
 		return http.StatusInternalServerError, workerapi.ErrorBody{Phase: string(worker.PhaseSetup), Kind: workerapi.KindInternal}, "unexpected failure"
 	}
 	body := workerapi.ErrorBody{Phase: string(failure.Phase), Kind: string(failure.Kind), JobID: failure.JobID}
-	if failure.Kind == worker.KindTimeout {
+	switch failure.Kind {
+	case worker.KindTimeout:
 		return http.StatusGatewayTimeout, body, "timeout"
+	case worker.KindResource:
+		return http.StatusInternalServerError, body, "resource exhaustion"
+	case worker.KindPagesExceeded, worker.KindPDFTooLarge:
+		return http.StatusRequestEntityTooLarge, body, ""
 	}
 	return http.StatusInternalServerError, body, ""
 }

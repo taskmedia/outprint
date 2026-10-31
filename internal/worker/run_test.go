@@ -55,3 +55,15 @@ func TestCappedBufferDropsOutputBeyondTheLimit(t *testing.T) {
 		t.Errorf("kept %d bytes, want %d", b.buf.Len(), maxCapturedOutput)
 	}
 }
+
+func TestRunToolReportsAToolKilledBySignal(t *testing.T) {
+	res, _ := runTool(context.Background(), t.TempDir(), []string{"PATH=/usr/bin:/bin"},
+		"sh", []string{"-c", "kill -9 $$"})
+	if !res.Signaled || res.TimedOut {
+		t.Errorf("Signaled = %v, TimedOut = %v", res.Signaled, res.TimedOut)
+	}
+	res, _ = runTool(context.Background(), t.TempDir(), []string{"PATH=/usr/bin:/bin"}, "sh", []string{"-c", "exit 1"})
+	if res.Signaled {
+		t.Error("a plain failure is not a signal")
+	}
+}

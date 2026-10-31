@@ -7,6 +7,7 @@ import (
 
 	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
 	"github.com/taskmedia/outline-latex-pdf/internal/config"
+	"github.com/taskmedia/outline-latex-pdf/internal/limits"
 	"github.com/taskmedia/outline-latex-pdf/internal/packages"
 	"github.com/taskmedia/outline-latex-pdf/internal/worker"
 )
@@ -19,6 +20,7 @@ type PackageRenderer struct {
 	WorkRoot string
 	CacheDir string
 	Timeout  time.Duration
+	Limits   limits.Job
 	Logger   *slog.Logger
 }
 
@@ -40,6 +42,8 @@ func (p PackageRenderer) Render(ctx context.Context, b bundle.Bundle) ([]byte, e
 		Configuration: cfg,
 		Images:        b.Images,
 		Timeout:       p.Timeout,
+		MaxPages:      p.Limits.MaxPages,
+		MaxPDFBytes:   p.Limits.MaxPDFBytes,
 		WorkRoot:      p.WorkRoot,
 		CacheDir:      p.CacheDir,
 		Logger:        p.Logger,
