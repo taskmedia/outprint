@@ -1,0 +1,7 @@
+# Extended regular expressions matched against every path ever committed or
+# present in the working tree. This file is excluded from the scan.
+(^|/)__tmp(/|$)
+(^|/)profile(/|$)
+\.db$
+(^|/)\.env$
+(^|/)bin/

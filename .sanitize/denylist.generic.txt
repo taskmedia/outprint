@@ -1,0 +1,9 @@
+# Generic denylist: vocabulary of the proof of concept that must never appear
+# in this repository or its history. One extended regular expression per line,
+# matched case-insensitively. Lines starting with '#' are comments.
+# This file is excluded from the scan.
+foerderverein
+förderverein
+handballer
+verein
+tvm-

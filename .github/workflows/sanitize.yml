@@ -1,0 +1,41 @@
+name: sanitize
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  sanitize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Install gitleaks
+        run: go install github.com/zricethezav/gitleaks/v8@v8.21.2
+
+      - name: Test the sanitize gate
+        run: make test-sanitize
+
+      # The private denylist is an Actions secret. Secrets are not available to
+      # fork pull requests, so those runs only perform the generic checks.
+      - name: Sanitize (generic and private denylist)
+        env:
+          PRIVATE_DENYLIST: ${{ secrets.SANITIZE_DENYLIST }}
+          IS_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          if [ "$IS_FORK" != "true" ] && [ -n "$PRIVATE_DENYLIST" ]; then
+            install -m 600 /dev/null "$RUNNER_TEMP/denylist.txt"
+            printf '%s\n' "$PRIVATE_DENYLIST" > "$RUNNER_TEMP/denylist.txt"
+            export SANITIZE_DENYLIST="$RUNNER_TEMP/denylist.txt"
+          fi
+          make sanitize
