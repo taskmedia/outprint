@@ -1,0 +1,27 @@
+                         Garden inventory
+                                     Narrow tables
+
+
+
+                                     2 March 2026
+
+
+Small tables keep their natural width and are not stretched across the page.
+
+                                     Plant        Count
+                                     Tulip             12
+                                     Daffodil           7
+                                     Crocus           140
+
+
+A table with centred and right-aligned columns:
+
+                              Left           Centre    Right
+                              a                b              c
+                              long cell       mid           1.5
+
+
+
+
+Example Garden Society                        1
+

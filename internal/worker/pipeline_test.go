@@ -17,7 +17,7 @@ func TestBuildEnvIsRebuiltFromScratch(t *testing.T) {
 	}
 	lookup := func(k string) (string, bool) { v, ok := host[k]; return v, ok }
 
-	env := buildEnv("/job", lookup)
+	env := buildEnv("/job", "/job/texmf-cnf:/sys/cnf", lookup)
 
 	joined := strings.Join(env, "\n")
 	for _, forbidden := range []string{"hunter2", "/home/someone", "/elsewhere"} {
@@ -26,9 +26,14 @@ func TestBuildEnvIsRebuiltFromScratch(t *testing.T) {
 		}
 	}
 	for _, want := range []string{
+		"PATH=/usr/local/bin:/usr/bin:/bin",
+		"LC_ALL=C.UTF-8",
 		"HOME=/job/home",
+		"TMPDIR=/job",
 		"TEXMFVAR=/job/texmf-var",
-		"shell_escape=f",
+		"TEXMFCACHE=/job/texmf-var",
+		"TEXMFCONFIG=/job/texmf-config",
+		"TEXMFCNF=/job/texmf-cnf:/sys/cnf",
 		"SOURCE_DATE_EPOCH=1700000000",
 		"FORCE_SOURCE_DATE=1",
 	} {
@@ -36,10 +41,13 @@ func TestBuildEnvIsRebuiltFromScratch(t *testing.T) {
 			t.Errorf("environment lacks %q", want)
 		}
 	}
+	if len(env) != 10 {
+		t.Errorf("environment has %d entries, want exactly the 10 listed: %v", len(env), env)
+	}
 }
 
 func TestBuildEnvOmitsUnsetSourceDate(t *testing.T) {
-	env := buildEnv("/job", func(string) (string, bool) { return "", false })
+	env := buildEnv("/job", "/cnf", func(string) (string, bool) { return "", false })
 	for _, e := range env {
 		if strings.HasPrefix(e, "SOURCE_DATE_EPOCH") || strings.HasPrefix(e, "FORCE_SOURCE_DATE") {
 			t.Errorf("unexpected %q", e)
@@ -48,17 +56,21 @@ func TestBuildEnvOmitsUnsetSourceDate(t *testing.T) {
 }
 
 func TestPandocArgsAreSandboxedAndCarryNoValues(t *testing.T) {
-	args := pandocArgs("/tpl/letter.latex", "/job/meta.yaml", "/job/input.md", "/job/doc.tex")
+	filters := []string{"/job/filters/sanitize.lua", "/job/filters/layout.lua"}
+	args := pandocArgs("/tpl/letter.latex", "/job/meta.yaml", "/job/input.md", "/job/doc.tex", filters)
 
 	if !slices.Contains(args, "--sandbox") {
 		t.Error("missing --sandbox")
 	}
 	reader := ""
+	var luaFilters []string
 	for i, a := range args {
-		if a == "-f" {
+		switch a {
+		case "-f":
 			reader = args[i+1]
-		}
-		if a == "-V" || a == "--variable" || a == "-M" || a == "--metadata" {
+		case "--lua-filter":
+			luaFilters = append(luaFilters, args[i+1])
+		case "-V", "--variable", "-M", "--metadata":
 			t.Errorf("document values must not travel as %s", a)
 		}
 	}
@@ -67,40 +79,36 @@ func TestPandocArgsAreSandboxedAndCarryNoValues(t *testing.T) {
 			t.Errorf("reader %q lacks %s", reader, ext)
 		}
 	}
+	if strings.Contains(reader, "-raw_html") {
+		t.Errorf("reader %q must keep raw HTML for <br>", reader)
+	}
+	if !slices.Equal(luaFilters, filters) {
+		t.Errorf("filters = %v, want %v in order", luaFilters, filters)
+	}
 }
 
-func TestLualatexArgsNeverEnableShellEscape(t *testing.T) {
+func TestLualatexArgsNeverWeakenTheEngine(t *testing.T) {
 	args := lualatexArgs("doc.tex")
-	if slices.Contains(args, "--shell-escape") || slices.Contains(args, "-shell-escape") {
-		t.Fatal("shell escape must never be enabled")
+	for _, forbidden := range []string{"--shell-escape", "-shell-escape", "--socket", "-socket", "--safer", "-safer", "--no-socket"} {
+		if slices.Contains(args, forbidden) {
+			t.Errorf("lualatex must never get %s", forbidden)
+		}
 	}
-	if !slices.Contains(args, "-no-shell-escape") {
-		t.Fatal("expected explicit -no-shell-escape")
-	}
-}
-
-func TestNeedsRerun(t *testing.T) {
-	if !needsRerun("LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.") {
-		t.Error("expected rerun")
-	}
-	if needsRerun("Output written on doc.pdf") {
-		t.Error("unexpected rerun")
+	for _, want := range []string{"-no-shell-escape", "-halt-on-error", "-interaction=nonstopmode"} {
+		if !slices.Contains(args, want) {
+			t.Errorf("missing %s", want)
+		}
 	}
 }
 
-func TestErrorNamesPhaseAndTailsOutput(t *testing.T) {
-	long := strings.Repeat("x", 5000) + "THE END"
-	err := &Error{Phase: "lualatex", Err: errString("exit status 1"), Output: long}
-
-	msg := err.Error()
-	if !strings.Contains(msg, "lualatex") || !strings.Contains(msg, "THE END") {
-		t.Fatalf("unexpected message %q", msg)
+func TestEmbeddedFiltersExistInRunOrder(t *testing.T) {
+	for _, name := range filterFiles {
+		data, err := filtersFS.ReadFile("filters/" + name)
+		if err != nil || len(data) == 0 {
+			t.Errorf("filter %s is not embedded: %v", name, err)
+		}
 	}
-	if len(msg) > 3000 {
-		t.Fatalf("message not truncated: %d bytes", len(msg))
+	if filterFiles[0] != "sanitize.lua" {
+		t.Errorf("sanitize.lua must run first, got %v", filterFiles)
 	}
 }
-
-type errString string
-
-func (e errString) Error() string { return string(e) }

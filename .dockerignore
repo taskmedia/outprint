@@ -11,3 +11,4 @@ agentdb.rvf*
 .env
 *.pdf
 !testdata/**/*.pdf
+!scripts/run-golden.sh

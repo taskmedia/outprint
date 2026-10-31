@@ -1,0 +1,45 @@
+                                                                                   Example Garden Society
+                                                                                   Example Garden Society
+                                                                                          2 Orchard Road
+                                                                                       54321 Exampleton
+
+
+
+
+Example Garden Society, Example Garden Society, 2 Orchard Road, 54321 Exampleton
+
+
+
+
+Ada Example
+Flat 4, 1 Sample Lane
+12345 Exampleton
+Sampleland
+
+
+
+
+                                                                                       2 March 2026
+
+        Invitation to the spring sale
+
+
+        Dear Ms Example,
+
+        The address block above was written as a multi-line string and prints as four separate
+        lines, one per source line.
+        Address-like lines in the body keep their breaks too:
+        Example Garden Society
+        2 Orchard Road
+        54321 Exampleton
+
+               Kind regards
+
+
+        Example Garden Society
+
+
+
+
+                                                 Example Garden Society
+

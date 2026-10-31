@@ -7,7 +7,6 @@ $else$
 \definecolor{accent}{HTML}{444444}
 $endif$
 \input{shared/neutral.tex}
-\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 $if(highlighting-macros)$
 \usepackage{fancyvrb}
 $highlighting-macros$

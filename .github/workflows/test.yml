@@ -21,10 +21,12 @@ jobs:
       - run: make test
 
   golden:
-    name: goldens (tier 2)
+    name: goldens (tier 2) and security layer 1
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # Fails if the goldens differ or a tool is missing; never skipped.
+      # Runs the PDF goldens, the Worker tests and the security layer 1
+      # corpus in the pinned image. Fails if a golden differs or a tool is
+      # missing; nothing here is ever skipped.
       - run: make test-golden

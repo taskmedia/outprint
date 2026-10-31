@@ -2,10 +2,13 @@
 % the neutral Template. The Document Type loads xcolor and defines the
 % colour "accent" before including this file.
 \usepackage{fontspec}
-\setmainfont{texgyrepagella}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold,
-  ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
-\setsansfont{texgyreheros}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold,
-  ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+% The fonts ship with the Template; the Worker copies them to ./fonts/.
+\setmainfont{texgyrepagella-regular.otf}[Path=./fonts/,
+  BoldFont=texgyrepagella-bold.otf, ItalicFont=texgyrepagella-italic.otf,
+  BoldItalicFont=texgyrepagella-bolditalic.otf]
+\setsansfont{texgyreheros-regular.otf}[Path=./fonts/,
+  BoldFont=texgyreheros-bold.otf, ItalicFont=texgyreheros-italic.otf,
+  BoldItalicFont=texgyreheros-bolditalic.otf]
 
 \usepackage{graphicx}
 \usepackage[hidelinks]{hyperref}
@@ -15,3 +18,22 @@
 % Margin stripe on every page, drawn behind the text.
 \AddToHook{shipout/background}{%
   \put(0,-\paperheight){\color{accent}\rule{\neutralstripewidth}{\paperheight}}}
+
+% Support for what the Pandoc LaTeX writer emits: tables that break across
+% pages with a repeated header, lists, and images that never overflow.
+\usepackage{longtable,booktabs,array}
+\usepackage{calc}
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\setlength{\emergencystretch}{3em}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\providecommand{\pandocbounded}[1]{#1}

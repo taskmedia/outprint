@@ -2,11 +2,14 @@ package cli
 
 import (
 	"encoding/json"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/taskmedia/outline-latex-pdf/internal/worker"
 )
 
 func noEnv(string) string { return "" }
@@ -25,6 +28,7 @@ func TestParseRenderOptions(t *testing.T) {
 		Template: "neutral", Config: "example", Title: "Spring sale", Date: "2026-03-02", JSONErrors: true,
 		TemplatesRoot: "/t", ConfigsRoot: "/c",
 		Output: "out.pdf", Input: "in.md",
+		Timeout: 60 * time.Second, LogLevel: slog.LevelWarn, CacheDir: "/opt/renderer/texcache",
 	}
 	if opts != want {
 		t.Fatalf("got %+v, want %+v", opts, want)
@@ -73,6 +77,7 @@ func TestParseRenderRejectsBadUsage(t *testing.T) {
 		"removed --type":   {"--template", "a", "--config", "b", "--type", "letter", "-o", "o.pdf", "in.md"},
 		"removed --fields": {"--template", "a", "--config", "b", "--fields", "f.yaml", "-o", "o.pdf", "in.md"},
 		"bad date":         {"--template", "a", "--config", "b", "--date", "2 March", "-o", "o.pdf", "in.md"},
+		"zero timeout":     {"--template", "a", "--config", "b", "--timeout", "0s", "-o", "o.pdf", "in.md"},
 	}
 	for name, args := range cases {
 		if _, err := parseRender(args, noEnv); err == nil {
@@ -168,5 +173,78 @@ func TestLastModifiedUsesFlagThenFileDate(t *testing.T) {
 	}
 	if got, err := lastModified(renderOptions{Input: path}); err != nil || got != "2025-11-05" {
 		t.Fatalf("file: %q %v", got, err)
+	}
+}
+
+func TestTimeoutAndDebugSwitchesDefaultOffAndComeFromFlagOrEnv(t *testing.T) {
+	args := []string{"--template", "a", "--config", "b", "-o", "o.pdf", "in.md"}
+
+	opts, err := parseRender(args, noEnv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if opts.DebugTeXLog || opts.Timeout != 60*time.Second {
+		t.Fatalf("defaults: debug=%v timeout=%s", opts.DebugTeXLog, opts.Timeout)
+	}
+
+	env := func(k string) string {
+		return map[string]string{"RENDERER_TIMEOUT": "90s", "RENDERER_DEBUG_TEX_LOG": "1", "RENDERER_WORK_DIR": "/work"}[k]
+	}
+	opts, err = parseRender(args, env)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !opts.DebugTeXLog || opts.Timeout != 90*time.Second || opts.WorkDir != "/work" {
+		t.Fatalf("env: %+v", opts)
+	}
+
+	opts, err = parseRender(append([]string{"--timeout", "5s"}, args...), env)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if opts.Timeout != 5*time.Second {
+		t.Fatalf("flag over env: %s", opts.Timeout)
+	}
+
+	opts, err = parseRender(append([]string{"--debug-tex-log"}, args...), noEnv)
+	if err != nil || !opts.DebugTeXLog {
+		t.Fatalf("--debug-tex-log: %+v, %v", opts, err)
+	}
+}
+
+func TestEnvDebugSwitchNeedsExactlyOne(t *testing.T) {
+	args := []string{"--template", "a", "--config", "b", "-o", "o.pdf", "in.md"}
+	for _, v := range []string{"", "0", "true", "yes"} {
+		opts, err := parseRender(args, func(k string) string {
+			if k == "RENDERER_DEBUG_TEX_LOG" {
+				return v
+			}
+			return ""
+		})
+		if err != nil || opts.DebugTeXLog {
+			t.Errorf("RENDERER_DEBUG_TEX_LOG=%q enabled the debug log", v)
+		}
+	}
+}
+
+func TestWorkerErrorsArePrintedReadablyWithoutLogs(t *testing.T) {
+	cases := []struct {
+		err  *worker.Error
+		want string
+	}{
+		{&worker.Error{Phase: worker.PhaseTimeout, Kind: worker.KindTimeout, JobID: "j1"}, "--timeout"},
+		{&worker.Error{Phase: worker.PhaseTeX, Kind: worker.KindTeXError, JobID: "j2", FirstTeXError: "! Hidden."}, "--debug-tex-log"},
+		{&worker.Error{Phase: worker.PhaseFilter, Kind: worker.KindRawTeX, JobID: "j3"}, "internal error"},
+	}
+	for _, c := range cases {
+		var stdout, stderr strings.Builder
+		reportRenderError(c.err, renderOptions{Timeout: time.Minute}, &stdout, &stderr)
+		out := stderr.String()
+		if !strings.Contains(out, c.err.JobID) || !strings.Contains(out, string(c.err.Kind)) || !strings.Contains(out, c.want) {
+			t.Errorf("output %q lacks job id, kind or %q", out, c.want)
+		}
+		if strings.Contains(out, "Hidden") {
+			t.Errorf("output %q leaks the TeX error line", out)
+		}
 	}
 }
