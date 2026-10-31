@@ -25,7 +25,8 @@ const usage = `usage: renderer render --template NAME --config NAME [--title TEX
                            [--templates-root DIR] [--configs-root DIR]
        renderer validate [--service-config FILE]
                          [--templates-root DIR] [--configs-root DIR]
-                         [--template NAME] [--config NAME]`
+                         [--template NAME] [--config NAME]
+` + serveUsage
 
 const (
 	envTemplatesRoot = config.EnvTemplatesRoot
@@ -76,6 +77,12 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return runValidate(args[1:], os.Getenv, stdout, stderr)
 	case "warm-cache":
 		return runWarmCache(args[1:], os.Getenv, stderr)
+	case "gateway":
+		return runGateway(args[1:], os.Getenv, stderr)
+	case "worker":
+		return runWorker(args[1:], os.Getenv, stderr)
+	case "healthcheck":
+		return runHealthcheck(args[1:], stderr)
 	}
 	fmt.Fprintln(stderr, usage)
 	return 2

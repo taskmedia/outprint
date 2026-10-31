@@ -63,6 +63,10 @@ typed patterns, the TeX deny-list, the drift guard and `validate`, and
 [docs/standard-fields.md](docs/standard-fields.md) for the Standard Fields.
 See [docs/worker.md](docs/worker.md) for the Worker pipeline: phases, filters,
 engine lockdown, errors, logging and the debug switch.
+See [docs/architecture.md](docs/architecture.md) for the Gateway and Worker
+roles, the job bundle, the request flow and the error mapping, and
+[docs/deploy-compose.md](docs/deploy-compose.md) for running both with Docker
+Compose and the Worker security baseline.
 See [docs/sanitize.md](docs/sanitize.md) for the sanitisation gate.
 
 ## License

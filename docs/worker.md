@@ -1,9 +1,10 @@
 # Worker pipeline
 
 The Worker turns one job into one PDF. The same pipeline runs behind the
-`renderer render` command and, later, behind the Worker's HTTP endpoint. This
-page describes what it does, how it is locked down, what it logs and where it
-is limited. The reasons for the two-role split are in
+`renderer render` command and behind the Worker's HTTP endpoint
+(`renderer worker`, see [architecture.md](architecture.md)). This page
+describes what it does, how it is locked down, what it logs and where it is
+limited. The reasons for the two-role split are in
 [ADR 0001](adr/0001-split-renderer-into-gateway-and-worker.md).
 
 ## Phases
