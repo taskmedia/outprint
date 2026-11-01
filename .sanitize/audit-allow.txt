@@ -1,0 +1,7 @@
+# Comments that the pre-publish audit would flag but that stay as they are.
+# One entry per line: the comment anchor from its URL, then the reason.
+# Entries are matched against the label the audit prints for the finding, e.g.
+#   issue #11 comment by fty4 [issuecomment-6301236678]
+# Every entry needs a reason. Review the comment again before adding it.
+
+issuecomment-6301236678  # issue #11 resolution: quotes the POC name in the port decision; reviewed by the maintainer

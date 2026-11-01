@@ -13,6 +13,10 @@
 # Environment:
 #   SANITIZE_DENYLIST       optional private denylist outside the repository.
 #                           Its patterns are never printed.
+#   .sanitize/audit-allow.txt
+#                           reviewed comments that stay as they are: one
+#                           "issuecomment-<id>  # reason" per line. An allowed
+#                           item is reported as a note and not scanned.
 #   AUDIT_SKIP_SANITIZE=1   skip step 1 (used by the script's own test)
 #   AUDIT_SKIP_GITHUB=1     skip step 2 (no network)
 #   AUDIT_MAX_FILE_BYTES    size limit for tracked files (default 1048576)
@@ -25,6 +29,7 @@ root="$(git rev-parse --show-toplevel)" || exit 2
 cd "$root"
 
 generic=".sanitize/denylist.generic.txt"
+allow=".sanitize/audit-allow.txt"
 max_bytes="${AUDIT_MAX_FILE_BYTES:-1048576}"
 limit="${AUDIT_LIMIT:-1000}"
 
@@ -37,6 +42,8 @@ trap 'rm -rf "$tmp"' EXIT
 
 patterns() { grep -vE '^\s*(#|$)' "$1"; }
 patterns "$generic" > "$tmp/generic"
+: > "$tmp/allow"
+[[ -r "$allow" ]] && sed -E 's/[[:space:]]*#.*$//; /^[[:space:]]*$/d' "$allow" > "$tmp/allow"
 : > "$tmp/private"
 if [[ -n "${SANITIZE_DENYLIST:-}" ]]; then
   if [[ ! -r "$SANITIZE_DENYLIST" ]]; then
@@ -53,6 +60,10 @@ fi
 check_text() {
   local where="$1" text="$2"
   [[ -n "$text" ]] || return 0
+  if [[ -s "$tmp/allow" ]] && grep -qF -f "$tmp/allow" <<<"$where"; then
+    note "$where is allowed by $allow; not scanned"
+    return 0
+  fi
   if [[ -s "$tmp/generic" ]] && grep -qEi -f "$tmp/generic" <<<"$text"; then
     fail "$where matches the generic denylist"
   fi
@@ -104,7 +115,7 @@ if [[ "${AUDIT_SKIP_GITHUB:-0}" != 1 ]]; then
     scan_records < <(jq -r '.[] | . as $i |
       ( ["issue #\($i.number) title", $i.title],
         ["issue #\($i.number) body", $i.body],
-        ( $i.comments[]? | ["issue #\($i.number) comment by \(.author.login // "unknown")", .body] ) )
+        ( $i.comments[]? | ["issue #\($i.number) comment by \(.author.login // "unknown")\(if .url then " [" + (.url | split("#") | last) + "]" else "" end)", .body] ) )
       | [.[0], ((.[1] // "") | @base64)] | @tsv' "$tmp/issues.json")
   fi
 
@@ -128,7 +139,7 @@ if [[ "${AUDIT_SKIP_GITHUB:-0}" != 1 ]]; then
     scan_records < <(jq -r '. as $p |
       ( ["PR #\($p.number) title", $p.title],
         ["PR #\($p.number) body", $p.body],
-        ( $p.comments[]? | ["PR #\($p.number) comment", .body] ),
+        ( $p.comments[]? | ["PR #\($p.number) comment\(if .url then " [" + (.url | split("#") | last) + "]" else "" end)", .body] ),
         ( $p.reviews[]? | ["PR #\($p.number) review", .body] ),
         ( $p.commits[]? | ["PR #\($p.number) commit \(.oid[0:7])", "\(.messageHeadline)\n\(.messageBody)"] ),
         ( $p.commits[]? | .authors[]? | ["PR #\($p.number) commit author", "\(.name) <\(.email)>"] ) )
