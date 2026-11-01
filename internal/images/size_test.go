@@ -41,7 +41,7 @@ func near(a, b float64) bool { return math.Abs(a-b) < 0.01 }
 func TestPoints(t *testing.T) {
 	tests := []struct {
 		name   string
-		w, h   int
+		w, h   float64
 		req    Size
 		pw, ph float64
 	}{

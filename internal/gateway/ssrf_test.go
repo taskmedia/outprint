@@ -648,7 +648,7 @@ func TestImagesAllProblemsInOneList(t *testing.T) {
 			"https://cdn.example.invalid/x.png", "/api/attachments.redirect")
 	code, body := w.render()
 	errs := errorsOf(t, code, body)
-	want := []string{"unknown", "format", "missing", "forbidden", "format", "decode", "forbidden", "missing"}
+	want := []string{"unknown", "format", "missing", "forbidden", "svg_rejected", "decode", "forbidden", "missing"}
 	if got := codes(errs); strings.Join(got, ",") != strings.Join(want, ",") {
 		t.Fatalf("codes = %v, want %v\n%s", got, want, body)
 	}
