@@ -98,7 +98,7 @@ tasks:
         if: '! command -v node >/dev/null 2>&1'
 
   screenshots:
-    desc: Regenerate the documentation screenshots (needs `task dev`; see docs/development.md)
+    desc: Regenerate the documentation screenshots (needs `task dev`; see docs/internals/development.md)
     cmds:
       - task: e2e:screenshots
 

@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 import { loadSeed } from './support/seed';
 
-// Documentation screenshots (docs/development.md, "Documentation
+// Documentation screenshots (docs/internals/development.md, "Documentation
 // screenshots"). A separate config, so `playwright test` and `task e2e:run` never
 // run it. Each shot sets its own viewport, colour scheme and motion.
 const seed = loadSeed();
