@@ -159,6 +159,9 @@ markup, with one shared sign-in because Outline rate-limits logins:
   `icon` style keeping an accessible name and a tooltip;
 - operator labels, and the German label of a user whose Outline language is
   German;
+- a second user with the viewer role (the seed makes `riley@example.invalid` a
+  viewer, with the same password): the menu entry works, and without Share the
+  header button sits before "…";
 - a markup change that removes the anchor: the floating fallback and a console
   warning, or nothing with `fallback=off`.
 

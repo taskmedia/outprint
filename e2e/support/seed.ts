@@ -17,6 +17,8 @@ export interface Seed {
   // A Document in the Bound Collection whose Metadata Block has mistakes.
   invalid: SeedItem;
   captions: string[];
+  // A user with the viewer role: it cannot edit, so Outline shows no Share button.
+  viewer: { email: string; password: string };
 }
 
 // The seed command (cmd/seed, run by `task dev:seed` and `task e2e:run`) writes this

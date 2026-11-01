@@ -6,10 +6,10 @@ const seed = loadSeed();
 export const MENU_LABEL = 'Formatted PDF';
 
 // Signs in through the dev Dex, the way a person does.
-export async function signIn(page: Page): Promise<void> {
+export async function signIn(page: Page, user: { email: string; password: string } = seed): Promise<void> {
   await page.goto('/');
-  await page.locator('input[name="login"]').fill(seed.email);
-  await page.locator('input[name="password"]').fill(seed.password);
+  await page.locator('input[name="login"]').fill(user.email);
+  await page.locator('input[name="password"]').fill(user.password);
   await page.locator('button[type="submit"]').click();
   await page.waitForURL((url) => url.origin === new URL(seed.baseUrl).origin && !url.pathname.startsWith('/auth'));
   await expect(page.locator('a[href^="/collection/"]').first()).toBeVisible();

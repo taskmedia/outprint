@@ -20,9 +20,14 @@ change that markup. This page says which versions have been checked.
 the header button appear for a bound document, a click downloads a PDF, and the
 entry is not duplicated by opening the menu again.
 
-Two things were not tested yet: a user with a read-only role (the dev stack
-seeds only an administrator), and the **PDF** entry that Outline adds itself
-when `PDF_EXPORT_ENABLED` is set.
+The browser tests also sign in as a second user with the viewer role, who cannot
+edit: the menu entry works for that user, and the header button sits before the
+**…** button because Outline shows no **Share**.
+
+Two things were not tested yet: the **PDF** entry that Outline adds itself when
+`PDF_EXPORT_ENABLED` is set, and Outline running in a language other than
+English (the menu structure is found by role and file type, but the tests ran in
+English).
 
 If a new Outline version breaks the placement, the floating button appears and
 the browser console says why. Nothing else stops working: the Gateway and the

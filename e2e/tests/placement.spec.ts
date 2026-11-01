@@ -161,3 +161,37 @@ test('the labels follow the language of the Outline user', async ({ page, contex
     await setLanguage(previous);
   }
 });
+
+test.describe('a viewer, who cannot edit', () => {
+  const VIEWER_SESSION_FILE = join(tmpdir(), 'outprint-e2e-viewer-session.json');
+  test.use({ storageState: VIEWER_SESSION_FILE });
+
+  test.beforeAll(async ({ browser }) => {
+    const context = await browser.newContext({ baseURL: seed.baseUrl, storageState: undefined });
+    await signIn(await context.newPage(), seed.viewer);
+    await context.storageState({ path: VIEWER_SESSION_FILE });
+    await context.close();
+  });
+
+  test('can use the Export menu entry', async ({ page }, testInfo) => {
+    await openBound(page);
+    await openExportSubmenu(page);
+    const item = page.getByRole('menuitem', { name: MENU_LABEL });
+    await expect(item).toBeVisible();
+    const [download] = await Promise.all([page.waitForEvent('download'), clickSubmenuItem(page, item)]);
+    await expectPDF(download, testInfo.outputPath('viewer.pdf'));
+  });
+
+  test('gets the header button before the "…" button, as there is no Share', async ({ page }) => {
+    await setScriptAttributes(page, { placement: 'button' });
+    await openBound(page);
+    const button = page.locator(HEADER_BUTTON);
+    await expect(button).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Share' })).toHaveCount(0);
+    const beforeOptions = await button.evaluate((el) => {
+      const next = el.parentElement?.nextElementSibling?.querySelector('button');
+      return next?.getAttribute('aria-haspopup') === 'menu';
+    });
+    expect(beforeOptions, 'the button sits directly before the menu button').toBe(true);
+  });
+});

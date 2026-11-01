@@ -18,6 +18,9 @@ import (
 const (
 	DefaultEmail    = "sam@example.invalid"
 	DefaultPassword = "dev-only-password"
+	// DefaultViewerEmail is a second dev user, made a viewer: it cannot edit,
+	// so Outline hides the Share button from it. It uses the same password.
+	DefaultViewerEmail = "riley@example.invalid"
 )
 
 // Config is what Run needs.
@@ -53,6 +56,14 @@ type Result struct {
 	Invalid Item `json:"invalid"`
 	// Captions are the captions of the figures in the Unbound Document.
 	Captions []string `json:"captions"`
+	// Viewer is a user with the viewer role.
+	Viewer Credentials `json:"viewer"`
+}
+
+// Credentials of a dev user.
+type Credentials struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type collection struct {
@@ -96,7 +107,38 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 	if res.Invalid, err = s.ensureInvalid(ctx, res.Bound); err != nil {
 		return Result{}, err
 	}
+	if err := s.ensureViewer(ctx, cfg.BaseURL, DefaultViewerEmail, cfg.Password); err != nil {
+		return Result{}, err
+	}
+	res.Viewer = Credentials{Email: DefaultViewerEmail, Password: cfg.Password}
 	return res, nil
+}
+
+// ensureViewer signs the second user in, which makes Outline create it as a
+// member, and gives it the viewer role.
+func (s *seeder) ensureViewer(ctx context.Context, baseURL, email, password string) error {
+	if _, err := Login(ctx, baseURL, email, password); err != nil {
+		return fmt.Errorf("sign in the viewer: %w", err)
+	}
+	var users []struct {
+		ID    string `json:"id"`
+		Email string `json:"email"`
+		Role  string `json:"role"`
+	}
+	if err := s.c.Call(ctx, "users.list", map[string]any{"query": email}, &users); err != nil {
+		return err
+	}
+	for _, u := range users {
+		if u.Email != email {
+			continue
+		}
+		if u.Role == "viewer" {
+			return nil
+		}
+		s.logf("making %s a viewer", email)
+		return s.c.Call(ctx, "users.update_role", map[string]any{"id": u.ID, "role": "viewer"}, nil)
+	}
+	return fmt.Errorf("the viewer %s is not in the users list", email)
 }
 
 // ensureInvalid creates the Document with the faulty Metadata Block in the

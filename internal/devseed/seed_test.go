@@ -27,6 +27,7 @@ type fakeStack struct {
 	documents   []map[string]any
 	uploads     []string
 	creates     int
+	viewerRole  string
 }
 
 func newFakeStack(t *testing.T) *fakeStack {
@@ -44,7 +45,8 @@ func (f *fakeStack) serveDex(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, `<html><form method="post" action="/dex/login?back=&amp;state=abc"><input name="login"><input name="password"></form></html>`)
 	case http.MethodPost:
 		_ = r.ParseForm()
-		if r.PostForm.Get("login") != DefaultEmail || r.PostForm.Get("password") != DefaultPassword {
+		login := r.PostForm.Get("login")
+		if (login != DefaultEmail && login != DefaultViewerEmail) || r.PostForm.Get("password") != DefaultPassword {
 			fmt.Fprint(w, `<html>Invalid login</html>`)
 			return
 		}
@@ -128,6 +130,11 @@ func (f *fakeStack) serveAPI(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	case "users.list":
+		reply([]map[string]any{{"id": "u-viewer", "email": DefaultViewerEmail, "role": "member"}})
+	case "users.update_role":
+		f.viewerRole = in["role"].(string)
+		reply(map[string]any{"id": in["id"], "role": f.viewerRole})
 	case "attachments.create":
 		id := fmt.Sprintf("att-%d", len(f.uploads))
 		reply(map[string]any{
@@ -280,5 +287,16 @@ func TestSeedAddsADocumentWithAFaultyMetadataBlockToTheBoundCollection(t *testin
 	}
 	if res.Invalid.DocumentID == res.Bound.DocumentID {
 		t.Fatal("the faulty document is the bound document")
+	}
+}
+
+func TestSeedMakesASecondUserAViewer(t *testing.T) {
+	f := newFakeStack(t)
+	res := runSeed(t, f)
+	if f.viewerRole != "viewer" {
+		t.Errorf("role of the second user = %q, want viewer", f.viewerRole)
+	}
+	if res.Viewer.Email != DefaultViewerEmail || res.Viewer.Password != DefaultPassword {
+		t.Errorf("viewer = %+v", res.Viewer)
 	}
 }
