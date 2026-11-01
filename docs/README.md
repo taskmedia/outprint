@@ -26,7 +26,7 @@
 | [architecture.md](architecture.md) | Gateway and Worker roles, the job bundle, request flow, error mapping |
 | [worker.md](worker.md) | the Worker pipeline, filters, engine lockdown |
 | [security.md](security.md) | the security layers and what each proves |
-| [adr/](adr/0001-split-renderer-into-gateway-and-worker.md) | architecture decision records |
+| [adr/](adr/README.md) | architecture decision records |
 | [../CONTEXT.md](https://github.com/taskmedia/outprint/blob/main/CONTEXT.md) | the vocabulary |
 
 ## Developing and publishing
