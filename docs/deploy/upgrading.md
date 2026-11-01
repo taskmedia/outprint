@@ -1,11 +1,11 @@
 ---
-sidebar_position: 7
+sidebar_position: 11
 ---
 
 # Upgrading
 
-There is no release yet, so there is no upgrade path to describe. This page
-lists what to check when versions exist. It will grow with the first releases.
+There is one release (0.1.0), so there is no upgrade path to describe yet. This
+page lists what to check between versions. It will grow with later releases.
 
 ## What is safe to know now
 

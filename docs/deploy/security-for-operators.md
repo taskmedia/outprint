@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 10
 ---
 
 # Security notes for operators
@@ -59,7 +59,7 @@ and no internal addresses.
 1. Reach the Gateway's port from outside. It must not answer.
 2. Reach the Worker from outside, and from the Gateway's host network. It must
    not answer.
-3. Open Outline through the injector. The **Download PDF** button appears in a
+3. Open Outline through the injector. The **Formatted PDF** action appears in a
    Collection with a Binding.
 4. Check the Content-Security-Policy of Outline if the button is missing. See
    [Injector and PDF action](injector.md#content-security-policy).

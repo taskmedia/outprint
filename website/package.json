@@ -21,8 +21,10 @@
     "@docusaurus/core": "3.10.2",
     "@docusaurus/plugin-client-redirects": "3.10.2",
     "@docusaurus/preset-classic": "3.10.2",
+    "@docusaurus/theme-mermaid": "3.10.2",
     "@easyops-cn/docusaurus-search-local": "0.55.3",
     "@fontsource/roboto": "5.3.0",
+    "@mermaid-js/layout-elk": "0.1.9",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   }
