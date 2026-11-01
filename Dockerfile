@@ -11,7 +11,7 @@ RUN CGO_ENABLED=0 go test -c -tags golden -o /out/golden.test ./internal/golden 
  && CGO_ENABLED=0 go test -c -tags golden -o /out/worker.test ./internal/worker \
  && CGO_ENABLED=0 go build -trimpath -o /out/sandbox-probe ./cmd/sandbox-probe
 # The build identity is linked in (internal/version). COMMIT is optional: the
-# build context has no VCS data, so the release workflow and make pass it in.
+# build context has no VCS data, so the release workflow and `task` pass it in.
 ARG VERSION=dev
 ARG COMMIT=
 RUN LDFLAGS="-X github.com/taskmedia/outprint/internal/version.Version=${VERSION} -X github.com/taskmedia/outprint/internal/version.Commit=${COMMIT}" \
@@ -87,7 +87,7 @@ USER render
 
 # The injector image: a reverse proxy in front of Outline. It carries no TeX
 # toolchain, no shell and no package manager, only the one static binary.
-# Build it with --target injector (make image-injector).
+# Build it with --target injector (task image-injector).
 FROM gcr.io/distroless/static-debian13:nonroot AS injector
 COPY --from=build /out/outprint-injector /outprint-injector
 ARG VERSION=dev

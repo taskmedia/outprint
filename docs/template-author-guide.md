@@ -225,7 +225,7 @@ types and patterns, the TeX deny-list, the drift guard, path confinement, and
 collected, one per line; errors give exit code 1, warnings alone are success.
 
 ```sh
-make build
+task build
 bin/outprint validate --templates-root ./templates --configs-root ./configurations
 bin/outprint validate --templates-root ./templates --configs-root ./configurations \
   --template mine --config example
@@ -269,8 +269,8 @@ To cover your Template:
 2. Add a case to the table in `internal/golden/golden_test.go` naming the
    Template and Configuration, and any literal or forbidden strings.
 3. Generate the goldens inside the image only, then review the diff:
-   `make update-goldens` (writes `testdata/golden/<topic>/`), and run
-   `make test-golden`.
+   `task update-goldens` (writes `testdata/golden/<topic>/`), and run
+   `task test-golden`.
 
 **Not available yet:** a per-Document-Type opt-in to compare rasterised pages
 (PNG diff). The research suggested it as an optional narrow check
@@ -367,4 +367,4 @@ with `validate` and `render` against the image of this repository.
 - Every non-text field has a narrow pattern.
 - A golden fixture covers each Document Type.
 - No organisation-specific names, logos or addresses in a public repository:
-  run `make sanitize` ([Sanitisation gate](https://github.com/taskmedia/outprint/blob/main/docs/sanitize.md)).
+  run `task sanitize` ([Sanitisation gate](https://github.com/taskmedia/outprint/blob/main/docs/sanitize.md)).

@@ -28,7 +28,7 @@ npm run build    # strict: broken links, anchors and markdown links fail
 npm run serve    # serves the build at http://localhost:3000/
 ```
 
-From the repository root: `make docs` and `make docs-serve`. Search only works
+From the repository root: `task docs:build` and `task docs:serve`. Search only works
 in the built site, not under `npm start`.
 
 ## Add a locale (for example German)

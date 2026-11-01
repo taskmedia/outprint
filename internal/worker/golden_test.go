@@ -1,7 +1,7 @@
 //go:build golden
 
 // Tier-2 tests of the Worker itself. They need Pandoc, LuaLaTeX and the
-// shipped packages, so they run inside the outprint image (make test-golden).
+// shipped packages, so they run inside the outprint image (task test-golden).
 // None of them skips: a missing tool is a failure.
 package worker
 

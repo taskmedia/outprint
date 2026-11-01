@@ -46,7 +46,7 @@ CI fails if any test of the security suite reports a skip.
 `internal/sandbox` parses the Compose file with the same YAML the runtime
 reads and does two things with it:
 
-1. **Baseline check** (tier 1, part of `make test`). Every row above is
+1. **Baseline check** (tier 1, part of `task test`). Every row above is
    asserted, and each failure names the Compose key (`cap_drop: must contain
    ALL`). A key the harness does not know, such as `privileged`, `cap_add`,
    `network_mode` or `devices`, is a failure too, so a new key has to be
@@ -194,14 +194,14 @@ what bounds a document that makes pages endlessly.
 ## Running the tests
 
 ```sh
-make test              # tier 1, includes the Compose baseline check
-make test-security     # layers 1-3 (builds the images; needs Docker)
-make test-sandbox      # layers 2 and 3 only
+task test              # tier 1, includes the Compose baseline check
+task test-security     # layers 1-3 (builds the images; needs Docker)
+task test-sandbox      # layers 2 and 3 only
 ```
 
-`make test-sandbox` builds the release image and the `sandbox` stage and runs
+`task test-sandbox` builds the release image and the `sandbox` stage and runs
 `go test -tags sandbox ./internal/sandbox/...` with `SANDBOX_IMAGE` and
 `RELEASE_IMAGE` pointing at them. The skip guard, `scripts/security-guard.sh`,
 reads the test output and fails on any skip or when nothing ran. CI uses
-`-json` (`make test-security GOTEST_FLAGS=-json`); see
+`-json` (`task test-security GOTEST_FLAGS=-json`); see
 [Testing](https://github.com/taskmedia/outprint/blob/main/docs/testing.md).

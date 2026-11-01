@@ -182,7 +182,7 @@ func TestSecurityHostileDocuments(t *testing.T) {
 	root := repoRoot(t)
 	for _, tool := range []string{"pdftotext", "pdftohtml"} {
 		if _, err := exec.LookPath(tool); err != nil {
-			t.Fatalf("%s not found: the security suite must run in the outprint image (make test-golden)", tool)
+			t.Fatalf("%s not found: the security suite must run in the outprint image (task test-golden)", tool)
 		}
 	}
 	for _, tc := range hostileCases() {

@@ -1,0 +1,26 @@
+# https://taskfile.dev
+#
+# Tier 3: browser end-to-end tests against the dev stack. Needs Docker, Go and
+# Node. Included by the root Taskfile as `e2e:`; tasks run in e2e/.
+version: '3.54'
+
+tasks:
+  install:
+    desc: Install the e2e dependencies and the Playwright Chromium
+    sources:
+      - package-lock.json
+    generates:
+      - node_modules/.package-lock.json
+    cmds:
+      - npm ci
+      - npx playwright install chromium
+
+  run:
+    desc: "Tier 3: browser tests against the dev stack (starts and seeds it)"
+    summary: |
+      Starts the stack when it is not running, seeds it, then runs the
+      Playwright tests. Needs Docker, Go and Node.
+    cmds:
+      - task: :dev:up
+      - task: :dev:seed
+      - npx playwright test

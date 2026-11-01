@@ -1,0 +1,18 @@
+# https://taskfile.dev
+#
+# Documentation site (website/README.md). Included by the root Taskfile as
+# `docs:`; tasks run in website/. Needs Node 22.
+version: '3.54'
+
+tasks:
+  build:
+    desc: Build the documentation site (strict)
+    cmds:
+      - npm ci
+      - npm run build
+
+  serve:
+    desc: Build the site, then serve it at http://localhost:3000/outprint/
+    cmds:
+      - task: build
+      - npm run serve

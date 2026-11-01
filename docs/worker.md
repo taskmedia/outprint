@@ -304,15 +304,15 @@ a deployment.
 
 ## Tests
 
-- Tier 1 (`make test`): environment, engine configuration, process-group kill,
+- Tier 1 (`task test`): environment, engine configuration, process-group kill,
   error shape, CLI mapping.
-- Tier 2 (`make test-golden`, in the image): PDF goldens for every fixture
+- Tier 2 (`task test-golden`, in the image): PDF goldens for every fixture
   topic; the Worker tests (filters on hand-made ASTs, engine lockdown with
   hostile TeX, timeout, run count, debug log, cache); security layer 1.
-- Security layers 2 and 3 (`make test-sandbox`): the Worker image under the
+- Security layers 2 and 3 (`task test-sandbox`): the Worker image under the
   flags of the shipped Compose file, with hostile actions and resource bombs.
   See [Security](security.md).
-- Security layer 1 (`make test-security-layer1`): a corpus of hostile Documents,
+- Security layer 1 (`task test-security-layer1`): a corpus of hostile Documents,
   metadata values included, rendered through the real binary. Each payload
   class has one outcome, `literal`, `dropped` or `rejected`. A random canary
   file is created per test and its content must never reach the PDF; a payload

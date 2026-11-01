@@ -2,7 +2,7 @@
 # Pre-publish audit. Run by the maintainer before making the repository
 # public. It does not change any repository setting or visibility.
 #
-#   1. make sanitize (working tree, history, refs, secrets)
+#   1. task sanitize (working tree, history, refs, secrets)
 #   2. every issue and pull request on GitHub: titles, bodies, comments,
 #      review comments, commit messages; release notes; repository
 #      description and topics - matched against the generic denylist and the
@@ -87,9 +87,9 @@ gh_json() {
 
 # 1. sanitize
 if [[ "${AUDIT_SKIP_SANITIZE:-0}" != 1 ]]; then
-  echo "== make sanitize"
+  echo "== task sanitize"
   if ! ./scripts/sanitize.sh; then
-    fail "make sanitize reported findings (see above)"
+    fail "task sanitize reported findings (see above)"
   fi
 fi
 

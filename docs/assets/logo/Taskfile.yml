@@ -1,0 +1,42 @@
+# https://taskfile.dev
+#
+# Logo kit (README.md in this folder). Included by the root Taskfile as
+# `logo:`; tasks run in this folder. Needs Node, Python 3 and rsvg-convert
+# (librsvg).
+version: '3.54'
+
+tasks:
+  node-deps:
+    desc: Install the roboto fonts and svgo
+    internal: true
+    sources:
+      - package-lock.json
+    generates:
+      - node_modules/.package-lock.json
+    cmds:
+      - npm ci
+
+  python-deps:
+    desc: Create the virtualenv with the Python dependencies
+    internal: true
+    sources:
+      - requirements.txt
+    generates:
+      - .venv/pyvenv.cfg
+    cmds:
+      - python3 -m venv .venv
+      - .venv/bin/pip install -r requirements.txt
+
+  build:
+    desc: Generate the logo kit (SVG, PNG, favicon, social preview)
+    deps: [node-deps, python-deps]
+    sources:
+      - build_logo.py
+      - node_modules/@fontsource/roboto/files/**/*
+    generates:
+      - svg/*.svg
+      - png/*.png
+      - favicon/*
+      - social/*.png
+    cmds:
+      - .venv/bin/python build_logo.py

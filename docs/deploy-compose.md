@@ -36,7 +36,7 @@ For a local stack with Outline, a login and seeded content, see [Development sta
 ## The injector
 
 The `injector` service is built from the `injector` target of the Dockerfile
-(`make image-injector`): a distroless, non-root image without TeX. It is not
+(`task image-injector`): a distroless, non-root image without TeX. It is not
 part of the Worker baseline and the sandbox tests do not read it. Point it at
 Outline and publish it instead of Outline:
 

@@ -22,6 +22,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: go-task/setup-task@v2
+        with:
+          version: 3.54.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -53,7 +58,7 @@ jobs:
       - name: seeded stack and tests
         id: e2e
         continue-on-error: true
-        run: make e2e
+        run: task e2e:run
         env:
           CI: "true"
           OUTLINE_IMAGE: outlinewiki/outline:${{ steps.outline.outputs.version }}

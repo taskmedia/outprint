@@ -93,7 +93,7 @@ func requireDocker(t *testing.T, images ...string) {
 	}
 	for _, image := range images {
 		if out, err := docker(t, "image", "inspect", image); err != nil {
-			t.Fatalf("image %q is required (build it with make test-sandbox): %v\n%s", image, err, out)
+			t.Fatalf("image %q is required (build it with task test-sandbox): %v\n%s", image, err, out)
 		}
 	}
 }
