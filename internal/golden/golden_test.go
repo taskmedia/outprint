@@ -3,7 +3,7 @@
 // Tier-2 tests: render fixtures with the real outprint binary and compare
 // PDF facts and extracted text with checked-in goldens. PDF bytes are never
 // compared. These tests are meant to run inside the pinned outprint image
-// (see the golden target in the Dockerfile and `make test-golden`).
+// (see the golden target in the Dockerfile and `task test-golden`).
 package golden
 
 import (
@@ -117,7 +117,7 @@ func TestGoldens(t *testing.T) {
 	root := repoRoot(t)
 	for _, tool := range []string{"pdfinfo", "pdffonts", "pdftotext", "pdftoppm"} {
 		if _, err := exec.LookPath(tool); err != nil {
-			t.Fatalf("%s not found: golden tests must run in the outprint image (make test-golden)", tool)
+			t.Fatalf("%s not found: golden tests must run in the outprint image (task test-golden)", tool)
 		}
 	}
 	for _, tc := range cases {
@@ -375,7 +375,7 @@ func checkGolden(t *testing.T, root, name, file, got string) {
 	}
 	want, err := os.ReadFile(path)
 	if err != nil {
-		t.Fatalf("read golden (run make update-goldens): %v", err)
+		t.Fatalf("read golden (run task update-goldens): %v", err)
 	}
 	if string(want) != got {
 		t.Errorf("%s differs from golden %s\n--- got ---\n%s\n--- want ---\n%s", file, path, got, want)

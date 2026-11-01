@@ -4,12 +4,12 @@
 
 | Tier | Command | Needs | Covers |
 |------|---------|-------|--------|
-| 1 | `make test` | Go | Unit tests, the Gateway HTTP API with fakes, the Compose baseline check, the Gateway half of the SVG attack corpus |
-| 2 | `make test-golden` | Docker | PDF goldens, the Worker tests and security layer 1 inside the pinned outprint image |
-| 2 | `make test-sandbox` | Docker | Security layers 2 and 3: the Worker under the shipped container flags (see [security.md](security.md)) |
-| 3 | `make e2e` | Docker, Go, Node | Browser end-to-end tests (Playwright) against the seeded dev stack, see [development.md](development.md) |
+| 1 | `task test` | Go | Unit tests, the Gateway HTTP API with fakes, the Compose baseline check, the Gateway half of the SVG attack corpus |
+| 2 | `task test-golden` | Docker | PDF goldens, the Worker tests and security layer 1 inside the pinned outprint image |
+| 2 | `task test-sandbox` | Docker | Security layers 2 and 3: the Worker under the shipped container flags (see [security.md](security.md)) |
+| 3 | `task e2e:run` | Docker, Go, Node | Browser end-to-end tests (Playwright) against the seeded dev stack, see [development.md](development.md) |
 
-`make test-security` runs layers 1 to 3. No test of tier 2 skips: a missing
+`task test-security` runs layers 1 to 3. No test of tier 2 skips: a missing
 tool, image or Docker daemon fails the run.
 
 ## Tier 3 in CI
@@ -22,7 +22,7 @@ tool, image or Docker daemon fails the run.
 pull request. `.github/workflows/security.yml` runs the security suite as its
 own job, named **`security (layers 1-3)`**:
 
-1. `make test-security GOTEST_FLAGS=-json` builds the golden, release and
+1. `task test-security GOTEST_FLAGS=-json` builds the golden, release and
    sandbox images and runs layer 1 (golden image) and layers 2 and 3
    (`go test -tags sandbox -json`). The output is kept in `.security-logs/`.
 2. `scripts/security-guard.sh` fails the job if any logged test was skipped
@@ -50,7 +50,7 @@ Measured on a developer machine with a warm Docker layer cache (Docker Desktop,
 |------|------|
 | layers 2 and 3 (`go test -tags sandbox -parallel 4`), before the SVG corpus | about 50 s |
 | layers 2 and 3 with the SVG attack corpus | about 2 min 20 s (the corpus is about 90 s of it: 37 light attacks over 4 Workers, about 4 s each because a converted SVG goes on through LuaLaTeX, and 3 heavy ones of 12 to 26 s in parallel) |
-| whole `make test-security` (layer 1, release and sandbox images, layers 2 and 3) | about 3 min 45 s with warm Docker layers, before: about 1 min 32 s |
+| whole `task test-security` (layer 1, release and sandbox images, layers 2 and 3) | about 3 min 45 s with warm Docker layers, before: about 1 min 32 s |
 
 On the GitHub runner the job took about 6 to 7 minutes, almost all of it the
 cold image builds (the `goldens` job takes as long for the same reason); the
@@ -76,6 +76,6 @@ cores slows the suite down but does not change what it proves.
 ## Skip guard
 
 ```sh
-make test-guard        # tests scripts/security-guard.sh
+task test-guard        # tests scripts/security-guard.sh
 scripts/security-guard.sh .security-logs/*.log
 ```

@@ -119,8 +119,8 @@ Plain ES2019, no dependencies.
   All text is set with `textContent`; nothing from the server is parsed as HTML.
 - It talks to its own origin only. No id or content goes to a third party.
 
-Tests: `make test-web` runs `web/button.test.js` with Node's built-in runner (pure
-functions plus a small DOM stub). `make test` runs it when Node is installed and
+Tests: `task test-web` runs `web/button.test.js` with Node's built-in runner (pure
+functions plus a small DOM stub). `task test` runs it when Node is installed and
 prints a note when it is not; CI always runs it.
 
 ## Security notes

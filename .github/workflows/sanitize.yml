@@ -15,6 +15,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: go-task/setup-task@v2
+        with:
+          version: 3.54.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/setup-go@v5
         with:
           go-version: stable
@@ -23,7 +28,7 @@ jobs:
         run: go install github.com/zricethezav/gitleaks/v8@v8.21.2
 
       - name: Test the sanitize gate
-        run: make test-sanitize test-audit
+        run: task test-sanitize test-audit
 
       # The private denylist is an Actions secret. Secrets are not available to
       # fork pull requests, so those runs only perform the generic checks.
@@ -38,4 +43,4 @@ jobs:
             printf '%s\n' "$PRIVATE_DENYLIST" > "$RUNNER_TEMP/denylist.txt"
             export SANITIZE_DENYLIST="$RUNNER_TEMP/denylist.txt"
           fi
-          make sanitize
+          task sanitize

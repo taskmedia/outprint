@@ -14,6 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: go-task/setup-task@v2
+        with:
+          version: 3.54.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -23,10 +28,10 @@ jobs:
         with:
           node-version: 22
 
-      - run: make test
+      - run: task test
 
       - name: skip guard
-        run: make test-guard
+        run: task test-guard
 
       - name: compose file is valid
         run: docker compose -f deploy/compose/compose.yaml config --quiet
@@ -43,6 +48,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: go-task/setup-task@v2
+        with:
+          version: 3.54.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -51,7 +61,7 @@ jobs:
         run: go test -race -count=1 -cover ./internal/inject/...
 
       - name: build the slim image
-        run: make image-injector
+        run: task image-injector
 
       # The image has no shell, so the check runs from the outside.
       - name: image runs as non-root, has no TeX, and answers
@@ -76,7 +86,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: go-task/setup-task@v2
+        with:
+          version: 3.54.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       # Runs the PDF goldens, the Worker tests and the security layer 1
       # corpus in the pinned image. Fails if a golden differs or a tool is
       # missing; nothing here is ever skipped.
-      - run: make test-golden
+      - run: task test-golden

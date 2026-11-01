@@ -1,9 +1,9 @@
 # Development and E2E stack: Outline with login, the injector in front of it,
 # the Gateway and the Worker. It builds on the shipped Compose file, whose
-# Worker baseline is left untouched. Use it through the Makefile:
+# Worker baseline is left untouched. Use it through the Taskfile (deploy/dev/Taskfile.yml):
 #
-#   make dev        # up, seed, print the URL and the login
-#   make dev-down
+#   task dev        # up, seed, print the URL and the login
+#   task dev:down
 #
 # which runs, in essence:
 #

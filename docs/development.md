@@ -4,7 +4,7 @@ One command gives you Outline with a login, a bound and an unbound Collection
 and an example Document, with the PDF button in front of it:
 
 ```sh
-make dev
+task dev
 ```
 
 It prints the URL and the test login:
@@ -26,19 +26,19 @@ listens on `127.0.0.1` only.
 
 | Command | What it does |
 |---------|--------------|
-| `make dev` | generate the dev secrets once, build and start the stack (`up -d --build --wait`), run the seed, print URL and login |
-| `make seed` | run only the seed (safe to repeat) |
-| `make dev-logs` | follow the logs of all services |
-| `make dev-down` | stop the stack, keep the database and files |
-| `make dev-down-volumes` | stop and delete the database and files; the next `make dev` starts empty |
-| `make dev-clean` | delete the generated secrets and the seed output (stop with `dev-down-volumes` first) |
-| `make e2e-install` | `npm ci` and the Playwright Chromium in `e2e/` |
-| `make e2e` | start the stack if needed, seed, run the browser tests |
+| `task dev` | generate the dev secrets once, build and start the stack (`up -d --build --wait`), run the seed, print URL and login |
+| `task dev:seed` | run only the seed (safe to repeat) |
+| `task dev:logs` | follow the logs of all services |
+| `task dev:down` | stop the stack, keep the database and files |
+| `task dev:down-volumes` | stop and delete the database and files; the next `task dev` starts empty |
+| `task dev:clean` | delete the generated secrets and the seed output (stop with `dev:down-volumes` first) |
+| `task e2e:install` | `npm ci` and the Playwright Chromium in `e2e/` |
+| `task e2e:run` | start the stack if needed, seed, run the browser tests |
 
 ## What runs
 
 `deploy/dev/compose.yaml` is layered over `deploy/compose/compose.yaml`
-(`-f` twice, see the `DEV_COMPOSE` variable of the Makefile). The shipped
+(`-f` twice, see the `DEV_COMPOSE` variable of `deploy/dev/Taskfile.yml`). The shipped
 Gateway, Worker and injector definitions, including the hardened Worker
 baseline, are reused unchanged; the dev file adds Outline, Postgres, Redis and
 Dex and points the Gateway and the injector at Outline.
@@ -92,12 +92,12 @@ needed.
 client secret) with `openssl rand`, once, into an untracked directory. Only two
 dev values are committed: the fictional user's password hash in
 `deploy/dev/dex/config.yaml` and the Postgres password on a network that has no
-route out. Delete the generated directory (`make dev-clean`) to roll the secrets.
+route out. Delete the generated directory (`task dev:clean`) to roll the secrets.
 
 ## Seeding
 
-`cmd/seed` (package `internal/devseed`) is the only seeding implementation; `make
-dev` and `make e2e` both run it, and the browser tests read what it wrote. It
+`cmd/seed` (package `internal/devseed`) is the only seeding implementation; `task
+dev` and `task e2e:run` both run it, and the browser tests read what it wrote. It
 works through Outline's own interfaces:
 
 1. **Sign in like a browser.** It opens `/auth/oidc`, follows the redirects to
@@ -152,8 +152,8 @@ in the golden tests, and from `pdfjs-dist` otherwise or with `E2E_PDF_TEXT=js`.
 CI installs poppler.
 
 ```sh
-make e2e-install   # once: npm ci, Chromium
-make e2e
+task e2e:install   # once: npm ci, Chromium
+task e2e:run
 cd e2e && npx playwright test --ui   # while writing tests (stack running, seeded)
 ```
 
@@ -162,7 +162,7 @@ cd e2e && npx playwright test --ui   # while writing tests (stack running, seede
 `.github/workflows/e2e.yml` runs the suite on every push to `main`, on
 `workflow_dispatch`, and on pull requests that touch the injector, the Outline
 client, the Gateway, the seed, `deploy/`, `web/`, `e2e/`, the Dockerfile or the
-Makefile. It uploads the Playwright report, the traces and the compose logs when
+`Taskfile.yml`. It uploads the Playwright report, the traces and the compose logs when
 it fails.
 
 `.github/workflows/e2e-latest-outline.yml` runs weekly (Monday) and on demand
@@ -189,23 +189,23 @@ annotation above each; a Renovate regex manager can bump them. Dependabot does
 not read env files.
 
 To bump one: check the tag exists (`docker manifest inspect <image>:<tag>`),
-edit the line, run `make dev-down-volumes e2e`, and commit if it passes. Outline
+edit the line, run `task dev:down-volumes dev e2e:run`, and commit if it passes. Outline
 migrates its database on start, so test a bump on an empty volume.
 
 ## Troubleshooting
 
-- **`make dev` waits at Outline.** The first start runs migrations and takes up
-  to a minute. `make dev-logs` shows why if it fails.
+- **`task dev` waits at Outline.** The first start runs migrations and takes up
+  to a minute. `task dev:logs` shows why if it fails.
 - **Port 8090 or 5556 is taken.** Set `OUTPRINT_INJECTOR_PORT` for the first, and stop
   the other program for Dex: its port is part of the issuer address.
   `OUTPRINT_INJECTOR_PORT` also needs a matching `DEV_URL` and Outline `URL`, so
   changing it is not supported yet.
 - **"sign-in did not produce a session".** The seed could not log in as the dev
   user: the stack was started with other secrets or another Dex. Run
-  `make dev-down-volumes dev-clean dev`.
+  `task dev:down-volumes dev:clean dev`.
 - **Outline answers but the button is missing.** The browser may have a cached
   page from before the injector; do a hard reload. Check
   `curl -s localhost:8090/pdf/button.js | head`.
-- **A render fails.** `make dev-logs`, look for `render failed` in the gateway
+- **A render fails.** `task dev:logs`, look for `render failed` in the gateway
   and worker. TeX errors name the phase.
-- **Reset everything.** `make dev-down-volumes dev-clean`.
+- **Reset everything.** `task dev:down-volumes dev:clean`.

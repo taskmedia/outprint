@@ -1,5 +1,5 @@
 // Command seed provisions the development stack: the fictional user, a bound
-// and an unbound Collection, each with a Document. `make dev` and `make e2e`
+// and an unbound Collection, each with a Document. `task dev` and `task e2e:run`
 // both run it. See docs/development.md.
 package main
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Writes the secrets of the DEV stack into untracked files, once. Nothing here
-# is ever committed or reused: `make dev-clean` deletes them so they are rolled.
+# is ever committed or reused: `task dev:clean` deletes them so they are rolled.
 set -euo pipefail
 dir="$(cd "$(dirname "$0")" && pwd)/.generated"
 mkdir -p "$dir"

@@ -1,6 +1,6 @@
 # Sanitisation gate
 
-`make sanitize` keeps organisation-, place- and person-specific strings out of
+`task sanitize` keeps organisation-, place- and person-specific strings out of
 the repository and its history. It checks:
 
 - the working tree (tracked files and untracked files that are not ignored),
@@ -22,8 +22,8 @@ The `.sanitize/` directory is excluded from the scan. Findings name the file or
 history section and the line; private matches never echo the pattern.
 
 ```sh
-SANITIZE_DENYLIST=~/private/denylist.txt make sanitize
-make test-sanitize   # tests the gate itself
+SANITIZE_DENYLIST=~/private/denylist.txt task sanitize
+task test-sanitize   # tests the gate itself
 ```
 
 ## CI
@@ -34,8 +34,8 @@ forks run only the generic checks.
 
 ## Pre-publish audit
 
-`make audit` (`scripts/prepublish-audit.sh`) is the last check before the
-maintainer makes the repository public. It runs `make sanitize` and then
+`task audit` (`scripts/prepublish-audit.sh`) is the last check before the
+maintainer makes the repository public. It runs `task sanitize` and then
 reads, through the authenticated `gh` CLI, content that the git history does
 not hold:
 
@@ -55,8 +55,8 @@ something that is not JSON, so a broken scan never looks clean.
 
 ```sh
 gh auth login            # once
-SANITIZE_DENYLIST=~/private/denylist.txt make audit
-make test-audit          # tests the matching logic with a fake gh
+SANITIZE_DENYLIST=~/private/denylist.txt task audit
+task test-audit          # tests the matching logic with a fake gh
 ```
 
 The audit only reads. It never edits issues or pull requests; fix findings by

@@ -33,11 +33,14 @@ See [CONTEXT.md](CONTEXT.md) for the vocabulary and
 
 ## Quick start
 
-You need Docker, Go and `make`.
+You need Docker, Go and [Task](https://taskfile.dev) 3.54 or newer
+(`brew install go-task`, or see the
+[installation guide](https://taskfile.dev/installation/)). `task` alone lists
+every task.
 
 ```sh
-make dev     # Outline with login, the injector, Gateway and Worker, seeded, at http://localhost:8090
-make e2e     # optional: the browser tests against that stack
+task dev # Outline with login, the injector, Gateway and Worker, seeded, at http://localhost:8090
+task e2e:run # optional: the browser tests against that stack
 ```
 
 The log-in, the seed data and what to click are described in
@@ -57,19 +60,19 @@ Work in progress. Tracked in the project issues. Known gaps are listed there.
 ## Development
 
 ```sh
-make build           # build bin/outprint
-make test            # tier 1: Go unit tests, and the button script tests when Node is installed
-make image-injector  # build the slim injector image
-make image           # build the outprint image
-make test-golden     # tier 2: PDF goldens, Worker and security tests, in the pinned image
-make test-security   # security layers 1-3: hostile payloads, sandbox, resource bombs
-make test-sandbox    # security layers 2 and 3 only (needs a Docker daemon)
-make update-goldens  # regenerate goldens, only ever inside the pinned image
-make sanitize        # scan tree and history for forbidden strings
-make test-sanitize   # test the sanitize gate itself
-make audit           # pre-publish audit: sanitize plus issues and pull requests via gh
-make dev             # Outline + injector + Gateway + Worker, seeded, at http://localhost:8090
-make e2e             # tier 3: browser tests against that stack
+task build           # build bin/outprint
+task test            # tier 1: Go unit tests, and the button script tests when Node is installed
+task image-injector  # build the slim injector image
+task image           # build the outprint image
+task test-golden     # tier 2: PDF goldens, Worker and security tests, in the pinned image
+task test-security   # security layers 1-3: hostile payloads, sandbox, resource bombs
+task test-sandbox    # security layers 2 and 3 only (needs a Docker daemon)
+task update-goldens  # regenerate goldens, only ever inside the pinned image
+task sanitize        # scan tree and history for forbidden strings
+task test-sanitize   # test the sanitize gate itself
+task audit           # pre-publish audit: sanitize plus issues and pull requests via gh
+task dev              # Outline + injector + Gateway + Worker, seeded, at http://localhost:8090
+task e2e:run         # tier 3: browser tests against that stack
 ```
 
 The local stack, its login, the seeding and the end-to-end tests are described

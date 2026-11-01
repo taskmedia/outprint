@@ -88,19 +88,19 @@ replaced, and its tag cannot be moved or deleted. Consequences:
 The images build from the same `Dockerfile` the workflow uses:
 
 ```sh
-make build VERSION=0.0.0-test
+task build VERSION=0.0.0-test
 bin/outprint version
 bin/outprint-injector version
 
-make image VERSION=0.0.0-test
+task image VERSION=0.0.0-test
 docker inspect outprint --format '{{json .Config.Labels}}'
 docker run --rm outprint version
 
-make image-injector VERSION=0.0.0-test
+task image-injector VERSION=0.0.0-test
 docker run --rm outprint-injector version
 ```
 
-Without `VERSION`, `make` takes `git describe --tags --always --dirty`.
+Without `VERSION`, `task` takes `git describe --tags --always --dirty`.
 
 To see what release-please would propose, without writing anything (needs a
 token with read access; do not paste it into shell history):

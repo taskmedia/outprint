@@ -11,10 +11,10 @@ settings. Work through this list in order.
 
    ```sh
    gh auth status
-   SANITIZE_DENYLIST=~/private/denylist.txt make audit
+   SANITIZE_DENYLIST=~/private/denylist.txt task audit
    ```
 
-   It runs `make sanitize` (tree, history, refs, secrets) and scans every
+   It runs `task sanitize` (tree, history, refs, secrets) and scans every
    issue, pull request, comment, review comment, commit message, release note
    and the repository description and topics. See [sanitize.md](sanitize.md).
    Findings name the issue or pull request and the field, never the pattern.
@@ -28,8 +28,8 @@ settings. Work through this list in order.
 4. Check `THIRD_PARTY_NOTICES` against the pinned images (see below), and that
    `LICENSE` is the licence you intend (MIT).
 5. Nothing needs to be rotated: the repository holds no secrets (gitleaks is
-   part of `make sanitize`), and the development secrets are generated locally
-   by `make dev-secrets` and never committed. If a scan ever reports a real
+   part of `task sanitize`), and the development secrets are generated locally
+   by `task dev:secrets` and never committed. If a scan ever reports a real
    secret, rotate it first, then clean the history.
 
 ### Refreshing the notices
@@ -77,7 +77,7 @@ These are settings you change on GitHub; the project does not do it for you.
 Settings, General, Danger Zone, Change visibility. GitHub will ask you to
 confirm. After it:
 
-- run `make audit` once more from a fresh clone (the audit uses `gh`, which
+- run `task audit` once more from a fresh clone (the audit uses `gh`, which
   sees the same content as the public);
 - check that Actions run on a test pull request from a fork account;
 - if you publish container images, include `THIRD_PARTY_NOTICES` in the

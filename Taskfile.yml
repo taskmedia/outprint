@@ -1,0 +1,200 @@
+# https://taskfile.dev
+#
+# Every developer and CI entry point. Root = orchestration; component logic
+# lives in the Taskfile next to the code (deploy/dev, e2e, website, logo kit).
+# `task` lists the tasks; every variable below can be overridden from the
+# environment or the command line, e.g. `task test-security GOTEST_FLAGS=-json`.
+#
+# The minimum Task version below is the same one CI installs
+# (.github/workflows/*.yml, go-task/setup-task) and README.md documents.
+version: '3.54'
+
+set: [pipefail]
+
+includes:
+  dev:
+    taskfile: ./deploy/dev/Taskfile.yml
+    dir: .
+  e2e:
+    taskfile: ./e2e/Taskfile.yml
+    dir: ./e2e
+  docs:
+    taskfile: ./website/Taskfile.yml
+    dir: ./website
+  logo:
+    taskfile: ./docs/assets/logo/Taskfile.yml
+    dir: ./docs/assets/logo
+
+vars:
+  IMAGE: '{{.IMAGE | default "outprint"}}'
+  IMAGE_INJECTOR: '{{.IMAGE_INJECTOR | default "outprint-injector"}}'
+  GOLDEN_IMAGE: '{{.GOLDEN_IMAGE | default (printf "%s-golden" .IMAGE)}}'
+  SANDBOX_IMAGE: '{{.SANDBOX_IMAGE | default (printf "%s-sandbox" .IMAGE)}}'
+  # Where the security tasks keep their test output for the skip guard.
+  SECURITY_LOG_DIR: '{{.SECURITY_LOG_DIR | default ".security-logs"}}'
+  # -v for people, -json for CI.
+  GOTEST_FLAGS: '{{.GOTEST_FLAGS | default "-v"}}'
+  SANDBOX_PARALLEL: '{{.SANDBOX_PARALLEL | default "4"}}'
+  # Fixed so that PDFs are reproducible across runs.
+  SOURCE_DATE_EPOCH: '{{.SOURCE_DATE_EPOCH | default "1700000000"}}'
+  # Build identity, linked into both binaries and set as the image label.
+  VERSION:
+    sh: echo "${VERSION:-$(git describe --tags --always --dirty 2>/dev/null || echo dev)}"
+  COMMIT:
+    sh: echo "${COMMIT:-$(git rev-parse HEAD 2>/dev/null)}"
+  VERSION_PKG: github.com/taskmedia/outprint/internal/version
+  LDFLAGS: -X {{.VERSION_PKG}}.Version={{.VERSION}} -X {{.VERSION_PKG}}.Commit={{.COMMIT}}
+  BUILD_ARGS: --build-arg VERSION={{.VERSION}} --build-arg COMMIT={{.COMMIT}}
+  # Everything the Dockerfile copies into the image build.
+  IMAGE_SOURCES:
+    - Dockerfile
+    - go.mod
+    - go.sum
+    - cmd/**/*
+    - internal/**/*
+    - web/**/*
+    - templates/**/*
+    - configurations/**/*
+    - config/service.yaml
+
+tasks:
+  default:
+    silent: true
+    cmds:
+      - task --list
+
+  build:
+    desc: Build bin/outprint and bin/outprint-injector
+    sources:
+      - go.mod
+      - go.sum
+      - cmd/**/*.go
+      - internal/**/*.go
+      - web/**/*
+    generates:
+      - bin/outprint
+      - bin/outprint-injector
+    cmds:
+      - go build -ldflags "{{.LDFLAGS}}" -o bin/outprint ./cmd/outprint
+      - go build -ldflags "{{.LDFLAGS}}" -o bin/outprint-injector ./cmd/outprint-injector
+
+  test:
+    desc: "Tier 1: Go unit tests, plus the button script tests when Node is installed"
+    summary: |
+      Unit tests, no external tools besides Go. The button script tests
+      (test-web) need Node and are skipped, with a note, where it is not
+      installed; CI always has it.
+    deps: [test-web]
+    cmds:
+      - go vet ./...
+      - go test ./...
+
+  test-web:
+    desc: Run the button script tests with Node's built-in runner
+    cmds:
+      - cmd: node --test web/*.test.js
+        if: command -v node >/dev/null 2>&1
+      - cmd: 'echo "note: node is not installed; skipping the button script tests"'
+        if: '! command -v node >/dev/null 2>&1'
+
+  image:
+    desc: Build the outprint image
+    sources:
+      - ref: IMAGE_SOURCES
+    status:
+      # Rebuild when the image is missing or was built for another VERSION.
+      - |-
+        docker image inspect {{.IMAGE}} | grep -q '"org.opencontainers.image.version": "{{.VERSION}}"'
+    cmds:
+      - docker build {{.BUILD_ARGS}} -t {{.IMAGE}} .
+
+  image-injector:
+    desc: Build the slim injector image (no TeX toolchain)
+    sources:
+      - ref: IMAGE_SOURCES
+    status:
+      # Rebuild when the image is missing or was built for another VERSION.
+      - |-
+        docker image inspect {{.IMAGE_INJECTOR}} | grep -q '"org.opencontainers.image.version": "{{.VERSION}}"'
+    cmds:
+      - docker build {{.BUILD_ARGS}} --target injector -t {{.IMAGE_INJECTOR}} .
+
+  test-golden:
+    desc: "Tier 2: PDF goldens, Worker and security tests, in the pinned image"
+    cmds:
+      - docker build --target golden -t {{.GOLDEN_IMAGE}} .
+      - docker run --rm {{.GOLDEN_IMAGE}}
+
+  test-security:
+    desc: Security layers 1 to 3 (a skipped test counts as a failure)
+    cmds:
+      - task: test-security-layer1
+      - task: test-sandbox
+
+  test-security-layer1:
+    desc: "Security layer 1: hostile payload corpus and engine lockdown, in the golden image"
+    summary: |
+      The hostile-payload corpus and the engine lockdown tests, in the golden
+      image. Part of test-golden as well; this is the quick way to run it.
+    cmds:
+      - mkdir -p {{.SECURITY_LOG_DIR}}
+      - docker build --target golden -t {{.GOLDEN_IMAGE}} .
+      - docker run --rm -e GOLDEN_RUN='Security|TestEngine|TestFilters|TestRender|TestSVG' {{.GOLDEN_IMAGE}} -test.v 2>&1 | tee {{.SECURITY_LOG_DIR}}/layer1.log
+      - ./scripts/security-guard.sh {{.SECURITY_LOG_DIR}}/layer1.log
+
+  test-sandbox:
+    desc: Security layers 2 and 3 (needs a Docker daemon)
+    summary: |
+      The Worker image run with the flags of the shipped Compose file against
+      a hostile pipeline (docs/security.md). The "sandbox" image stage holds
+      the test-only probe; the release image must not, and the suite checks
+      that. The log is always shown before the skip guard runs.
+    cmds:
+      - mkdir -p {{.SECURITY_LOG_DIR}}
+      - docker build -t {{.IMAGE}} .
+      - docker build --target sandbox -t {{.SANDBOX_IMAGE}} .
+      - |
+        rc=0
+        RELEASE_IMAGE={{.IMAGE}} SANDBOX_IMAGE={{.SANDBOX_IMAGE}} \
+          go test -tags sandbox {{.GOTEST_FLAGS}} -parallel {{.SANDBOX_PARALLEL}} -count=1 -timeout 15m ./internal/sandbox/... \
+          > {{.SECURITY_LOG_DIR}}/sandbox.log 2>&1 || rc=$?
+        tail -n 400 {{.SECURITY_LOG_DIR}}/sandbox.log
+        ./scripts/security-guard.sh {{.SECURITY_LOG_DIR}}/sandbox.log || rc=1
+        exit $rc
+
+  test-guard:
+    desc: Test scripts/security-guard.sh
+    cmds:
+      - ./scripts/security_guard_test.sh
+
+  update-goldens:
+    desc: Regenerate the goldens, only ever inside the pinned image
+    cmds:
+      - docker build --target golden -t {{.GOLDEN_IMAGE}} .
+      - >-
+        docker run --rm --user "$(id -u):$(id -g)"
+        -v "{{.ROOT_DIR}}/testdata:/work/testdata"
+        -e UPDATE_GOLDENS=1
+        -e SOURCE_DATE_EPOCH={{.SOURCE_DATE_EPOCH}} -e FORCE_SOURCE_DATE=1
+        {{.GOLDEN_IMAGE}}
+
+  sanitize:
+    desc: Scan the tree and the history for forbidden strings
+    cmds:
+      - ./scripts/sanitize.sh
+
+  test-sanitize:
+    desc: Test the sanitize gate itself
+    cmds:
+      - ./scripts/sanitize_test.sh
+
+  audit:
+    desc: "Pre-publish audit: sanitize plus issues and pull requests via gh (read-only)"
+    summary: See docs/sanitize.md and docs/publishing.md.
+    cmds:
+      - ./scripts/prepublish-audit.sh
+
+  test-audit:
+    desc: Test the pre-publish audit with a fake gh
+    cmds:
+      - ./scripts/prepublish_audit_test.sh
