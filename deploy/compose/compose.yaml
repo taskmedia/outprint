@@ -102,6 +102,46 @@ services:
       retries: 3
       start_period: 5s
 
+  # The injector sits in front of Outline (docs/injector.md). It is a
+  # separate, slim image without the TeX toolchain and is not part of the
+  # Worker baseline.
+  injector:
+    image: outline-latex-pdf-injector
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      target: injector
+    user: "65532:65532"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    read_only: true
+    environment:
+      INJECTOR_LISTEN: ":8090"
+      # Required: where the injector reaches Outline (an internal address).
+      INJECTOR_UPSTREAM: ${INJECTOR_UPSTREAM:-}
+      # Requests below /pdf go to the Gateway, so the browser stays on one
+      # origin and sends Outline's cookie by itself.
+      INJECTOR_GATEWAY_URL: http://gateway:8080
+      INJECTOR_GATEWAY_PREFIX: /pdf
+      INJECTOR_CSP_ALLOW_SELF: ${INJECTOR_CSP_ALLOW_SELF:-false}
+    networks: [frontend]
+    ports:
+      - "${INJECTOR_PORT:-8090}:8090"
+    depends_on:
+      gateway:
+        condition: service_healthy
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 64
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/injector", "healthcheck", "http://127.0.0.1:8090/_injector/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
 networks:
   # No route out: the Worker cannot reach the internet, Outline or the host.
   worker-net:

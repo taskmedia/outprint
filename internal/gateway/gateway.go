@@ -30,8 +30,9 @@ const (
 	requestIDLen  = 8
 )
 
-// documentIDRE accepts an Outline document id (UUID) or url slug, and
-// nothing that could change the meaning of an API call.
+// documentIDRE accepts an Outline document id (UUID) or the urlId at the end
+// of a document URL (/doc/<title>-<urlId>), which documents.info takes as
+// well, and nothing that could change the meaning of an API call.
 var documentIDRE = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$`)
 
 // Outline is what the Gateway needs from the Outline client.
@@ -85,8 +86,8 @@ func defaultAdmission() *admission.Controller {
 	return c
 }
 
-// Handler serves GET /render/{documentId}, GET /status/{documentId} and
-// GET /healthz.
+// Handler serves GET /render/{documentId}, GET /status/{documentId},
+// GET /button.js and GET /healthz.
 //
 // The render endpoint is a GET with the document id in the path so that a
 // button can be a plain link: the browser sends the user's cookie by itself
@@ -96,6 +97,7 @@ func (g *Gateway) Handler() http.Handler {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.HandleFunc("GET /render/{documentId}", g.render)
 	mux.HandleFunc("GET /status/{documentId}", g.status)
+	mux.HandleFunc("GET /button.js", serveButtonScript)
 	return g.recoverPanic(mux)
 }
 
