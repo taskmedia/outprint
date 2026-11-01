@@ -1,3 +1,7 @@
+---
+sidebar_position: 7
+---
+
 # Development stack and end-to-end tests
 
 One command gives you Outline with a login, a bound and an unbound Collection
@@ -82,7 +86,7 @@ Outline answers `/api/attachments.redirect?id=...` with a redirect to
 Gateway container `localhost` is the Gateway itself, so the Gateway gets
 `OUTLINE_PUBLIC_URL=http://localhost:8090` and fetches that redirect from
 `OUTLINE_URL=http://outline:3000` instead. See
-[Images](images.md#outline-behind-an-internal-address). No `imageHosts` is
+[Image fetching](../deploy/image-fetching.md#outline-behind-an-internal-address). No `imageHosts` is
 needed.
 
 ### Secrets
@@ -138,7 +142,7 @@ Outline and both tracked:
    download, check the `%PDF` header and the text (the opening sentence, the
    name of the example Configuration, a table cell). It also fetches the export
    of the captioned Document through the API and checks that the captions are
-   the alt text (the verification recorded in [Images](images.md)).
+   the alt text (the verification recorded in [Images in the pipeline](images.md#notes)).
 2. **No Binding, no button.** Open *Garden notes*, wait for the status answer
    (`available: false`) and check that the button is absent.
 
@@ -156,6 +160,32 @@ task e2e:install   # once: npm ci, Chromium
 task e2e:run
 cd e2e && npx playwright test --ui   # while writing tests (stack running, seeded)
 ```
+
+## Documentation screenshots
+
+`task screenshots` regenerates the six PNGs in `docs/assets/screens/` that the
+documentation shows. They are committed; run the task before a release and
+whenever the Outline UI or the button changes, and commit the result.
+
+```sh
+task dev            # the stack must be up
+task screenshots    # seeds, drives it, writes and optimises the PNGs
+```
+
+It is its own Playwright config (`e2e/playwright.screenshots.config.ts`), so
+`task e2e:run` never runs it. It signs in as the seeded user, uses a fixed
+1280x800 viewport at 2x, the light theme and reduced motion, waits for network
+idle and the button rather than sleeping, and shows only the fictional seed
+data (the byline with the update time is hidden; the one date in the example
+letter is painted over). The seed adds a third Document, *Autumn bulb order*,
+with a misspelled Metadata Block, for the error shot. The example letter is the
+first page of the PDF from the button, converted with `pdftoppm` (host) or
+Alpine's poppler in Docker.
+
+The PNGs are palette-quantised (256 colours, no dithering: lossy, but flat UI
+stays flat) and recompressed with oxipng, through the npm packages `sharp` and
+`@napi-rs/image`. Each file stays under 150 KB or the task fails. Two runs
+produce byte-identical files.
 
 ## CI
 

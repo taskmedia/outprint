@@ -120,6 +120,6 @@ Net: `--safer` adds little security for this pipeline and costs the font loader.
 
 ## Outcome
 
-- `--safer` was rejected, as recommended; the Worker never passes it (see [../worker.md](../worker.md#engine-lockdown)).
-- The section 4 finding that `openin_any` is "no longer a control" was **not** accepted as final. The Worker runs LuaLaTeX with `openin_any=p` (paranoid reads) and makes that work by linking the TeX trees into the job directory, so that reads are confined to the job and the TeX installation. See [../worker.md](../worker.md#reading-below-the-job-directory-only) for the mechanism and [../security.md](../security.md) for the tests that prove it. Note that the setting is only effective together with that layout; the container sandbox stays mandatory.
+- `--safer` was rejected, as recommended; the Worker never passes it (see [Worker pipeline](../internals/worker.md#engine-lockdown)).
+- The section 4 finding that `openin_any` is "no longer a control" was **not** accepted as final. The Worker runs LuaLaTeX with `openin_any=p` (paranoid reads) and makes that work by linking the TeX trees into the job directory, so that reads are confined to the job and the TeX installation. See [Worker pipeline](../internals/worker.md#reading-below-the-job-directory-only) for the mechanism and [Security](../internals/security.md) for the tests that prove it. Note that the setting is only effective together with that layout; the container sandbox stays mandatory.
 - Fonts are loaded by file path (`Path=./fonts/`) because the luaotfload name database cannot be built under paranoid reads, which confirms section 6. The cache is built at image build time (`renderer warm-cache`).

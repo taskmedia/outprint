@@ -1,46 +1,26 @@
----
-slug: /overview
----
+# Outprint documentation
 
-# Documentation
+Outprint turns Outline documents into typeset PDFs. Pick the section that fits
+your job. The same files make up the [documentation site](https://outprint.task.media).
 
-## Using and running it
+| Section | For | What you find |
+|---------|-----|---------------|
+| [Write](write/README.md) | people who write documents in Outline | download a PDF, fill in the details at the top of a document, add images, fix a message |
+| [Configure](configure/README.md) | admins of a Collection | choose a Template and a Configuration for a Collection |
+| [Deploy](deploy/README.md) | people who run Outline | prerequisites, Docker Compose, the injector, limits, security notes, upgrading |
+| [Templates](templates/README.md) | people who make Templates | the catalogue, the author guide, the package format, the Standard Fields |
+| [Internals](internals/README.md) | reviewers and contributors | architecture, the Worker, images, security, the local stack, decision records |
 
-| Page | What it covers |
-|------|----------------|
-| [Metadata](metadata.md) | the Metadata Block a Document author writes: syntax, layering, field types, errors |
-| [Binding](binding.md) | the block a Collection admin uses to choose a Template and Configuration |
-| [Images](images.md) | images and logos: formats, sizes, captions, limits, errors |
-| [Deploying with Docker Compose](deploy-compose.md) | running Gateway and Worker with Docker Compose |
-| [Injector and download button](injector.md) | the reverse proxy that adds the Download PDF button |
-| [Limits and admission control](limits.md) | limits and admission control |
+## Only on GitHub
 
-## Writing Templates
+These pages are for the maintainers and are not part of the site.
 
 | Page | What it covers |
 |------|----------------|
-| [Template author guide](template-author-guide.md) | start here: package format, fields, patterns, deny-list, `validate`, `render`, goldens, a worked example |
-| [Packages](packages.md) | reference for packages, field types, typed patterns, TeX deny-list, drift guard |
-| [Standard Fields](standard-fields.md) | the Standard Fields |
-
-## How it works
-
-| Page | What it covers |
-|------|----------------|
-| [Architecture](architecture.md) | Gateway and Worker roles, the job bundle, request flow, error mapping |
-| [Worker pipeline](worker.md) | the Worker pipeline, filters, engine lockdown |
-| [Security](security.md) | the security layers and what each proves |
-| [Architecture decision records](adr/README.md) | architecture decision records |
-| [Vocabulary](https://github.com/taskmedia/outprint/blob/main/CONTEXT.md) | the vocabulary |
-
-## Developing and publishing
-
-| Page | What it covers |
-|------|----------------|
-| [Development stack and end-to-end tests](development.md) | the seeded local stack with Outline |
-| [Testing](https://github.com/taskmedia/outprint/blob/main/docs/testing.md) | test tiers and CI |
-| [Sanitisation gate](https://github.com/taskmedia/outprint/blob/main/docs/sanitize.md) | the sanitisation gate and the pre-publish audit |
-| [Publishing checklist](https://github.com/taskmedia/outprint/blob/main/docs/publishing.md) | the maintainer's checklist before the repository goes public |
-| [Releasing](https://github.com/taskmedia/outprint/blob/main/docs/releasing.md) | the maintainer's release procedure: release PR, image publishing, one-time settings |
-| [Research notes](https://github.com/taskmedia/outprint/blob/main/docs/research/README.md) | the research notes behind the design |
-| [Third-party notices](https://github.com/taskmedia/outprint/blob/main/THIRD_PARTY_NOTICES) | third-party licences and the Pandoc source offer |
+| [Testing](testing.md) | test tiers and CI |
+| [Sanitisation gate](sanitize.md) | the sanitisation gate and the pre-publish audit |
+| [Publishing checklist](publishing.md) | the checklist before the repository goes public |
+| [Releasing](releasing.md) | the release procedure: release PR, image publishing, one-time settings |
+| [Research notes](research/README.md) | the research behind the design |
+| [Vocabulary](../CONTEXT.md) | the words with a fixed meaning |
+| [Third-party notices](../THIRD_PARTY_NOTICES) | third-party licences and the Pandoc source offer |

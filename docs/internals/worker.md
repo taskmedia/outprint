@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # Worker pipeline
 
 The Worker turns one job into one PDF. The same pipeline runs behind the
@@ -5,7 +9,7 @@ The Worker turns one job into one PDF. The same pipeline runs behind the
 (`outprint worker`, see [Architecture](architecture.md)). This page
 describes what it does, how it is locked down, what it logs and where it is
 limited. The reasons for the two-role split are in
-[ADR 0001](adr/0001-split-renderer-into-gateway-and-worker.md).
+[ADR 0001](../adr/0001-split-renderer-into-gateway-and-worker.md).
 
 ## Phases
 
@@ -167,7 +171,7 @@ in production, so a write through a link fails.
 
 The `neutral` fonts show the consequence. The luaotfload font name database
 cannot be built under paranoid reads, so a Template must load its fonts by
-file (`Path=./fonts/`, see [Packages](packages.md)). The default Latin
+file (`Path=./fonts/`, see [Packages](../templates/packages.md)). The default Latin
 Modern fonts that LaTeX loads for code and math are found by file name and
 work.
 
@@ -295,7 +299,7 @@ a deployment.
 - Text inside SVGs, Document images and logos alike, uses the fonts of the
   image; a missing font is substituted silently (`sans-serif` and unknown
   names become a TeX Gyre font). Export text as paths. See
-  [Images](images.md#svg).
+  [Images in the pipeline](images.md#svg).
 - The Worker does not repeat the Gateway's SVG pre-check. It relies on
   librsvg's own limits, the limits above and the container; the attack corpus
   is run against exactly this (see [Security](security.md)).

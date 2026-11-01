@@ -1,6 +1,6 @@
 name: e2e
 
-# Tier 3: Playwright against the seeded dev stack (docs/development.md).
+# Tier 3: Playwright against the seeded dev stack (docs/internals/development.md).
 # Always on main and on demand; on pull requests only where the change can
 # affect the browser flow.
 on:

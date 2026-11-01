@@ -24,3 +24,22 @@ tasks:
       - task: :dev:up
       - task: :dev:seed
       - npx playwright test
+
+  screenshots:
+    desc: Regenerate the documentation screenshots in docs/assets/screens (needs `task dev`)
+    summary: |
+      Drives the seeded dev stack with Playwright (its own config, never part
+      of `run`) and writes the optimised PNGs to docs/assets/screens/. The
+      stack must be up (`task dev`); the seed is rerun first, which is safe.
+      The example letter needs pdftoppm (poppler) or Docker. Also available
+      as `task screenshots`.
+    vars:
+      DEV_URL: '{{.DEV_URL | default "http://localhost:8090"}}'
+    preconditions:
+      - sh: curl -fsS -o /dev/null --max-time 5 {{.DEV_URL}}/pdf/button.js
+        msg: "the dev stack is not answering at {{.DEV_URL}}; run `task dev` first"
+    cmds:
+      - task: :dev:seed
+      - task: install
+      - npx playwright test -c playwright.screenshots.config.ts
+      - node screenshots/optimize.mjs

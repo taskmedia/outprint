@@ -28,7 +28,7 @@ var (
 )
 
 // CheckWorkerBaseline checks the Worker service against the shipped
-// baseline of docs/security.md and returns one message per violation. Each
+// baseline of docs/internals/security.md and returns one message per violation. Each
 // message names the Compose key. An empty result means the baseline holds.
 func CheckWorkerBaseline(c Compose) []string {
 	svc, err := c.Worker()

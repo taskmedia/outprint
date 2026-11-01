@@ -1,57 +1,13 @@
-# Images
+---
+sidebar_position: 4
+---
 
-Images uploaded to Outline appear in the PDF at the size the author chose.
-The Gateway fetches and checks them; the Worker only sees clean files.
+# Images in the pipeline
 
-## For authors
-
-**Supported formats**: PNG, JPEG, WebP, static GIF and SVG, detected by
-content, not by name. Animated GIF and animated WebP are rejected. Upload the image to Outline; images linked from other sites,
-`data:` and `file:` addresses are rejected.
-
-**What happens to a file**: a raster image is decoded and written again. PNG
-stays lossless, JPEG is saved at quality 95, WebP and GIF become PNG. A JPEG's
-EXIF orientation is applied, so a photo taken sideways is upright. All other
-metadata (camera, location, colour profile) is dropped. An SVG is checked and
-then kept as it is; see [SVG](#svg).
-
-**Size**: Outline's size syntax is respected. Pixels are converted at 96 dpi
-(a pixel is 0.75 pt).
-
-| In Outline | Result |
-|------------|--------|
-| no size | natural size |
-| `=400x300` | 400 by 300 px |
-| `=400` or `=400x` | width 400 px, height from the aspect ratio |
-| `=x300` | height 300 px, width from the aspect ratio |
-
-An image that does not fit is scaled down, aspect kept, to the text width
-and to 0.9 of the text height. It is never cut off.
-
-**Captions**: an image alone in its paragraph, with alt text, becomes a
-numbered figure and the alt text is the caption. An image without alt text, or
-inside a line of text, has no caption. Alt text is plain text: markup in it is
-shown as written.
-
-**Limits**: 50 images per Document, 10 MiB per file (as uploaded and after
-conversion), 50 MiB in total, 40 megapixels per image.
-
-**Problems** are all reported at once, each with its line, its alt text and a
-kind:
-
-| Kind | Meaning |
-|------|---------|
-| `missing` | no address or attachment id, or the attachment was not found |
-| `forbidden` | not an Outline attachment (other site, `data:`, `file:`, a relative path), not readable by you, or stored on a host the service may not fetch from |
-| `too_large` | over 10 MiB (an SVG: over 2 MiB), over 50 images, or over 50 MiB in total |
-| `format` | not PNG, JPEG, WebP, a static GIF or an SVG; the message names what was found |
-| `svg_rejected` | an SVG that is not allowed or cannot be used; the message says why |
-| `decode` | the file is damaged |
-| `pixels` | more than 40 megapixels |
-| `syntax` | the image Markdown spans lines; put it on one line |
-
-Do not use Pandoc attribute blocks (`{width=...}`) after an image: they are
-ignored.
+How the Gateway checks, converts and places images, and how SVG is handled.
+Authors find the short version in [Images and logos](../write/images-and-logos.md);
+operators find the settings in [Image fetching](../deploy/image-fetching.md).
+The limits are listed in [Limits and admission control](../deploy/limits-and-admission.md).
 
 ## SVG
 
@@ -142,67 +98,6 @@ Raw HTML `<img>` is not an image: the Worker drops it like all raw HTML.
 The `render` command runs the same pipeline with images read from the
 directory of the input file (no `..`, no links out of it).
 
-## For operators
-
-**Fetching images is the Gateway's only outbound request besides Outline's
-API.** The model:
-
-- The user's cookie is sent to the Outline origin and nowhere else. The first
-  request goes to the configured Outline URL, with the cookie.
-- Redirects are followed by hand, at most 5, **without the cookie**, and only
-  to hosts on the allow-list: the Outline origin and `imageHosts`. Only
-  `http` and `https`, no credentials in the URL.
-- Names are resolved by the Gateway, once per request. Every answer must be a
-  public address: loopback, private, link-local (including the cloud metadata
-  address), carrier-grade NAT, multicast, reserved and documentation ranges,
-  and IPv4 written as IPv6, NAT64, 6to4 and Teredo forms are refused. The
-  connection goes to the address that was checked, and the address is checked
-  again when the socket connects, so a name that changes its answer cannot
-  redirect the request (DNS rebinding).
-- One exception: the configured Outline origin itself (host and port) may be
-  at a private address, which the local development stack needs. No other
-  host gets this.
-- No proxy from the environment is used. A request is bounded by 30 s and a
-  body by 10 MiB.
-
-**`imageHosts`** in the service configuration lists the other hosts a redirect
-may lead to, for example the file storage of an Outline that keeps files in
-S3-compatible storage. It is empty by default, so such an Outline shows
-`forbidden` with the host's name until the operator adds it:
-
-```yaml
-imageHosts:
-  - files.example.invalid        # ports 80 and 443
-  - storage.example.invalid:9000 # this port only
-```
-
-Entries are lower-case host names, optionally with a port: no scheme, path or
-wildcard. A redirect target needs a public address, so a storage host on a
-private network cannot be listed.
-
-### Outline behind an internal address
-
-When the Gateway reaches Outline at an address such as `http://outline:3000`
-while Outline's own `URL` setting is public (`https://wiki.example.invalid`, or
-`http://localhost:8090` in the dev stack), Outline's redirect to a stored file
-points at the public URL. Set `OUTLINE_PUBLIC_URL` on the Gateway to that
-public URL: a redirect to exactly that origin is then fetched from
-`OUTLINE_URL` instead, still without the cookie and under the same checks on
-the address of the configured origin. It adds no host to the allow-list: a
-redirect to any other host is refused as before. Public and internal URL must
-use the same path prefix, if any. Not needed when `OUTLINE_URL` is the public
-URL, or when files live in S3-compatible storage (use `imageHosts`).
-
-**Templates** must scale images to the page. The Gateway gives every image
-an explicit size in points, so only the Template knows the text area. The
-`neutral` Template redefines `\includegraphics` to scale an image down to the
-line width and `0.9\textheight`, keeping the aspect ratio, and sets figure
-captions through the `caption` package. Its `letter` has no float: the KOMA
-letter class has none, so the Template defines a `figure` environment that
-keeps the figure in place on one page, with the same caption style and
-numbering as the report. A Template that shows Document images
-must do the same.
-
 ## Notes
 
 - Verified: images, links and tables are found at the right source range, and
@@ -225,7 +120,7 @@ must do the same.
   names Outline by its public URL (the `URL` setting). When the Gateway reaches
   Outline at an internal address, that host is not the configured origin and
   would be refused, so set `OUTLINE_PUBLIC_URL` on the Gateway; see
-  [below](#outline-behind-an-internal-address).
+  [Image fetching](../deploy/image-fetching.md#outline-behind-an-internal-address).
 - SVG: the Gateway pre-check is in `internal/images/svg*.go`; the conversion is
   the first phase of the Worker (`internal/worker/svg.go`). The attack corpus
   that backs the table above is `internal/svgcorpus` (see

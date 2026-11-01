@@ -97,6 +97,11 @@ tasks:
       - cmd: 'echo "note: node is not installed; skipping the button script tests"'
         if: '! command -v node >/dev/null 2>&1'
 
+  screenshots:
+    desc: Regenerate the documentation screenshots (needs `task dev`; see docs/internals/development.md)
+    cmds:
+      - task: e2e:screenshots
+
   image:
     desc: Build the outprint image
     sources:
@@ -146,7 +151,7 @@ tasks:
     desc: Security layers 2 and 3 (needs a Docker daemon)
     summary: |
       The Worker image run with the flags of the shipped Compose file against
-      a hostile pipeline (docs/security.md). The "sandbox" image stage holds
+      a hostile pipeline (docs/internals/security.md). The "sandbox" image stage holds
       the test-only probe; the release image must not, and the suite checks
       that. The log is always shown before the skip guard runs.
     cmds:

@@ -1,7 +1,7 @@
 # Standard Fields: documented common field names that Templates are
 # encouraged to reuse so Template Configurations stay portable. Each name
 # lists the types a Template may declare it with; declaring another type
-# makes `outprint validate` warn. The prose version is docs/standard-fields.md.
+# makes `outprint validate` warn. The prose version is docs/templates/standard-fields.md.
 common:
   title: [string]
   date: [date]

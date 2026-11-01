@@ -56,9 +56,19 @@ const config = {
           path: '../docs',
           routeBasePath: '/',
           sidebarPath: './sidebars.js',
+          // A section's intro page (README.md) is the link of its category,
+          // so it must not show up a second time as the first child.
+          async sidebarItemsGenerator({defaultSidebarItemsGenerator, ...args}) {
+            const items = await defaultSidebarItemsGenerator(args);
+            return items.filter(
+              (item) => !(item.type === 'doc' && item.id.endsWith('/README')),
+            );
+          },
           editUrl: 'https://github.com/taskmedia/outprint/edit/main/docs/',
-          // Repo-only pages, not published.
+          // Repo-only pages, not published. docs/README.md is the plain table
+          // for GitHub; the site's landing page is src/pages/index.js.
           exclude: [
+            'README.md',
             '**/_*.{js,jsx,ts,tsx,md,mdx}',
             '**/_*/**',
             '**/*.test.{js,jsx,ts,tsx}',
@@ -117,6 +127,11 @@ const config = {
           srcDark: 'brand/outprint-lockup-dark.svg',
         },
         items: [
+          {to: '/write/', label: 'Write', position: 'left', activeBaseRegex: '^/write/'},
+          {to: '/configure/', label: 'Configure', position: 'left', activeBaseRegex: '^/configure/'},
+          {to: '/deploy/', label: 'Deploy', position: 'left', activeBaseRegex: '^/deploy/'},
+          {to: '/templates/', label: 'Templates', position: 'left', activeBaseRegex: '^/templates/'},
+          {to: '/internals/', label: 'Internals', position: 'left', activeBaseRegex: '^/(internals|adr)/'},
           // At the first snapshot add: {type: 'docsVersionDropdown', position: 'right'}
           {
             href: 'https://github.com/taskmedia/outprint',

@@ -51,22 +51,14 @@ const FEATURES = [
   },
 ];
 
-const PATHS = [
-  {
-    to: '/metadata/',
-    title: 'I write Documents',
-    text: 'The fields at the top of a Document, which values win, and what the errors mean.',
-  },
-  {
-    to: '/deploy-compose/',
-    title: 'I run Outline',
-    text: 'Deploy the Gateway, the Worker and the injector next to your Outline with Docker Compose.',
-  },
-  {
-    to: '/template-author-guide/',
-    title: 'I design Templates',
-    text: 'Package format, fields, validation and a worked example, from first file to golden test.',
-  },
+// The five sections of the docs. docs/README.md keeps the same list as a
+// plain table for GitHub.
+const SECTIONS = [
+  {to: '/write/', title: 'Write', line: 'Make a PDF from a document, and fix a message.'},
+  {to: '/configure/', title: 'Configure', line: 'Give a Collection its PDF look.'},
+  {to: '/deploy/', title: 'Deploy', line: 'Install Outprint next to your own Outline.'},
+  {to: '/templates/', title: 'Templates', line: 'Browse the catalogue, or make your own.'},
+  {to: '/internals/', title: 'Internals', line: 'How it works, and why it is safe.'},
 ];
 
 function DocumentCard() {
@@ -116,7 +108,7 @@ export default function Home() {
               <strong>Download PDF</strong>. You host it yourself, and Outline is not forked.
             </p>
             <div className={styles.actions}>
-              <Link className={styles.primary} to="/overview/">
+              <Link className={styles.primary} to="/write/">
                 Read the documentation
               </Link>
               <Link className={styles.secondary} href="https://github.com/taskmedia/outprint">
@@ -159,18 +151,26 @@ export default function Home() {
 
         <section className={styles.section} aria-labelledby="next-heading">
           <h2 id="next-heading" className={styles.sectionTitle}>
-            Where to start
+            Find your way in
           </h2>
-          <ul className={styles.paths}>
-            {PATHS.map((path) => (
-              <li key={path.to}>
-                <Link className={styles.path} to={path.to}>
-                  <span className={styles.pathTitle}>{path.title}</span>
-                  <span className={styles.pathText}>{path.text}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <nav aria-label="Documentation sections">
+            <ol className={styles.list}>
+              {SECTIONS.map(({to, title, line}, index) => (
+                <li key={to} className={styles.item}>
+                  <Link to={to} className={styles.row}>
+                    <span className={styles.number} aria-hidden="true">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className={styles.word}>{title}</span>
+                    <span className={styles.line}>{line}</span>
+                    <span className={styles.arrow} aria-hidden="true">
+                      →
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </nav>
         </section>
       </main>
     </Layout>

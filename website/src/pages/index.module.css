@@ -201,49 +201,127 @@
   color: var(--op-muted-text);
 }
 
-.paths {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.path {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  height: 100%;
-  padding: 1.25rem;
-  background: var(--op-card);
-  border: 1px solid var(--op-border);
-  border-radius: 6px;
-  color: var(--op-text);
-  text-decoration: none;
-  transition: border-color 150ms ease;
-}
-.path:hover {
-  border-color: var(--op-accent);
-  color: var(--op-text);
-  text-decoration: none;
-}
-.pathTitle {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-.pathText {
-  color: var(--op-muted-text);
-}
-
 @media (max-width: 996px) {
   .heroInner {
     grid-template-columns: minmax(0, 1fr);
   }
-  .steps,
-  .paths {
+  .steps {
     grid-template-columns: minmax(0, 1fr);
   }
   .features {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Documentation sections: numbered rows. The green rule and the arrow move
+   only transform and opacity. */
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--op-border);
+}
+
+.item {
+  border-bottom: 1px solid var(--op-border);
+}
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) 1.5rem;
+  grid-template-areas:
+    'number word arrow'
+    'number line arrow';
+  column-gap: 0.75rem;
+  align-items: baseline;
+  padding: 1.5rem 0.25rem 1.5rem 0;
+  color: var(--op-text);
+  text-decoration: none;
+}
+
+.row:hover {
+  color: var(--op-text);
+  text-decoration: none;
+}
+
+/* A green rule grows in from the left of the row. */
+.row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 100%;
+  height: 2px;
+  background: var(--op-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.row:hover::before,
+.row:focus-visible::before {
+  transform: scaleX(1);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--op-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.number {
+  grid-area: number;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--op-muted-text);
+}
+
+.word {
+  grid-area: word;
+  font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.125rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.line {
+  grid-area: line;
+  margin-top: 0.35rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--op-muted-text);
+}
+
+.arrow {
+  grid-area: arrow;
+  align-self: center;
+  justify-self: end;
+  color: var(--op-link);
+  opacity: 0;
+  transform: translateX(-0.5rem);
+  transition:
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 220ms ease;
+}
+
+.row:hover .arrow,
+.row:focus-visible .arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (hover: none) {
+  .arrow {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row::before,
+  .arrow {
+    transition: none;
   }
 }
