@@ -16,6 +16,7 @@ const ERROR_PANEL = '[role="alert"]';
 const DOCUMENT_TITLE = '[role="textbox"][aria-label="Document title"]';
 const COLLECTION_TITLE = 'span[role="textbox"]';
 const CODE_BLOCK = '.ProseMirror pre';
+const METADATA_TOGGLE = '#olp-metadata-toggle';
 const FIRST_PARAGRAPH = '.ProseMirror p:not(.caption)';
 const PADDING = 16;
 // The Collection icon sits left of the title textbox.
@@ -138,9 +139,12 @@ test('screenshots of the Outline UI for the documentation', async ({ page }) => 
   await page.keyboard.press('Escape');
   await page.mouse.move(130, 540);
 
-  // The leading Metadata Block with a line of body text below it. The title
-  // is left out: the hidden byline would leave a gap between the two.
-  const metadata = await around(page, [CODE_BLOCK, FIRST_PARAGRAPH]);
+  // The leading Metadata Block with a line of body text below it. Authors see
+  // it folded behind a toggle: unfold it for the picture. The title is left
+  // out: the hidden byline would leave a gap between the two.
+  await page.locator(METADATA_TOGGLE).click();
+  await expect(page.locator(CODE_BLOCK).first()).toBeVisible();
+  const metadata = await around(page, [METADATA_TOGGLE, CODE_BLOCK, FIRST_PARAGRAPH]);
   await shot(page, 'document-metadata-block.png', metadata);
 
   // The example letter: the PDF of this document, first page.

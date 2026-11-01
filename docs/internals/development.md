@@ -190,6 +190,9 @@ cd e2e && npx playwright test --ui   # while writing tests (stack running, seede
 `task screenshots` regenerates the six PNGs in `docs/assets/screens/` that the
 documentation shows. They are committed; run the task before a release and
 whenever the Outline UI or the button changes, and commit the result.
+The seed gives the workspace and the user fixed avatar images (Outline would
+colour them from their random ids), and the optimise step keeps a committed PNG
+whose pixels are unchanged, so a rerun only shows real changes in `git status`.
 
 ```sh
 task dev            # the stack must be up
