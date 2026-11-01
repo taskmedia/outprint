@@ -5,11 +5,18 @@ RUN go mod download
 COPY cmd ./cmd
 COPY internal ./internal
 COPY web ./web
-RUN CGO_ENABLED=0 go build -trimpath -o /out/outprint ./cmd/outprint \
- && CGO_ENABLED=0 go build -trimpath -o /out/outprint-injector ./cmd/outprint-injector \
- && CGO_ENABLED=0 go test -c -tags golden -o /out/golden.test ./internal/golden \
+# Test binaries first: they do not carry the version, so a new VERSION only
+# invalidates the layer below.
+RUN CGO_ENABLED=0 go test -c -tags golden -o /out/golden.test ./internal/golden \
  && CGO_ENABLED=0 go test -c -tags golden -o /out/worker.test ./internal/worker \
  && CGO_ENABLED=0 go build -trimpath -o /out/sandbox-probe ./cmd/sandbox-probe
+# The build identity is linked in (internal/version). COMMIT is optional: the
+# build context has no VCS data, so the release workflow and make pass it in.
+ARG VERSION=dev
+ARG COMMIT=
+RUN LDFLAGS="-X github.com/taskmedia/outprint/internal/version.Version=${VERSION} -X github.com/taskmedia/outprint/internal/version.Commit=${COMMIT}" \
+ && CGO_ENABLED=0 go build -trimpath -ldflags "${LDFLAGS}" -o /out/outprint ./cmd/outprint \
+ && CGO_ENABLED=0 go build -trimpath -ldflags "${LDFLAGS}" -o /out/outprint-injector ./cmd/outprint-injector
 
 FROM debian:trixie-20261027-slim AS outprint
 RUN apt-get update \
@@ -36,6 +43,14 @@ USER render
 ENV OUTPRINT_TEXCACHE_DIR=/opt/outprint/texcache
 RUN outprint warm-cache --template neutral --config example --out /opt/outprint/texcache \
  && chmod -R a+rX /opt/outprint/texcache
+# Labels last: they cost no layer, and a new VERSION must not redo the TeX
+# layers above.
+ARG VERSION=dev
+LABEL org.opencontainers.image.title="outprint" \
+      org.opencontainers.image.description="Outprint for Outline: turn Outline documents into typeset PDFs (letters, reports, custom LaTeX templates) with a Download PDF button. Self-hosted, no Outline fork." \
+      org.opencontainers.image.source="https://github.com/taskmedia/outprint" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.version="${VERSION}"
 ENTRYPOINT ["/usr/local/bin/outprint"]
 
 # Tier-2 golden tests run against the same toolchain as the release image,
@@ -75,6 +90,12 @@ USER render
 # Build it with --target injector (make image-injector).
 FROM gcr.io/distroless/static-debian13:nonroot AS injector
 COPY --from=build /out/outprint-injector /outprint-injector
+ARG VERSION=dev
+LABEL org.opencontainers.image.title="outprint-injector" \
+      org.opencontainers.image.description="Outprint for Outline: turn Outline documents into typeset PDFs (letters, reports, custom LaTeX templates) with a Download PDF button. Self-hosted, no Outline fork." \
+      org.opencontainers.image.source="https://github.com/taskmedia/outprint" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.version="${VERSION}"
 USER 65532:65532
 EXPOSE 8090
 ENTRYPOINT ["/outprint-injector"]

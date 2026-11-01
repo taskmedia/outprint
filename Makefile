@@ -5,6 +5,12 @@ IMAGE         ?= outprint
 IMAGE_INJECTOR ?= outprint-injector
 GOLDEN_IMAGE  ?= $(IMAGE)-golden
 SANDBOX_IMAGE ?= $(IMAGE)-sandbox
+# Build identity, linked into both binaries and set as the image label.
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+COMMIT  ?= $(shell git rev-parse HEAD 2>/dev/null)
+VERSION_PKG := github.com/taskmedia/outprint/internal/version
+LDFLAGS := -X $(VERSION_PKG).Version=$(VERSION) -X $(VERSION_PKG).Commit=$(COMMIT)
+BUILD_ARGS := --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT)
 # Where the security targets keep their test output for the skip guard.
 SECURITY_LOG_DIR ?= .security-logs
 # -v for people, -json for CI.
@@ -16,8 +22,8 @@ SOURCE_DATE_EPOCH ?= 1700000000
 .PHONY: dev dev-up dev-secrets seed dev-down dev-down-volumes dev-logs dev-clean e2e e2e-install build test test-web image image-injector test-golden test-security test-security-layer1 test-sandbox test-guard update-goldens sanitize test-sanitize audit test-audit
 
 build:
-	go build -o bin/outprint ./cmd/outprint
-	go build -o bin/outprint-injector ./cmd/outprint-injector
+	go build -ldflags "$(LDFLAGS)" -o bin/outprint ./cmd/outprint
+	go build -ldflags "$(LDFLAGS)" -o bin/outprint-injector ./cmd/outprint-injector
 
 # Tier 1: unit tests, no external tools besides Go. The button script tests
 # need Node and are skipped, with a note, where it is not installed; CI
@@ -34,11 +40,11 @@ test-web:
 	fi
 
 image:
-	docker build -t $(IMAGE) .
+	docker build $(BUILD_ARGS) -t $(IMAGE) .
 
 # The slim injector image: no TeX toolchain.
 image-injector:
-	docker build --target injector -t $(IMAGE_INJECTOR) .
+	docker build $(BUILD_ARGS) --target injector -t $(IMAGE_INJECTOR) .
 
 # Tier 2: goldens, run inside the pinned outprint image.
 test-golden:
