@@ -1,6 +1,6 @@
 ---
 sidebar_label: Reverse-proxy recipes (coming soon)
-sidebar_position: 9
+sidebar_position: 14
 ---
 
 # Reverse-proxy recipes
@@ -13,6 +13,6 @@ same: `edge proxy -> injector -> Outline`, with `/pdf/*` going to the Gateway.
 
 Today there is one worked example, for Traefik, in
 [Injector and PDF action](injector.md#routing-example). The rules in
-[Where the injector sits](injector.md) hold for every proxy.
+[How it works](injector.md#how-it-works) hold for every proxy.
 
 Progress is tracked in [issue #51](https://github.com/taskmedia/outprint/issues/51).

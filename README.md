@@ -25,8 +25,12 @@ Collection; a Document author fills structured fields in a leading
   a job bundle; the *Worker* has no network and no secrets and only turns a
   bundle into a PDF with Pandoc and LuaLaTeX. It also offers `render` and
   `validate` CLI subcommands that run the same pipeline without Outline.
-- **injector**: a small reverse proxy in front of Outline that adds a
+- **injector** (optional): a small reverse proxy in front of Outline that adds a
   "Formatted PDF" action to Outline's Export menu without forking Outline.
+  Without it, PDFs still work by link.
+
+Which parts to run depends on how you want to use Outprint: see
+[Deploy](docs/deploy/README.md#which-way-fits-you).
 
 See the [vocabulary](CONTEXT.md) and the
 [architecture decision records](docs/adr/README.md).
@@ -104,7 +108,8 @@ the TeX deny-list, the drift guard and `validate`) and
 [Standard Fields](docs/templates/standard-fields.md); [Images in the pipeline](docs/internals/images.md);
 [Choose a Template and Configuration](docs/configure/choose-a-template.md) for the
 `binding:` block of a Collection admin; the [Worker pipeline](docs/internals/worker.md);
-[Architecture](docs/internals/architecture.md); [Docker Compose](docs/deploy/docker-compose.md)
+[Architecture](docs/internals/architecture.md); [Deploy: which way fits you](docs/deploy/README.md) and the
+[common base](docs/deploy/common-base.md); [Docker Compose](docs/deploy/docker-compose.md)
 with the Worker security baseline; the [Injector and PDF action](docs/deploy/injector.md);
 [Security](docs/internals/security.md) and [Testing](docs/testing.md) for the test tiers
 and the CI schedule; [Limits and admission control](docs/deploy/limits-and-admission.md);

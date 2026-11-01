@@ -1,13 +1,15 @@
 ---
-sidebar_position: 2
+sidebar_position: 6
 ---
 
 # Docker Compose
 
-Read the [prerequisites](README.md#prerequisites) first: Outline must be
-self-hosted, and the injector is a required step.
+This page describes the shipped Compose file. Which parts you need depends on
+the way you pick: see [Which way fits you?](README.md#which-way-fits-you) and the
+[common base](common-base.md).
 
-`deploy/compose/compose.yaml` runs the injector, the Gateway and the Worker. The
+`deploy/compose/compose.yaml` runs the Gateway and the Worker, and the injector
+for the [Export menu](way-menu.md). The
 Gateway and the Worker use the `outprint` image. The `worker` service is the shipped Worker baseline of
 [ADR 0001](../adr/0001-split-renderer-into-gateway-and-worker.md).
 
@@ -23,6 +25,8 @@ export OUTPRINT_WORKER_TOKEN="$(openssl rand -hex 32)"
 
 docker compose -f deploy/compose/compose.yaml up --build
 ```
+
+Name the services (`up --build gateway worker`) to leave the injector out.
 
 The Gateway listens on port 8080 (`OUTPRINT_PORT` changes the published port).
 The Gateway renders a Document as a PDF when the browser asks for the address
@@ -44,10 +48,11 @@ image lists the allowed Bindings and the default Binding.
 
 For a local stack with Outline, a login and seeded content, see [Development stack and end-to-end tests](../internals/development.md); it layers its own file over this one.
 
-## The injector (required)
+## The injector (optional)
 
-The `injector` service is a required part of the install, not an add-on: without
-it Outline shows no **Formatted PDF** action. It is built from the `injector` target of the Dockerfile
+The `injector` service is needed for the [Export menu](way-menu.md): without
+it Outline shows no **Formatted PDF** action. The Gateway and the Worker work
+without it ([PDF by link](way-link.md)). It is built from the `injector` target of the Dockerfile
 (`task image-injector`): a distroless, non-root image without TeX. It is not
 part of the Worker baseline and the sandbox tests do not read it. Point it at
 Outline and publish it instead of Outline. These commands set where Outline

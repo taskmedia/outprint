@@ -7,7 +7,7 @@ your job. The same files make up the [documentation site](https://outprint.task.
 |---------|-----|---------------|
 | [Write](write/README.md) | people who write documents in Outline | download a PDF, fill in the details at the top of a document, add images, fix a message |
 | [Configure](configure/README.md) | admins of a Collection | choose a Template and a Configuration for a Collection |
-| [Deploy](deploy/README.md) | people who run Outline | prerequisites, Docker Compose, the injector, limits, security notes, upgrading |
+| [Deploy](deploy/README.md) | people who run Outline | which install way fits, the common base, Docker Compose, the injector, limits, security notes, upgrading |
 | [Templates](templates/README.md) | people who make Templates | the catalogue, the author guide, the package format, the Standard Fields |
 | [Internals](internals/README.md) | reviewers and contributors | architecture, the Worker, images, security, the local stack, decision records |
 
