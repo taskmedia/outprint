@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 subject: Invitation to the spring sale
 sender: |
   Example Garden Society

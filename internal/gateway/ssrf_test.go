@@ -678,7 +678,7 @@ func TestImagesAllProblemsInOneList(t *testing.T) {
 	w.attach["c1c1c1c1-0000-4000-8000-000000000004"] = status(http.StatusForbidden)
 	w.attach["c1c1c1c1-0000-4000-8000-000000000005"] = serve([]byte("<svg xmlns='http://www.w3.org/2000/svg'/>"))
 	w.attach["c1c1c1c1-0000-4000-8000-000000000006"] = serve(append([]byte("\x89PNG\r\n\x1a\n"), make([]byte, 30)...))
-	w.docText = "```yaml metadata\nsubjct: oops\n```\n\n" +
+	w.docText = "```yaml\nsubjct: oops\n```\n\n" +
 		imageDoc(attachmentURL(uuidA), attachmentURL(uuidB),
 			attachmentURL("c1c1c1c1-0000-4000-8000-000000000003"), attachmentURL("c1c1c1c1-0000-4000-8000-000000000004"),
 			attachmentURL("c1c1c1c1-0000-4000-8000-000000000005"), attachmentURL("c1c1c1c1-0000-4000-8000-000000000006"),

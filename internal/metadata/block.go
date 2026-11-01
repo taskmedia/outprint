@@ -5,7 +5,10 @@ import (
 	"strings"
 )
 
-const metadataInfo = "yaml metadata"
+// metadataInfo is the info string of the Metadata Block. Outline keeps only the
+// first word of a fence's info string, so the block is marked by its place, not
+// by a second word.
+const metadataInfo = "yaml"
 
 var (
 	fenceOpenRE = regexp.MustCompile("^ {0,3}(`{3,}|~{3,})[ \t]*(.*?)[ \t]*$")
@@ -33,45 +36,31 @@ func (f fence) closedBy(line string) bool {
 	return len(trimmed) >= f.size && strings.Trim(trimmed, string(f.char)) == ""
 }
 
-// splitBlock finds the Metadata Block. Only the first fenced `yaml
-// metadata` block at the very start of the Document (blank lines before it
-// are tolerated) is the block; any other one is an error. Fenced code in
-// the body is skipped, so a block shown as an example inside another fence
-// is plain text.
+// splitBlock finds the Metadata Block: the first thing in the Document (blank
+// lines before it are tolerated), if it is a fenced `yaml` block. Any other
+// fence, including a later `yaml` one, is body text.
 func splitBlock(markdown string) blockSplit {
 	text := strings.ReplaceAll(markdown, "\r\n", "\n")
 	lines := strings.Split(text, "\n")
 	start := firstNonBlank(lines)
 
-	var out blockSplit
-	out.body = text
-	seen := 0
-	for i := 0; i < len(lines); i++ {
-		open, info, ok := fenceOpen(lines[i])
-		if !ok {
-			continue
-		}
-		closeAt := findClose(lines, i+1, open)
-		if strings.Join(strings.Fields(info), " ") != metadataInfo {
-			i = closeAt
-			continue
-		}
-		seen++
-		switch {
-		case closeAt >= len(lines):
-			out.errs = append(out.errs, blockError(i+1, "the metadata block is not closed (missing closing fence)"))
-		case seen > 1:
-			out.errs = append(out.errs, blockError(i+1, "second metadata block: a Document has at most one"))
-		case i != start:
-			out.errs = append(out.errs, blockError(i+1, "misplaced metadata block: it must be at the start of the document"))
-		default:
-			out.hasBlock = true
-			out.yaml = strings.Join(lines[i+1:closeAt], "\n")
-			out.yamlOffset = i + 1
-			out.body = trimLeadingBlankLines(strings.Join(lines[closeAt+1:], "\n"))
-		}
-		i = closeAt
+	out := blockSplit{body: text}
+	if start >= len(lines) {
+		return out
 	}
+	open, info, ok := fenceOpen(lines[start])
+	if !ok || strings.Join(strings.Fields(info), " ") != metadataInfo {
+		return out
+	}
+	closeAt := findClose(lines, start+1, open)
+	if closeAt >= len(lines) {
+		out.errs = append(out.errs, blockError(start+1, "the metadata block is not closed (missing closing fence)"))
+		return out
+	}
+	out.hasBlock = true
+	out.yaml = strings.Join(lines[start+1:closeAt], "\n")
+	out.yamlOffset = start + 1
+	out.body = trimLeadingBlankLines(strings.Join(lines[closeAt+1:], "\n"))
 	return out
 }
 

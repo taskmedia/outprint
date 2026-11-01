@@ -42,29 +42,46 @@ func TestBlockIsParsedAndRemovedFromBody(t *testing.T) {
 
 func TestEmptyBlockIsAllowed(t *testing.T) {
 	env := newEnv(t, testConfiguration)
-	res := resolveOK(t, env.input("```yaml metadata\n```\nBody\n"))
+	res := resolveOK(t, env.input("```yaml\n```\nBody\n"))
 	if string(res.Body) != "Body\n" {
 		t.Errorf("body = %q", res.Body)
 	}
 }
 
-func TestSecondBlockIsAnError(t *testing.T) {
+func TestSecondYamlFenceIsBody(t *testing.T) {
 	env := newEnv(t, testConfiguration)
 	doc := block("subject: One") + "\nText\n\n" + block("subject: Two")
 
-	errs := resolveErrors(t, env.input(doc))
+	res := resolveOK(t, env.input(doc))
 
-	e := find(t, errs, "")
-	wantError(t, e, SourceDocument, CodeBlock, 7, "second", "metadata block")
+	if res.Values["subject"] != "One" {
+		t.Errorf("subject = %v", res.Values["subject"])
+	}
+	if !strings.Contains(string(res.Body), "subject: Two") {
+		t.Errorf("second fence missing from body: %q", res.Body)
+	}
 }
 
-func TestMisplacedBlockIsAnError(t *testing.T) {
+func TestYamlFenceAfterTextIsBody(t *testing.T) {
 	env := newEnv(t, testConfiguration)
 	doc := "Some text first.\n\n" + block("subject: Late")
 
-	errs := resolveErrors(t, env.input(doc))
+	res := resolveOK(t, env.input(doc))
 
-	wantError(t, find(t, errs, ""), SourceDocument, CodeBlock, 3, "start of the document")
+	if res.Values["subject"] == "Late" {
+		t.Errorf("a fence after the first line was read as the block")
+	}
+	if !strings.Contains(string(res.Body), "subject: Late") {
+		t.Errorf("fence missing from body: %q", res.Body)
+	}
+}
+
+func TestOldInfoStringIsNotTheBlock(t *testing.T) {
+	env := newEnv(t, testConfiguration)
+	res := resolveOK(t, env.input("```yaml metadata\nsubject: Old\n```\nBody\n"))
+	if res.Values["subject"] == "Old" || !strings.Contains(string(res.Body), "subject: Old") {
+		t.Errorf("legacy info string was read: values %v, body %q", res.Values, res.Body)
+	}
 }
 
 func TestBlockInsideAnotherFenceIsExampleText(t *testing.T) {
@@ -81,17 +98,17 @@ func TestBlockInsideAnotherFenceIsExampleText(t *testing.T) {
 	}
 }
 
-func TestOtherYamlFencesAreBody(t *testing.T) {
+func TestOtherFenceLanguagesAreBody(t *testing.T) {
 	env := newEnv(t, testConfiguration)
-	res := resolveOK(t, env.input("```yaml\nkey: value\n```\n"))
-	if !strings.Contains(string(res.Body), "key: value") {
+	res := resolveOK(t, env.input("```json\n{\"key\": 1}\n```\n"))
+	if !strings.Contains(string(res.Body), `"key": 1`) {
 		t.Errorf("body = %q", res.Body)
 	}
 }
 
 func TestUnclosedBlockIsAnError(t *testing.T) {
 	env := newEnv(t, testConfiguration)
-	errs := resolveErrors(t, env.input("```yaml metadata\nsubject: x\n"))
+	errs := resolveErrors(t, env.input("```yaml\nsubject: x\n"))
 	wantError(t, find(t, errs, ""), SourceDocument, CodeBlock, 1, "not closed")
 }
 

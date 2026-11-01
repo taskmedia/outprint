@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 type: report
 title: Annual garden report
 subtitle: Season 2025

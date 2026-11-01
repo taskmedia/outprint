@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 type: report
 title: Image sizes
 author: Robin Sample

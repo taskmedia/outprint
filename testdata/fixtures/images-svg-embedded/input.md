@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 type: report
 title: Embedded pictures
 author: Robin Sample

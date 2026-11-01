@@ -17,6 +17,9 @@ const (
 	// PDF shows in its letterhead.
 	OrganisationName = "Example Garden Society"
 
+	// BoundSubject is the subject in the Metadata Block of the bound Document.
+	BoundSubject = "Spring plant sale"
+
 	ChartCaption   = "Germination over six weeks"
 	DiagramCaption = "From seed to flower"
 
@@ -30,9 +33,10 @@ func BoundCollectionOverview() string {
 	return strings.Join([]string{
 		"Letters of the garden society. The block below is the Binding.",
 		"",
-		"```yaml binding",
-		"template: neutral",
-		"configuration: example",
+		"```yaml",
+		"binding:",
+		"  template: neutral",
+		"  configuration: example",
 		"```",
 		"",
 	}, "\n")
@@ -47,6 +51,11 @@ func UnboundCollectionOverview() string {
 // the images are uploaded.
 func boundBody() string {
 	return strings.Join([]string{
+		"```yaml",
+		"type: letter",
+		"subject: " + BoundSubject,
+		"```",
+		"",
 		BodySentence + " The sale takes place on **Saturday, 14 March**,",
 		"starting at *ten o'clock*.",
 		"",

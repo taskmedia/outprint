@@ -20,8 +20,9 @@ const (
 
 var yamlLineRE = regexp.MustCompile(`^yaml: (?:line (\d+): )?(.*)$`)
 
-// parseBlock reads the block strictly: a mapping with exactly the string
-// keys template and configuration, both with a non-empty string value.
+// parseBlock reads the block strictly: the key binding holding a mapping with
+// exactly the string keys template and configuration, both with a non-empty
+// string value.
 func parseBlock(blk codeBlock) (config.Binding, []metadata.Error) {
 	if !blk.closed {
 		return config.Binding{}, []metadata.Error{newError("", CodeMalformed, blk.openLine,
@@ -38,25 +39,47 @@ func parseBlock(blk codeBlock) (config.Binding, []metadata.Error) {
 	return config.Binding{Template: values[keyTemplate], Configuration: values[keyConfiguration]}, nil
 }
 
+// readMapping checks the block is exactly `binding:` with a mapping below it,
+// then reads that mapping's entries.
 func readMapping(doc *yaml.Node, blk codeBlock) (map[string]string, []metadata.Error) {
 	var root *yaml.Node
 	if len(doc.Content) > 0 {
 		root = doc.Content[0]
 	}
-	if root != nil && root.Kind != yaml.MappingNode {
-		return nil, []metadata.Error{newError("", CodeMalformed, blk.openLine+root.Line,
-			"the binding block must be a mapping with the keys template and configuration")}
+	if root == nil || root.Kind != yaml.MappingNode {
+		return nil, []metadata.Error{newError(bindingKey, CodeMalformed, blk.openLine+1,
+			"the block must be a mapping with the key binding")}
+	}
+	var inner *yaml.Node
+	bindingLine := blk.openLine + 1
+	var errs []metadata.Error
+	for i := 0; i+1 < len(root.Content); i += 2 {
+		k, v := root.Content[i], root.Content[i+1]
+		line := blk.openLine + k.Line
+		switch {
+		case k.Kind != yaml.ScalarNode || k.Value != bindingKey:
+			errs = append(errs, newError(k.Value, CodeMalformed, line,
+				fmt.Sprintf("unknown key %q: the block has exactly the key %s", k.Value, bindingKey)))
+		case inner != nil:
+			errs = append(errs, newError(bindingKey, CodeMalformed, line, "key \"binding\" appears twice"))
+		default:
+			inner, bindingLine = v, line
+		}
+	}
+	if inner == nil || inner.Kind != yaml.MappingNode {
+		if inner != nil || len(errs) == 0 {
+			errs = append(errs, newError(bindingKey, CodeMalformed, bindingLine,
+				"binding must be a mapping with the keys template and configuration"))
+		}
+		return nil, errs
 	}
 	values := map[string]string{}
-	var errs []metadata.Error
-	if root != nil {
-		for i := 0; i+1 < len(root.Content); i += 2 {
-			errs = append(errs, readEntry(root.Content[i], root.Content[i+1], blk.openLine, values)...)
-		}
+	for i := 0; i+1 < len(inner.Content); i += 2 {
+		errs = append(errs, readEntry(inner.Content[i], inner.Content[i+1], blk.openLine, values)...)
 	}
 	for _, key := range []string{keyTemplate, keyConfiguration} {
 		if _, ok := values[key]; !ok && !hasError(errs, key) {
-			errs = append(errs, newError(key, CodeMalformed, blk.openLine, fmt.Sprintf("missing key %q", key)))
+			errs = append(errs, newError(key, CodeMalformed, bindingLine, fmt.Sprintf("missing key %q", key)))
 		}
 	}
 	return values, errs
@@ -69,7 +92,7 @@ func readEntry(k, v *yaml.Node, offset int, values map[string]string) []metadata
 	}
 	if k.Value != keyTemplate && k.Value != keyConfiguration {
 		return []metadata.Error{newError(k.Value, CodeMalformed, line,
-			fmt.Sprintf("unknown key %q: the binding block has exactly the keys template and configuration", k.Value))}
+			fmt.Sprintf("unknown key %q: binding has exactly the keys template and configuration", k.Value))}
 	}
 	if _, dup := values[k.Value]; dup {
 		return []metadata.Error{newError(k.Value, CodeMalformed, line, fmt.Sprintf("key %q appears twice", k.Value))}

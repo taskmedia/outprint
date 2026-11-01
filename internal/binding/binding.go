@@ -1,7 +1,7 @@
 // Package binding resolves the Binding of a Collection: which Template and
 // which Template Configuration render the Documents in it. The Collection
-// admin chooses by placing a fenced `yaml binding` block in the Collection
-// overview; the choice is validated against the loaded packages and the
+// admin chooses by placing a fenced `yaml` block with the root key `binding`
+// in the Collection overview; the choice is validated against the loaded packages and the
 // installation's allow-list on every call.
 //
 // There is no silent fallback. The default Binding applies only when the
@@ -19,15 +19,15 @@ import (
 
 // Codes of a Binding error. Their source is always "collection".
 const (
-	// CodeMalformed: the block is not closed, is not YAML, is not a mapping
-	// of exactly the keys template and configuration, or a value is not a
-	// name.
+	// CodeMalformed: the block is not closed, is not YAML, does not hold
+	// exactly the key binding with a mapping of exactly the keys template and
+	// configuration, or a value is not a name.
 	CodeMalformed = "binding_malformed"
 	// CodeUnknown: a Template or Configuration of that name is not installed.
 	CodeUnknown = "binding_unknown"
 	// CodeNotAllowed: both names exist but the pair is not on the allow-list.
 	CodeNotAllowed = "binding_not_allowed"
-	// CodeDuplicate: a second `yaml binding` block.
+	// CodeDuplicate: a second block with the root key `binding`.
 	CodeDuplicate = "binding_duplicate"
 )
 
@@ -88,7 +88,7 @@ func resolveWithoutBlock(reg Registry) Outcome {
 func bindingBlocks(overview string) []codeBlock {
 	var out []codeBlock
 	for _, b := range fencedBlocks(overview) {
-		if b.info == bindingInfo {
+		if b.info == bindingInfo && b.hasRootKey(bindingKey) {
 			out = append(out, b)
 		}
 	}

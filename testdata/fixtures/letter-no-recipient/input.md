@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 subject: Notice to all members
 ```
 Without a recipient the letter has no address window, no back address line and

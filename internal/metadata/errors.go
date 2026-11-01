@@ -26,7 +26,7 @@ const (
 	CodeType     = "type"
 	CodeEnum     = "enum"
 	// CodeBlock reports a structural problem of the Metadata Block itself:
-	// a second or misplaced block, an unclosed fence, broken YAML.
+	// an unclosed fence, broken YAML.
 	CodeBlock = "block"
 )
 

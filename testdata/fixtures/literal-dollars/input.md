@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 subject: Prices and symbols
 opening: Hello,
 closing: Bye

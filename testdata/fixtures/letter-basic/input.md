@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 date: "2 March 2026"
 subject: Spring plant sale
 recipient:

@@ -10,8 +10,8 @@ from the content. Nothing in Outline is forked.
 A **Template** provides the look and structure (letter, report, ...). A
 **Template Configuration** adapts it to an organisation or purpose (name, logo,
 colours, defaults). A Collection admin binds a Template and a Configuration to a
-Collection; a Document author fills structured fields in a `yaml metadata`
-block and downloads the PDF with one click.
+Collection; a Document author fills structured fields in a leading
+`yaml` block and downloads the PDF with one click.
 
 ## Components
 
@@ -46,9 +46,7 @@ behind the design is in [docs/research](docs/research/README.md).
 
 ## Status
 
-Work in progress. Tracked in the project issues. Known gaps are listed there,
-for example how Outline's code fences keep the `yaml metadata` marker
-(issue #42).
+Work in progress. Tracked in the project issues. Known gaps are listed there.
 
 ## Development
 
@@ -97,7 +95,7 @@ typed patterns, the TeX deny-list, the drift guard and `validate`, and
 [docs/standard-fields.md](docs/standard-fields.md) for the Standard Fields.
 See [docs/images.md](docs/images.md) for images: formats, sizes, captions,
 limits, error kinds and the `imageHosts` setting.
-See [docs/binding.md](docs/binding.md) for the `yaml binding` block a
+See [docs/binding.md](docs/binding.md) for the `binding:` block a
 Collection admin uses to choose the Template and Configuration.
 See [docs/worker.md](docs/worker.md) for the Worker pipeline: phases, filters,
 engine lockdown, errors, logging and the debug switch.

@@ -149,13 +149,13 @@ func metadataCases() []hostileCase {
 		for _, field := range []string{"subject", "opening", "author"} {
 			cases = append(cases, hostileCase{
 				name: "letter " + field + " " + p.name, template: "letter", want: literal,
-				markdown: "```yaml metadata\n" + field + ": " + yamlQuote(p.payload) + "\n```\nBody text.\n",
+				markdown: "```yaml\n" + field + ": " + yamlQuote(p.payload) + "\n```\nBody text.\n",
 				visible:  []string{p.shown, "Body text."},
 			})
 		}
 		abstract := hostileCase{
 			name: "report abstract text " + p.name, template: "report", want: literal,
-			markdown: "```yaml metadata\ntype: report\ntitle: Report\nabstract: " + yamlQuote("Summary "+p.payload+" end") + "\n```\nBody text.\n",
+			markdown: "```yaml\ntype: report\ntitle: Report\nabstract: " + yamlQuote("Summary "+p.payload+" end") + "\n```\nBody text.\n",
 			visible:  []string{"Summary", "end", "Body text."},
 		}
 		if p.name == "html" {
@@ -165,11 +165,11 @@ func metadataCases() []hostileCase {
 		}
 		cases = append(cases, hostileCase{
 			name: "letter recipient list " + p.name, template: "letter", want: literal,
-			markdown: "```yaml metadata\nrecipient:\n  - " + yamlQuote("Line one") + "\n  - " + yamlQuote(p.payload) + "\n```\nBody text.\n",
+			markdown: "```yaml\nrecipient:\n  - " + yamlQuote("Line one") + "\n  - " + yamlQuote(p.payload) + "\n```\nBody text.\n",
 			visible:  []string{"Line one", p.shown, "Body text."},
 		}, hostileCase{
 			name: "report title " + p.name, template: "report", want: literal,
-			markdown: "```yaml metadata\ntype: report\ntitle: " + yamlQuote(p.payload) + "\n```\nBody text.\n",
+			markdown: "```yaml\ntype: report\ntitle: " + yamlQuote(p.payload) + "\n```\nBody text.\n",
 			visible:  []string{p.shown, "Body text."},
 		}, abstract)
 	}

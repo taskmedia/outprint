@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 type: letter
 author: Robin Sample
 language: en

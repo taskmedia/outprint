@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 subject: 'Costs $x$ and \input{foo} in *plain* text'
 recipient:
   - '$5 & 10% of #7'

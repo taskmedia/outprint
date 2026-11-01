@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 type: report
 title: Garden inventory
 subtitle: Narrow tables

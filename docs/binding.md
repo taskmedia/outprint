@@ -2,8 +2,8 @@
 
 A **Binding** pairs one Template with one Template Configuration. A
 Collection admin chooses it for every Document in the Collection, nested
-Documents included, with a fenced `yaml binding` block in the Collection
-overview. Authors cannot choose or override it, and neither can a request.
+Documents included, with a fenced `yaml` block holding a `binding:` key in the
+Collection overview. Authors cannot choose or override it, and neither can a request.
 
 ## The block
 
@@ -12,28 +12,28 @@ overview. Authors cannot choose or override it, and neither can a request.
 
 Notes and letters of the council.
 
-```yaml binding
-template: neutral
-configuration: example
+```yaml
+binding:
+  template: neutral
+  configuration: example
 ```
 ````
 
 - The block is a fenced code block (backticks or tildes, three or more,
-  indented at most three spaces) whose info string is `yaml binding`.
-- It may be anywhere in the overview. The first block counts.
-- The content is YAML with exactly the keys `template` and `configuration`,
-  each the name of an installed package, as a string.
-- A `yaml binding` text inside another fenced block, in inline code or in an
-  indented code block is not a block.
+  indented at most three spaces) whose info string is exactly `yaml`. Outline
+  keeps only the first word of an info string, so the block is told apart from
+  other YAML by its root key `binding:`, not by a second word.
+- It may be anywhere in the overview. The first block with a `binding:` key
+  counts; a second one is a `binding_duplicate` error. Other `yaml` blocks are
+  ordinary text.
+- The content is YAML with exactly one key, `binding`, holding a mapping with
+  exactly the keys `template` and `configuration`, each the name of an
+  installed package, as a string.
+- A `binding:` inside another fenced block, in inline code, in an indented code
+  block or nested below another key is not a block.
+- A block spelled with the old info string `yaml binding` is not recognised.
 - The pair must be on the installation's allow-list (the `bindings` of the
   service configuration).
-
-> **Known limitation (Outline 1.12, issue #42).** Outline keeps only the first
-> word of a code fence's info string. A block written as `yaml binding` in the
-> Collection overview is read correctly only when it is stored verbatim through
-> the API (`collections.update` with `description`, as the dev seed does); an edit
-> in Outline's editor turns it into a plain `yaml` block. The same holds for the
-> `yaml metadata` block of a Document.
 
 ## Which Binding applies
 
@@ -62,10 +62,10 @@ overview:
 
 | Code | Meaning |
 |------|---------|
-| `binding_malformed` | block not closed, broken YAML, not a mapping, a missing, extra or repeated key, or a value that is not a name |
+| `binding_malformed` | block not closed, broken YAML, `binding` is not a mapping, a missing, extra or repeated key, or a value that is not a name |
 | `binding_unknown` | no installed Template or Configuration of that name (`field` names the key) |
 | `binding_not_allowed` | both exist but the pair is not on the allow-list |
-| `binding_duplicate` | a second `yaml binding` block |
+| `binding_duplicate` | a second block with a `binding:` key |
 | `no_binding` | no block and no default Binding |
 
 All problems are reported at once. A Collection the user cannot read answers

@@ -55,7 +55,7 @@ browser --> http://localhost:5556  Dex (sign-in page only)
   `http://localhost:8090`, so sign-in redirects and cookies stay on that origin.
 - **One service configuration for the dev stack** (`deploy/dev/service.yaml`):
   `neutral` with `example` is allowed and there is **no `defaultBinding`**. A
-  Collection without a `yaml binding` block therefore has no button; the second
+  Collection without a `binding:` block therefore has no button; the second
   browser test relies on it.
 - Files are stored by Outline itself (`FILE_STORAGE=local`, a volume).
 
@@ -120,11 +120,10 @@ and left alone; the Binding block is restored if someone edited it away.
 Two Outline behaviours shaped the seed, both found by running against a real
 Outline and both tracked:
 
-- Outline keeps only the first word of a code fence's info string, so a
-  `yaml metadata` block cannot be stored in a Document and a `yaml binding`
-  block survives only when written verbatim through the API (issue #42). The
-  seed therefore writes the Binding through the API and gives the Document no
-  Metadata Block (it renders as a letter, the Configuration's default type).
+- Outline keeps only the first word of a code fence's info string (issue #42).
+  The Binding and the Metadata Block are therefore plain `yaml` fences, told
+  apart by the root key `binding:` and by their place at the top of the
+  Document, so the seed's text is what the editor would store as well.
 - The neutral letter cannot typeset a captioned figure (issue #43), so the bound
   Document has images without captions and the captioned ones sit in the
   unbound Document, where they are only inspected, not rendered.
