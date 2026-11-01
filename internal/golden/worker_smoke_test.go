@@ -130,6 +130,10 @@ func TestGatewayRendersADocumentThroughTheWorker(t *testing.T) {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+		if r.URL.Path == "/api/auth.info" {
+			_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"user": map[string]any{"id": "user-1"}}})
+			return
+		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{
 			"id": "d1", "title": "Spring plant sale", "text": smokeMarkdown,
 			"updatedAt": "2026-03-02T10:00:00.000Z", "collectionId": "c1",
