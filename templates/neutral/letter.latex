@@ -17,6 +17,21 @@ $endif$
 \ifdef{\subsubsection}{}{\NewDocumentCommand{\subsubsection}{s m}{\neutralheading{\normalsize\bfseries\itshape}{#2}}}
 \ifdef{\paragraph}{}{\NewDocumentCommand{\paragraph}{s m}{\neutralheading{\normalsize\bfseries}{#2}}}
 \ifdef{\subparagraph}{}{\NewDocumentCommand{\subparagraph}{s m}{\neutralheading{\normalsize\itshape}{#2}}}
+% scrlttr2 has no figure float, but the Pandoc writer emits a figure
+% environment with a caption for an image alone in its paragraph. In a letter
+% a figure is not a float: it stays where the author put it, on one page, with
+% its caption set by the caption package as in the report.
+\makeatletter
+\ifdef{\c@figure}{}{\newcounter{figure}\renewcommand{\thefigure}{\arabic{figure}}}
+\providecommand{\figurename}{Figure}
+\providecommand{\fnum@figure}{\figurename~\thefigure}
+\providecommand{\ext@figure}{lof}
+\providecommand{\theHfigure}{\thefigure}
+\newenvironment{figure}[1][]{%
+  \par\addvspace{\baselineskip}\noindent
+  \begin{minipage}{\linewidth}\centering\def\@captype{figure}}%
+  {\end{minipage}\par\addvspace{\baselineskip}}
+\makeatother
 $if(highlighting-macros)$
 \usepackage{fancyvrb}
 $highlighting-macros$

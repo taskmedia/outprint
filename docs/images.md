@@ -197,7 +197,10 @@ URL, or when files live in S3-compatible storage (use `imageHosts`).
 an explicit size in points, so only the Template knows the text area. The
 `neutral` Template redefines `\includegraphics` to scale an image down to the
 line width and `0.9\textheight`, keeping the aspect ratio, and sets figure
-captions through the `caption` package. A Template that shows Document images
+captions through the `caption` package. Its `letter` has no float: the KOMA
+letter class has none, so the Template defines a `figure` environment that
+keeps the figure in place on one page, with the same caption style and
+numbering as the report. A Template that shows Document images
 must do the same.
 
 ## Notes
