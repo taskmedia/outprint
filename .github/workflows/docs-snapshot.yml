@@ -95,8 +95,8 @@ jobs:
             exit 0
           fi
           git switch -c "$branch"
-          cp -R "../release/website/versioned_docs/version-$VERSION" website/versioned_docs/
-          mkdir -p website/versioned_sidebars
+          mkdir -p website/versioned_docs website/versioned_sidebars
+          cp -R "../release/website/versioned_docs/version-$VERSION" "website/versioned_docs/version-$VERSION"
           cp "../release/website/versioned_sidebars/version-$VERSION-sidebars.json" website/versioned_sidebars/
           existing='[]'
           [[ -f website/versions.json ]] && existing="$(cat website/versions.json)"
