@@ -25,11 +25,11 @@ The field values a Template Configuration supplies when a Document does not set 
 _Avoid_: Presets
 
 **Metadata Block**:
-The fenced block at the very start of a Document in which its author sets field values (recipient, subject, …). It is not part of the rendered content.
+The fenced block at the very start of a Document in which its author sets field values (recipient, subject, …). It is not part of the rendered content. In Outline's interface the injector script keeps it out of the way: readers do not see it, and authors see it folded behind a toggle called "PDF details" (an operator setting can change this).
 _Avoid_: Frontmatter, Header
 
 **Standard Fields**:
-A documented set of common field names (for example subject, recipient) that Templates are encouraged to reuse so Template Configurations stay portable. A convention, not a requirement: a Template may declare any fields it likes.
+A documented set of common field names (for example subject, recipient) that Templates are encouraged to reuse so Template Configurations stay portable. A convention, not a requirement: a Template may declare any fields it likes. Where the pipeline derives a default, it applies to every Template that declares the field: `title`, `date`, and `subject` (the Document's title, unless the author sets it, even to empty).
 _Avoid_: Core fields, Reserved fields
 
 **Binding**:

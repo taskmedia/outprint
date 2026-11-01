@@ -58,7 +58,7 @@ Types are explained in [Fill in the document](../../write/fill-in-the-document.m
 | `author` | string | no | none | Author. Signs a letter and appears in the title block of a report. |
 | `recipient` | list | no | none | Address lines. The address window is shown only when this is set. |
 | `sender` | list | no | none | Sender address lines, printed under the organisation name. |
-| `subject` | string | no | none | Subject line. |
+| `subject` | string | no | the Outline title | Subject line. Defaults to the title of the Outline document; an empty value prints no subject line. |
 | `opening` | string | no | none | Salutation. |
 | `closing` | string | no | none | Complimentary close. |
 | `reference` | string | no | none | Reference line, for example a file number. |

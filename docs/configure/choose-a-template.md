@@ -55,6 +55,14 @@ in folders below it, now offers **Formatted PDF** in its Export menu.
   the key `binding` counts.
 - Authors cannot change the Binding. Only people who can edit the Collection can.
 
+## The subject of a letter
+
+A letter without a `subject` in its own block gets the title of the Outline
+document as its subject. This works with every Binding, so you need not set
+anything in the Collection. Authors who want a letter without a subject line write
+`subject:` with nothing after it, or `subject: ""`. A `subject` in the `defaults` of the
+Configuration wins over the title.
+
 ## What happens without a block
 
 1. The Collection has a block: Outprint uses it. A mistake in the block is an

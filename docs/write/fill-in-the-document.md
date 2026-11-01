@@ -77,6 +77,22 @@ Three rules keep it working:
 A document without a block still works, as long as the Template does not need
 any detail that has no default.
 
+## Where did my block go?
+
+In a document that has a Template, Outline can keep the block out of the way.
+Your block is still there, and Outprint still reads it.
+
+- If you can edit the document, the block is folded behind a line above the
+  document called **PDF details** (**PDF-Details** in the German interface). Click
+  it to open the block and click it again to fold it. Each document starts
+  folded.
+- If you can only read the document, you do not see the block at all.
+
+Your Outprint admin can change this, so that the block is always shown to you
+([Injector and PDF action](../deploy/injector.md#hiding-the-metadata-block)).
+Two places still show the block: a link that you share from Outline, and
+Outline's own export and search.
+
 ## Lines that start with `#`
 
 A line that starts with `#` is a comment. Outprint ignores it. The ready-made
@@ -142,12 +158,15 @@ place in this list wins.
 2. **Your block.** What you write.
 3. **The Configuration's defaults.** A Configuration may set a salutation or a
    closing for you. Your block wins over these.
-4. **Outprint.** The title of the Outline document and the date of the last
-   change.
+4. **Outprint.** The title of the Outline document (also used as the subject of
+   a letter) and the date of the last change.
 5. **The Template.** Its own defaults, such as the language.
 
 To remove a default, leave the value empty: `closing:` removes the closing.
 If the field is required, an empty value is an error.
+
+A letter without a `subject` uses the title of the document as its subject. Write
+`subject:` or `subject: ""` to print no subject line at all.
 
 ## Common fields
 
@@ -162,7 +181,7 @@ Template.
 | `language` | The language of the document, for example `en` or `de`. It sets how dates are written. |
 | `author` | Who wrote it |
 | `recipient`, `sender` | Address lines of a letter |
-| `subject`, `reference` | Subject line and reference of a letter |
+| `subject`, `reference` | Subject line and reference of a letter. Without `subject`, the document title is the subject |
 | `opening`, `closing` | Salutation and closing of a letter |
 | `enclosures`, `cc` | Lists below a letter |
 | `subtitle`, `version`, `abstract`, `toc` | Parts of a report |

@@ -103,6 +103,7 @@ per document: where the action sits is an operator decision.
 | `OUTPRINT_BUTTON_STYLE` | `icon-label` or `icon`; applies to the header button | `icon-label` |
 | `OUTPRINT_BUTTON_FALLBACK` | `on` or `off`: show a floating button when the anchor is missing | `on` |
 | `OUTPRINT_BUTTON_FALLBACK_DELAY` | how long to wait for the anchor before the fallback, for example `3s` | `3s` |
+| `OUTPRINT_BUTTON_METADATA_BLOCK` | `collapse`, `hide` or `show`: what readers and authors see of the [metadata block](#hiding-the-metadata-block) | `collapse` |
 | `OUTPRINT_BUTTON_LABELS` | override the texts, see below | built-in |
 
 A wrong value stops the injector at startup with a message naming the variable.
@@ -181,6 +182,39 @@ functions plus a small DOM stub). `task test` runs it when Node is installed and
 prints a note when it is not; CI always runs it. The placement against Outline's
 real markup is covered by the browser tests, see
 [Compatibility](compatibility.md).
+
+## Hiding the metadata block
+
+On documents where a Binding applies, the script takes the [metadata
+block](../write/fill-in-the-document.md) (the `yaml` code block at the very
+start of the document) out of sight. Outline opens a document for everyone who
+may edit it straight in the editor ("seamless editing"), so there is no separate
+reading view for authors. The script therefore tells two kinds of visitors apart
+by whether the editor is editable:
+
+| Visitor | `collapse` (default) | `hide` | `show` |
+|---------|----------------------|--------|--------|
+| Reader (no edit permission) | block hidden | block hidden | block shown |
+| Author (can edit) | block folded behind a **PDF details** toggle above the document | block shown | block shown |
+
+With `collapse` an author opens the block with one click on the toggle and folds
+it again with a second. In Outline the toggle is called **PDF details**
+(**PDF-Details** in German); the docs call the block itself the metadata block.
+The state is not remembered: each document starts folded.
+
+The operator decides with `OUTPRINT_BUTTON_METADATA_BLOCK`. For `hide` and `show`
+the injector adds `data-metadata-block="hide"` or `"show"` to the script tag; the
+default adds nothing. Like the other `OUTPRINT_BUTTON_*` options it applies to the
+whole installation, not per Collection or Document, and a wrong value stops the
+injector at startup.
+
+This is a cosmetic convenience, not access control:
+
+- It depends on Outline's markup (a `.ProseMirror` editor with `contenteditable`
+  and code blocks carrying their language). An Outline update can break it; the
+  block is then simply shown again.
+- The block can flash briefly before the script hides it.
+- Share links, Outline's own exports and Outline's search still show it.
 
 ## Security notes
 
