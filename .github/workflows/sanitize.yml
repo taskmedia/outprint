@@ -1,8 +1,14 @@
 name: sanitize
 
+# Branch pushes are covered by the pull request run; only main runs on push.
 on:
   push:
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: sanitize-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read

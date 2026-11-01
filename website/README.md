@@ -151,13 +151,28 @@ heading, or when the page moves or gets a `slug`.
 
 ### Create a snapshot
 
+A snapshot is made automatically at every new minor release: the workflow
+`.github/workflows/docs-snapshot.yml` opens the pull request `docs: snapshot X.Y`
+(flow and failure handling: `docs/releasing.md`, "Docs snapshot"). By hand, on a
+clean tree after `npm ci`:
+
 ```sh
-npm run docs:version -- 0.1
+task docs:snapshot VERSION=0.1     # scripts/docs-snapshot.sh 0.1
 ```
 
-This writes `versions.json`, `versioned_docs/version-0.1/` and
-`versioned_sidebars/version-0.1-sidebars.json`. One snapshot per minor release;
-patch releases do not get their own. Commit all three.
+This runs `docusaurus docs:version`, then removes what the site does not publish
+from the copy: the logo kit (`assets/logo/`) and every file in the `exclude` list
+of `docusaurus.config.js` (read from the config, no second list). The screens stay.
+It writes `versions.json`, `versioned_docs/version-0.1/` and
+`versioned_sidebars/version-0.1-sidebars.json` (about 0.5 MB, mostly the screens);
+commit all three. One snapshot per minor release; patch releases do not get their
+own, and a snapshot is never regenerated: correct it by editing
+`versioned_docs/version-X.Y` in a pull request. `task docs:test-snapshot` tests the
+script on a throwaway copy of the repository, including the strict build.
+
+The quality gates (`docs:examples-check`, `errors-check`, `catalogue-check`) read
+`docs/` only and never look at `versioned_docs/`; `docs:sanitize-site` scans the
+whole built site, snapshots included.
 
 ### What changes at the first snapshot
 

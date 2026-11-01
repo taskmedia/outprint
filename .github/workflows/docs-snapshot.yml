@@ -1,0 +1,129 @@
+name: docs snapshot
+
+# Freezes the docs of a minor release (docs/releasing.md, website/README.md):
+# builds the snapshot from the docs at the release tag v<X.Y>.0 and opens a pull
+# request that adds it to main. Called by release-please.yml after a new minor
+# release; can also be started by hand for a minor that has no snapshot yet.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Minor version to snapshot, X.Y (for example 0.1). Uses the tag vX.Y.0."
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        description: "Minor version to snapshot, X.Y"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: docs-snapshot-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    name: snapshot ${{ inputs.version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERSION: ${{ inputs.version }}
+      # A token from a user (secret PAT) makes the pull request run the required
+      # checks; with the default GITHUB_TOKEN it would not (like release-please.yml).
+      GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+      HAS_PAT: ${{ secrets.PAT != '' }}
+    steps:
+      - name: validate the version
+        run: |
+          if [[ ! "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::version must be X.Y (a minor version such as 0.1), got '$VERSION'"
+            exit 1
+          fi
+
+      - name: note on the token
+        if: env.HAS_PAT != 'true'
+        run: |
+          echo "::warning::Secret PAT is not set; using GITHUB_TOKEN. The pull request will not run the required checks until it is closed and reopened by a person (docs/releasing.md)."
+
+      # The docs as they were at the release, and the script and site config of
+      # that release with them.
+      - name: check out the release tag
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ inputs.version }}.0
+          path: release
+          persist-credentials: false
+
+      - name: check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+          token: ${{ env.GH_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: release/website/package-lock.json
+
+      - name: install
+        working-directory: release/website
+        run: npm ci
+
+      - name: create the snapshot from the tag
+        working-directory: release
+        run: ./scripts/docs-snapshot.sh "$VERSION"
+
+      # Only the snapshot goes onto main. versions.json is not copied from the
+      # tag: it may lack snapshots that landed after the release. The version is
+      # added to the one on main instead, newest first.
+      - name: apply the snapshot to a branch from main
+        id: branch
+        working-directory: main
+        run: |
+          set -euo pipefail
+          branch="docs/snapshot-$VERSION"
+          if [[ -e "website/versioned_docs/version-$VERSION" ]]; then
+            echo "main already has a snapshot for $VERSION; nothing to do."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git switch -c "$branch"
+          cp -R "../release/website/versioned_docs/version-$VERSION" website/versioned_docs/
+          mkdir -p website/versioned_sidebars
+          cp "../release/website/versioned_sidebars/version-$VERSION-sidebars.json" website/versioned_sidebars/
+          existing='[]'
+          [[ -f website/versions.json ]] && existing="$(cat website/versions.json)"
+          jq --arg v "$VERSION" '(. + [$v]) | unique | sort_by(split(".") | map(tonumber)) | reverse' <<<"$existing" > website/versions.json.new
+          mv website/versions.json.new website/versions.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add website/versioned_docs website/versioned_sidebars website/versions.json
+          git commit -m "docs: snapshot $VERSION"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # A branch from an earlier run is replaced: the snapshot is rebuilt from
+      # the tag, so the newest run wins.
+      - name: push the branch and open or update the pull request
+        if: steps.branch.outputs.changed == 'true'
+        working-directory: main
+        run: |
+          set -euo pipefail
+          branch="docs/snapshot-$VERSION"
+          git push --force origin "$branch"
+          title="docs: snapshot $VERSION"
+          body="Frozen docs of the $VERSION release, built from the tag v$VERSION.0 by the docs snapshot workflow (docs/releasing.md). Merging moves the site root to $VERSION and the current docs to /dev/. Review the diff only for surprises; the content is the released docs."
+          number="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
+          if [[ -n "$number" ]]; then
+            gh pr edit "$number" --title "$title" --body "$body"
+            echo "Updated pull request #$number" >> "$GITHUB_STEP_SUMMARY"
+          else
+            url="$(gh pr create --base main --head "$branch" --title "$title" --body "$body")"
+            echo "Opened $url" >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -98,6 +98,20 @@ else
 fi
 rm private.txt
 
+with_url_comment() {
+  echo "[{\"number\":1,\"title\":\"A title\",\"body\":\"plain\",\"comments\":[{\"author\":{\"login\":\"u\"},\"url\":\"https://example.invalid/i/1#issuecomment-42\",\"body\":\"$w_generic\"}]}]" > fake/issues.json
+}
+
+reset_fake; with_url_comment
+expect 1 "comment without an allowlist entry fails and shows its anchor" "comment by u \[issuecomment-42\] matches"
+
+reset_fake; with_url_comment; printf 'issuecomment-42  # reviewed\n' > .sanitize/audit-allow.txt
+expect 0 "allowlisted comment is reported as a note, not a finding" "issuecomment-42\] is allowed"
+
+reset_fake; with_url_comment; printf '# only a comment\nissuecomment-43  # other\n' > .sanitize/audit-allow.txt
+expect 1 "allowlist entry for another comment does not help" "matches the generic"
+rm .sanitize/audit-allow.txt
+
 reset_fake; mv LICENSE LICENSE.off
 expect 1 "missing LICENSE fails" "LICENSE is missing"
 mv LICENSE.off LICENSE

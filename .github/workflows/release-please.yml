@@ -31,6 +31,9 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
+      major: ${{ steps.release.outputs.major }}
+      minor: ${{ steps.release.outputs.minor }}
+      patch: ${{ steps.release.outputs.patch }}
     steps:
       - id: release
         uses: googleapis/release-please-action@v4
@@ -40,6 +43,26 @@ jobs:
           token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  # The docs snapshot of a new minor release (docs/releasing.md). It needs only
+  # release-please, not the image jobs: a failing image build neither stops it
+  # nor is stopped by it. Patch releases (X.Y.Z, Z > 0) and pre-releases
+  # (a version with a "-" suffix such as 0.2.0-rc.1) get no snapshot; the final
+  # X.Y.0 does.
+  docs-snapshot:
+    name: docs snapshot
+    needs: release-please
+    if: >-
+      needs.release-please.outputs.release_created == 'true'
+      && needs.release-please.outputs.patch == '0'
+      && !contains(needs.release-please.outputs.version, '-')
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: ./.github/workflows/docs-snapshot.yml
+    with:
+      version: ${{ needs.release-please.outputs.major }}.${{ needs.release-please.outputs.minor }}
+    secrets: inherit
 
   build:
     name: build ${{ matrix.image }} (${{ matrix.platform }})
