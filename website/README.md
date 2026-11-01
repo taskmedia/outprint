@@ -1,0 +1,89 @@
+# Documentation site
+
+The Outprint docs site: [Docusaurus](https://docusaurus.io) 3, published to
+GitHub Pages at <https://taskmedia.github.io/outprint/>. The pages live in
+[`../docs`](../docs), so GitHub's rendering and the site share the same files;
+this directory holds only the site shell (config, theme, sidebar).
+
+Repo-only pages are not published (`exclude` in `docusaurus.config.js`):
+`sanitize.md`, `publishing.md`, `testing.md`, `research/**`. Published pages
+that point at them use absolute GitHub URLs, so the strict build stays green.
+Links from published pages to anything outside `docs/` must be absolute
+`https://github.com/taskmedia/outprint/blob/main/...` URLs.
+
+Needs Node 22 (`nvm use` reads `.nvmrc`).
+
+## Run locally
+
+```sh
+cd website
+npm ci
+npm start        # dev server with live reload, http://localhost:3000/outprint/
+```
+
+## Build
+
+```sh
+npm run build    # strict: broken links, anchors and markdown links fail
+npm run serve    # serves the build at http://localhost:3000/outprint/
+```
+
+From the repository root: `make docs` and `make docs-serve`. Search only works
+in the built site, not under `npm start`.
+
+## Add a locale (for example German)
+
+The `i18n` block in `docusaurus.config.js` lists one locale, `en`; the
+`i18n/` folder does not exist yet.
+
+1. Add `'de'` to `i18n.locales`.
+2. Add the locale dropdown to `themeConfig.navbar.items`:
+   `{type: 'localeDropdown', position: 'right'}`. Do not add it before a second
+   locale exists.
+3. Generate the translation files: `npm run write-translations -- --locale de`
+   (add the script `"write-translations": "docusaurus write-translations"`).
+4. Copy the pages to translate into
+   `i18n/de/docusaurus-plugin-content-docs/current/` (same file names as in
+   `docs/`); untranslated pages fall back to English.
+5. Build all locales with `npm run build`, one locale with
+   `npm run build -- --locale de`.
+
+The search plugin needs `language: ['en', 'de']` in its options.
+
+## Versions
+
+Until the first release exists the current docs are the only version and
+live at the site root (`/outprint/`).
+
+### Create a snapshot
+
+```sh
+npm run docs:version -- 0.1
+```
+
+This writes `versions.json`, `versioned_docs/version-0.1/` and
+`versioned_sidebars/version-0.1-sidebars.json`. One snapshot per minor release;
+patch releases do not get their own. Commit all three.
+
+### What to change in config at the first snapshot
+
+With a snapshot the unreleased docs move to `/dev/`. A lone version with
+`path: 'dev'` would empty the root, which is why this is not set yet. In
+`docusaurus.config.js`:
+
+1. In `presets[0].docs`, enable (do **not** set `lastVersion`: the newest
+   snapshot is the default automatically):
+
+   ```js
+   versions: {
+     current: {label: 'dev', path: 'dev', banner: 'unreleased'},
+   },
+   ```
+
+2. In `themeConfig.navbar.items`, add the version dropdown:
+   `{type: 'docsVersionDropdown', position: 'right'}`.
+
+Search is version-aware once versions exist: the index is built per version
+and the search box on a versioned page searches that version.
+
+Both states (no snapshot, one snapshot) have been built strictly.

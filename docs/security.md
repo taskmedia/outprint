@@ -204,4 +204,4 @@ make test-sandbox      # layers 2 and 3 only
 `RELEASE_IMAGE` pointing at them. The skip guard, `scripts/security-guard.sh`,
 reads the test output and fails on any skip or when nothing ran. CI uses
 `-json` (`make test-security GOTEST_FLAGS=-json`); see
-[testing.md](testing.md).
+[testing.md](https://github.com/taskmedia/outprint/blob/main/docs/testing.md).

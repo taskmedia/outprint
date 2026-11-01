@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Outprint">
+  <rect width="64" height="64" rx="14" fill="#111111"/>
+  <text x="32" y="45" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-weight="700" font-size="40" fill="#ededed">o</text>
+  <rect x="44" y="40" width="9" height="9" rx="2" fill="#2ecc71"/>
+</svg>

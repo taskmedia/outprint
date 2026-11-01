@@ -1,0 +1,24 @@
+{
+  "name": "outprint-docs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Documentation site for Outprint (Docusaurus).",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve --no-open",
+    "clear": "docusaurus clear",
+    "docs:version": "docusaurus docs:version"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.2",
+    "@docusaurus/preset-classic": "3.10.2",
+    "@easyops-cn/docusaurus-search-local": "0.55.3",
+    "@fontsource/roboto": "5.3.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  }
+}

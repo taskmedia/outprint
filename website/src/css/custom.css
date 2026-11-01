@@ -1,0 +1,145 @@
+/* Outprint docs theme. Tokens follow task.media: neutral greys, one green
+   accent, Roboto. Docusaurus (Infima) variables are mapped from the tokens. */
+
+@import '@fontsource/roboto/400.css';
+@import '@fontsource/roboto/500.css';
+@import '@fontsource/roboto/700.css';
+
+:root {
+  --op-bg: #f2f2f2;
+  --op-card: #ffffff;
+  --op-text: #111111;
+  --op-muted: #888888; /* decorative only: 3.2:1 on bg, fails AA for text */
+  --op-muted-text: #595959; /* readable secondary text */
+  --op-border: #e2e2e2;
+  --op-accent: #2ecc71; /* marks, fills, never link text on light */
+  --op-link: #187a42; /* 4.81:1 on #f2f2f2, 5.38:1 on white */
+  --op-link-hover: #0f5a2f;
+  --op-focus: #187a42;
+
+  --ifm-font-family-base: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ifm-heading-font-family: var(--ifm-font-family-base);
+  --ifm-font-weight-bold: 700;
+  --ifm-heading-font-weight: 700;
+  --ifm-color-primary: var(--op-link);
+  --ifm-color-primary-dark: #157039;
+  --ifm-color-primary-darker: #146b37;
+  --ifm-color-primary-darkest: #0f5a2f;
+  --ifm-color-primary-light: #1b8549;
+  --ifm-color-primary-lighter: #1c8a4b;
+  --ifm-color-primary-lightest: #20a05a;
+  --ifm-background-color: var(--op-bg);
+  --ifm-background-surface-color: var(--op-card);
+  --ifm-font-color-base: var(--op-text);
+  --ifm-font-color-secondary: var(--op-muted-text);
+  --ifm-color-emphasis-300: var(--op-border);
+  --ifm-toc-border-color: var(--op-border);
+  --ifm-table-border-color: var(--op-border);
+  --ifm-hr-border-color: var(--op-border);
+  --ifm-link-color: var(--op-link);
+  --ifm-link-hover-color: var(--op-link-hover);
+  --ifm-navbar-background-color: var(--op-card);
+  --ifm-navbar-shadow: 0 1px 0 var(--op-border);
+  --ifm-footer-background-color: var(--op-bg);
+  --ifm-footer-color: var(--op-muted-text);
+  --ifm-footer-title-color: var(--op-text);
+  --ifm-code-font-size: 90%;
+  --ifm-global-radius: 6px;
+  --docusaurus-highlighted-code-line-bg: rgba(24, 122, 66, 0.1);
+}
+
+[data-theme='dark'] {
+  --op-bg: #080808;
+  --op-card: #131313;
+  --op-text: #ededed;
+  --op-muted: #555555; /* decorative only: fails AA for text */
+  --op-muted-text: #9a9a9a;
+  --op-border: #222222;
+  --op-link: #2ecc71;
+  --op-link-hover: #5be08f;
+  --op-focus: #2ecc71;
+
+  --ifm-color-primary: var(--op-link);
+  --ifm-color-primary-dark: #29b865;
+  --ifm-color-primary-darker: #27ad5f;
+  --ifm-color-primary-darkest: #20904e;
+  --ifm-color-primary-light: #46d484;
+  --ifm-color-primary-lighter: #52d78c;
+  --ifm-color-primary-lightest: #78e0a6;
+  --ifm-navbar-shadow: 0 1px 0 var(--op-border);
+  --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.12);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Wordmark placeholder: the name, with a green mark. Replaced by the logo
+   once it is commissioned. */
+.navbar__title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.navbar__brand::before {
+  content: '';
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: 0.5rem;
+  border-radius: 2px;
+  background: var(--op-accent);
+}
+
+.navbar {
+  border-bottom: 1px solid var(--op-border);
+}
+
+/* Calm surfaces: flat cards with a hairline border, no shadows. */
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--op-border) !important;
+}
+.menu__link {
+  border-radius: 4px;
+}
+.menu__link--active:not(.menu__link--sublist) {
+  font-weight: 500;
+  background: color-mix(in srgb, var(--op-accent) 14%, transparent);
+  color: var(--op-text);
+}
+.table-of-contents__link--active {
+  font-weight: 500;
+}
+
+.markdown table {
+  display: table;
+  width: 100%;
+}
+.navbar__search-input::placeholder {
+  color: var(--op-muted-text);
+  opacity: 1;
+}
+
+pre,
+code {
+  border: 1px solid var(--op-border);
+}
+pre code {
+  border: 0;
+}
+
+/* Visible keyboard focus on every interactive element. */
+:focus-visible {
+  outline: 2px solid var(--op-focus);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

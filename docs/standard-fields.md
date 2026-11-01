@@ -9,7 +9,7 @@ requirement: a Template may declare any fields it likes.
 a different type. The warning never fails validation.
 
 The machine-readable table is
-[`internal/packages/standard_fields.yaml`](../internal/packages/standard_fields.yaml);
+[`internal/packages/standard_fields.yaml`](https://github.com/taskmedia/outprint/blob/main/internal/packages/standard_fields.yaml);
 a test keeps it and this page in step.
 
 ## Any Document Type
