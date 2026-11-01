@@ -100,7 +100,7 @@ func TestRunUnknownSubcommand(t *testing.T) {
 	}
 }
 
-const brokenDocument = "```yaml metadata\nsubjct: typo\nname: Somebody\nside: x\n```\nBody\n"
+const brokenDocument = "```yaml\nsubjct: typo\nname: Somebody\nside: x\n```\nBody\n"
 
 // renderBroken runs render on a Document with metadata problems against the
 // shipped packages. It fails before any external tool is needed.

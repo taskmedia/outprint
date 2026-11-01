@@ -8,7 +8,7 @@ it is on.
 ## The block
 
 ````markdown
-```yaml metadata
+```yaml
 type: letter
 subject: Spring plant sale
 reference: PS-2026-03
@@ -22,22 +22,18 @@ opening:                      # empty: leave the salutation out
 Thank you for your enquiry ...
 ````
 
-- The block is a fenced code block whose info string is exactly
-  `yaml metadata`. It must be the first thing in the Document; blank lines
-  before it are fine.
+- The block is the first thing in the Document (blank lines before it are
+  fine), a fenced code block whose info string is exactly `yaml`. Outline keeps
+  only the first word of an info string, so the block is told apart by its
+  place, not by a second word.
 - The content is YAML: a mapping from field names to values. Duplicate keys,
   aliases and anything that is not a mapping are errors.
-- A Document has at most one block. A second block, or one that is not at the
-  start, is an error; it is never guessed which one was meant. A
-  `yaml metadata` block inside another fenced block (to show the syntax, for
-  example) is ordinary text.
-- No block at all is valid when every required field has a default.
-
-> **Known limitation (Outline 1.12, issue #42).** Outline keeps only the first
-> word of a code fence's info string, so a block typed or imported as
-> `yaml metadata` is stored and exported as a plain `yaml` block, and the
-> Gateway does not see it. The marker needs a decision before authors can use
-> this feature with a real Outline.
+- Only the topmost block counts. A later `yaml` block, or one inside another
+  fenced block, is ordinary text in the body, so a Document can still show YAML.
+- A Document that does not start with a `yaml` block has no Metadata Block. That
+  is valid when every required field has a default.
+- A block spelled with the old info string `yaml metadata` is not recognised;
+  it is body text.
 
 ## Document Type
 
@@ -131,8 +127,7 @@ problems:
 | `message` | readable text                                                                   |
 | `line`    | the line in the Document, `null` if the problem has no position                |
 
-`block` covers the structure of the block itself: a second or misplaced block,
-a missing closing fence, invalid YAML, duplicate keys. Clients must tolerate
+`block` covers the structure of the block itself: a missing closing fence, invalid YAML, duplicate keys. Clients must tolerate
 codes they do not know; later stages add their own (for example image
 problems). Pattern mismatches are `type` errors.
 

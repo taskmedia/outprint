@@ -338,10 +338,10 @@ with `validate` and `render` against the image of this repository.
    listing the field and it is an error.
 
 5. Render a Document that sets it. The Metadata Block of a Document is a
-   `yaml metadata` block at its start ([metadata.md](metadata.md)):
+   `yaml` block at its start ([metadata.md](metadata.md)):
 
    ````markdown
-   ```yaml metadata
+   ```yaml
    subject: Opening hours
    department: Front desk
    ```

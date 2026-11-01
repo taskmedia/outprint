@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 closing: With best wishes
 opening:
 subject: Greenhouse key

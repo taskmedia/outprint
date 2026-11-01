@@ -140,8 +140,8 @@ are named in one place, `internal/limits`; see [security.md](security.md).
    Outline's own permissions decide whether the user may read the Document.
 4. It selects the Binding. It reads the overview of the Document's Collection
    with `collections.info` and the same cookie, on every render and without a
-   cache, and `binding.Resolve` turns it into a Binding: the first `yaml
-   binding` block, or the default Binding of the service configuration only
+   cache, and `binding.Resolve` turns it into a Binding: the first `yaml`
+   block with a `binding:` key, or the default Binding of the service configuration only
    when the overview has no block at all. A broken block, a second block, an
    unknown name or a pair off the allow-list is a 422 with `source:
    collection`, never a fallback to the default. No block and no default is a

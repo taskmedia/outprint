@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 language: de
 subject: Namen aus vielen Ländern
 recipient:

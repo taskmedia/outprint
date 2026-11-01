@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 type: report
 title: Oversize images
 author: Robin Sample

@@ -350,7 +350,7 @@ func TestSlotAndUserAreReleasedAfterWorkerErrors(t *testing.T) {
 func TestInvalidDocumentsHoldNoSlotAndNoWorkerTime(t *testing.T) {
 	ctrl := newController(t, 1, 0, 1)
 	e := newEnvWithAdmission(t, true, ctrl)
-	e.outline.add("bad", 200, "T", "```yaml metadata\nsubjct: oops\n```\nBody\n")
+	e.outline.add("bad", 200, "T", "```yaml\nsubjct: oops\n```\nBody\n")
 	g := gate(e.worker)
 	defer g.open()
 

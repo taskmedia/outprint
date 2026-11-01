@@ -9,7 +9,7 @@ import (
 	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
 )
 
-const validBlock = "```yaml binding\ntemplate: neutral\nconfiguration: example\n```\n"
+const validBlock = "```yaml\nbinding:\n  template: neutral\n  configuration: example\n```\n"
 
 type errorBody struct {
 	Errors []struct {
@@ -62,11 +62,11 @@ func TestCollectionBlockSelectsTheBindingWithoutDefault(t *testing.T) {
 
 func TestBrokenBlockIs422AndNeverFallsBackToTheDefault(t *testing.T) {
 	tests := map[string]struct{ overview, code string }{
-		"missing key":           {"```yaml binding\ntemplate: neutral\n```\n", "binding_malformed"},
-		"extra key":             {"```yaml binding\ntemplate: neutral\nconfiguration: example\nfont: x\n```\n", "binding_malformed"},
-		"malformed yaml":        {"```yaml binding\ntemplate: [neutral\n```\n", "binding_malformed"},
-		"unknown template":      {"```yaml binding\ntemplate: nope\nconfiguration: example\n```\n", "binding_unknown"},
-		"unknown configuration": {"```yaml binding\ntemplate: neutral\nconfiguration: nope\n```\n", "binding_unknown"},
+		"missing key":           {"```yaml\nbinding:\n  template: neutral\n```\n", "binding_malformed"},
+		"extra key":             {"```yaml\nbinding:\n  template: neutral\n  configuration: example\n  font: x\n```\n", "binding_malformed"},
+		"malformed yaml":        {"```yaml\nbinding:\n  template: [neutral\n```\n", "binding_malformed"},
+		"unknown template":      {"```yaml\nbinding:\n  template: nope\n  configuration: example\n```\n", "binding_unknown"},
+		"unknown configuration": {"```yaml\nbinding:\n  template: neutral\n  configuration: nope\n```\n", "binding_unknown"},
 		"second block":          {validBlock + "\n" + validBlock, "binding_duplicate"},
 	}
 	for name, tt := range tests {
@@ -181,7 +181,7 @@ func TestPerCallOverridesHaveNoEffect(t *testing.T) {
 	t.Run("broken block stays an error", func(t *testing.T) {
 		e := newEnv(t, true)
 		e.outline.add("d", 200, "T", docText)
-		e.outline.addCollection("c1", 200, "```yaml binding\ntemplate: nope\nconfiguration: example\n```\n")
+		e.outline.addCollection("c1", 200, "```yaml\nbinding:\n  template: nope\n  configuration: example\n```\n")
 		resp, _ := e.getPath(t, "/render/d?template=neutral&configuration=example", cookieCanary)
 		if resp.StatusCode != 422 {
 			t.Errorf("status %d", resp.StatusCode)
@@ -231,8 +231,8 @@ func TestStatusSemantics(t *testing.T) {
 		reason      string
 	}{
 		{"valid block", false, validBlock, true, "collection_binding"},
-		{"malformed block shows the button", true, "```yaml binding\nnonsense: 1\n```\n", true, "collection_binding_invalid"},
-		{"unknown names show the button", false, "```yaml binding\ntemplate: x\nconfiguration: y\n```\n", true, "collection_binding_invalid"},
+		{"malformed block shows the button", true, "```yaml\nbinding:\n  nonsense: 1\n```\n", true, "collection_binding_invalid"},
+		{"unknown names show the button", false, "```yaml\nbinding:\n  template: x\n  configuration: y\n```\n", true, "collection_binding_invalid"},
 		{"no block with default", true, "# Team\n", true, "default_binding"},
 		{"no block no default", false, "# Team\n", false, "no_binding"},
 	}

@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 language: de
 subject: Grüße aus Köln – Zażółć gęślą jaźń
 author: Åse Müller-Łukasiewicz

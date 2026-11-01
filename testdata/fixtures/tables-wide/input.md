@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 type: report
 title: Plot schedule
 subtitle: Wide tables

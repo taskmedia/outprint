@@ -27,7 +27,16 @@ func registry(t *testing.T, withDefault bool) Registry {
 	return started.Registry
 }
 
-func block(body string) string { return "```yaml binding\n" + body + "\n```\n" }
+func indent(body string) string {
+	if body == "" {
+		return ""
+	}
+	return "  " + strings.ReplaceAll(body, "\n", "\n  ")
+}
+
+// block is a Binding block as Outline stores it: a plain yaml fence whose
+// root key is binding.
+func block(body string) string { return "```yaml\nbinding:\n" + indent(body) + "\n```\n" }
 
 const validBody = "template: neutral\nconfiguration: example"
 
@@ -39,16 +48,19 @@ func TestValidBlock(t *testing.T) {
 }
 
 func TestBlockAnywhereInTheOverview(t *testing.T) {
+	inner := "binding:\n" + indent(validBody) + "\n"
 	tests := map[string]string{
-		"middle":         "# Team\n\nIntro text.\n\n" + block(validBody) + "\nMore text.\n",
-		"end":            "# Team\n\nIntro text.\n\n" + block(validBody),
-		"tilde":          "~~~yaml binding\n" + validBody + "\n~~~\n",
-		"long fence":     "````yaml binding\n" + validBody + "\n````\n",
-		"indented":       "   ```yaml binding\n" + validBody + "\n   ```\n",
-		"crlf":           strings.ReplaceAll(block(validBody), "\n", "\r\n"),
-		"spaced":         "```  yaml   binding  \n" + validBody + "\n```\n",
-		"quoted":         block("template: \"neutral\"\nconfiguration: 'example'"),
-		"closing longer": "```yaml binding\n" + validBody + "\n`````\n",
+		"middle":           "# Team\n\nIntro text.\n\n" + block(validBody) + "\nMore text.\n",
+		"end":              "# Team\n\nIntro text.\n\n" + block(validBody),
+		"tilde":            "~~~yaml\n" + inner + "~~~\n",
+		"long fence":       "````yaml\n" + inner + "````\n",
+		"indented":         "   ```yaml\n" + inner + "   ```\n",
+		"crlf":             strings.ReplaceAll(block(validBody), "\n", "\r\n"),
+		"spaced":           "```  yaml  \n" + inner + "```\n",
+		"quoted":           block("template: \"neutral\"\nconfiguration: 'example'"),
+		"closing longer":   "```yaml\n" + inner + "`````\n",
+		"comment first":    "```yaml\n# which package\n" + inner + "```\n",
+		"after other yaml": "```yaml\nkey: value\n```\n\n" + block(validBody),
 	}
 	for name, overview := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -61,16 +73,18 @@ func TestBlockAnywhereInTheOverview(t *testing.T) {
 }
 
 func TestBindingTextThatIsNotABlock(t *testing.T) {
+	inner := "binding:\n" + indent(validBody) + "\n"
 	tests := map[string]string{
-		"inline code":        "Use `yaml binding` blocks.\n",
-		"inline triple":      "```yaml binding``` is how it starts.\n",
-		"other language":     "```markdown\n```yaml binding\n" + validBody + "\n```\n```\n",
-		"inside longer":      "````text\n```yaml binding\n" + validBody + "\n```\n````\n",
-		"inside tilde":       "~~~\n```yaml binding\n" + validBody + "\n```\n~~~\n",
-		"indented code":      "    ```yaml binding\n    " + validBody + "\n    ```\n",
-		"different info":     "```yaml\n" + validBody + "\n```\n",
-		"binding only":       "```binding\n" + validBody + "\n```\n",
-		"yaml metadata only": "```yaml metadata\n" + validBody + "\n```\n",
+		"inline code":          "Use `binding:` blocks.\n",
+		"other language":       "```markdown\n```yaml\n" + inner + "```\n```\n",
+		"inside longer":        "````text\n```yaml\n" + inner + "```\n````\n",
+		"inside tilde":         "~~~\n```yaml\n" + inner + "```\n~~~\n",
+		"indented code":        "    ```yaml\n    " + strings.ReplaceAll(inner, "\n", "\n    ") + "\n    ```\n",
+		"yaml without binding": "```yaml\n" + validBody + "\n```\n",
+		"binding as language":  "```binding\n" + inner + "```\n",
+		"other language block": "```json\n" + inner + "```\n",
+		"old info string":      "```yaml binding\n" + validBody + "\n```\n",
+		"nested binding key":   "```yaml\nsettings:\n  binding:\n    template: neutral\n```\n",
 	}
 	for name, overview := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -85,7 +99,7 @@ func TestBindingTextThatIsNotABlock(t *testing.T) {
 func TestFirstBlockWinsAndSecondIsAnError(t *testing.T) {
 	overview := "Intro\n\n" + block(validBody) + "\nText\n\n" + block("template: other\nconfiguration: x")
 	out, errs := Resolve(overview, registry(t, true))
-	wantErrors(t, errs, wantError{code: CodeDuplicate, line: 10})
+	wantErrors(t, errs, wantError{code: CodeDuplicate, line: 11})
 	if out.Kind != FromBlock {
 		t.Errorf("kind = %v, want the block to count", out.Kind)
 	}
@@ -99,26 +113,29 @@ func TestSecondBlockInsideOtherFenceIsNotCounted(t *testing.T) {
 }
 
 func TestStructuralErrors(t *testing.T) {
+	// The overview is "Intro", a blank line, the fence on line 3, binding: on
+	// line 4, and the body from line 5.
 	tests := []struct {
 		name string
 		body string
 		want []wantError
 	}{
-		{"extra key", validBody + "\nfont: serif", []wantError{{CodeMalformed, "font", 6}}},
-		{"missing configuration", "template: neutral", []wantError{{CodeMalformed, "configuration", 3}}},
-		{"missing both", "# nothing", []wantError{{CodeMalformed, "template", 3}, {CodeMalformed, "configuration", 3}}},
-		{"empty block", "", []wantError{{CodeMalformed, "template", 3}, {CodeMalformed, "configuration", 3}}},
-		{"number", "template: 42\nconfiguration: example", []wantError{{CodeMalformed, "template", 4}}},
-		{"null", "template:\nconfiguration: example", []wantError{{CodeMalformed, "template", 4}}},
-		{"empty string", "template: \"\"\nconfiguration: example", []wantError{{CodeMalformed, "template", 4}}},
-		{"list", "template: [neutral]\nconfiguration: example", []wantError{{CodeMalformed, "template", 4}}},
-		{"duplicate key", "template: neutral\ntemplate: neutral\nconfiguration: example", []wantError{{CodeMalformed, "template", 5}}},
-		{"not a mapping", "- neutral\n- example", []wantError{{CodeMalformed, "", 4}}},
+		{"extra key", validBody + "\nfont: serif", []wantError{{CodeMalformed, "font", 7}}},
+		{"missing configuration", "template: neutral", []wantError{{CodeMalformed, "configuration", 4}}},
+		{"empty binding", "# nothing", []wantError{{CodeMalformed, "binding", 4}}},
+		{"empty mapping", "{}", []wantError{{CodeMalformed, "template", 4}, {CodeMalformed, "configuration", 4}}},
+		{"number", "template: 42\nconfiguration: example", []wantError{{CodeMalformed, "template", 5}}},
+		{"null", "template:\nconfiguration: example", []wantError{{CodeMalformed, "template", 5}}},
+		{"empty string", "template: \"\"\nconfiguration: example", []wantError{{CodeMalformed, "template", 5}}},
+		{"list", "template: [neutral]\nconfiguration: example", []wantError{{CodeMalformed, "template", 5}}},
+		{"duplicate key", "template: neutral\ntemplate: neutral\nconfiguration: example", []wantError{{CodeMalformed, "template", 6}}},
+		{"binding is a list", "- neutral\n- example", []wantError{{CodeMalformed, "binding", 4}}},
+		{"binding is a string", " neutral", []wantError{{CodeMalformed, "binding", 4}}},
 		{"broken yaml", "template: [neutral\nconfiguration: example", []wantError{{CodeMalformed, "", 0}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, errs := Resolve("Intro\n\n```yaml binding\n"+tt.body+"\n```\n", registry(t, true))
+			out, errs := Resolve("Intro\n\n"+block(tt.body), registry(t, true))
 			if out.Kind != FromBlock {
 				t.Errorf("kind = %v: a broken block must never fall back", out.Kind)
 			}
@@ -127,18 +144,27 @@ func TestStructuralErrors(t *testing.T) {
 	}
 }
 
+func TestExtraRootKeyIsAnError(t *testing.T) {
+	overview := "```yaml\nbinding:\n  " + strings.ReplaceAll(validBody, "\n", "\n  ") + "\nfont: serif\n```\n"
+	out, errs := Resolve(overview, registry(t, true))
+	wantErrors(t, errs, wantError{CodeMalformed, "font", 5})
+	if out.Kind != FromBlock {
+		t.Errorf("kind = %v", out.Kind)
+	}
+}
+
 func TestUnclosedBlock(t *testing.T) {
-	_, errs := Resolve("Intro\n```yaml binding\n"+validBody+"\n", registry(t, true))
+	_, errs := Resolve("Intro\n```yaml\nbinding:\n  "+strings.ReplaceAll(validBody, "\n", "\n  ")+"\n", registry(t, true))
 	wantErrors(t, errs, wantError{code: CodeMalformed, line: 2})
 }
 
 func TestUnknownNames(t *testing.T) {
 	_, errs := Resolve(block("template: nope\nconfiguration: example"), registry(t, true))
-	wantErrors(t, errs, wantError{CodeUnknown, "template", 2})
+	wantErrors(t, errs, wantError{CodeUnknown, "template", 3})
 	_, errs = Resolve(block("template: neutral\nconfiguration: nope"), registry(t, true))
-	wantErrors(t, errs, wantError{CodeUnknown, "configuration", 3})
+	wantErrors(t, errs, wantError{CodeUnknown, "configuration", 4})
 	_, errs = Resolve(block("template: nope\nconfiguration: nada"), registry(t, true))
-	wantErrors(t, errs, wantError{CodeUnknown, "template", 2}, wantError{CodeUnknown, "configuration", 3})
+	wantErrors(t, errs, wantError{CodeUnknown, "template", 3}, wantError{CodeUnknown, "configuration", 4})
 }
 
 func TestPairNotOnAllowList(t *testing.T) {
@@ -152,7 +178,7 @@ func TestPairNotOnAllowList(t *testing.T) {
 	}
 	reg := fakeRegistry{Registry: started.Registry, deny: true}
 	out, errs := Resolve(block(validBody), reg)
-	wantErrors(t, errs, wantError{code: CodeNotAllowed, line: 2})
+	wantErrors(t, errs, wantError{code: CodeNotAllowed, line: 3})
 	if out.Kind != FromBlock {
 		t.Errorf("kind = %v", out.Kind)
 	}

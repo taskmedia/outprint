@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 type: report
 title: Figures and captions
 author: Robin Sample

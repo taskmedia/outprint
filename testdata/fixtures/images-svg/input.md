@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 type: report
 title: Vector figures
 author: Robin Sample

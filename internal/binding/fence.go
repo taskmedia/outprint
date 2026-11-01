@@ -5,7 +5,13 @@ import (
 	"strings"
 )
 
-const bindingInfo = "yaml binding"
+// bindingInfo is the info string of the fence that carries a Binding. Outline
+// keeps only the first word of an info string, so a Binding block is told apart
+// by its root key, bindingKey, not by a second word.
+const (
+	bindingInfo = "yaml"
+	bindingKey  = "binding"
+)
 
 var fenceOpenRE = regexp.MustCompile("^ {0,3}(`{3,}|~{3,})[ \t]*(.*?)[ \t]*$")
 
@@ -72,3 +78,16 @@ func isClosingFence(line string, char byte, size int) bool {
 }
 
 func normalizeInfo(info string) string { return strings.Join(strings.Fields(info), " ") }
+
+// hasRootKey reports whether a line of the block starts with key and a colon at
+// the left margin, which is how a Binding block announces itself. A key nested
+// deeper does not count.
+func (b codeBlock) hasRootKey(key string) bool {
+	for _, line := range b.body {
+		rest, ok := strings.CutPrefix(line, key)
+		if ok && strings.HasPrefix(strings.TrimLeft(rest, " \t"), ":") {
+			return true
+		}
+	}
+	return false
+}

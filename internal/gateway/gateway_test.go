@@ -398,7 +398,7 @@ func TestBadDocumentIDAndMethod(t *testing.T) {
 
 func TestMetadataErrorsAre422WithTheList(t *testing.T) {
 	e := newEnv(t, true)
-	e.outline.add("d", 200, "T", "```yaml metadata\nsubjct: oops\ntype: nonsense\n```\nBody "+contentCanary+"\n")
+	e.outline.add("d", 200, "T", "```yaml\nsubjct: oops\ntype: nonsense\n```\nBody "+contentCanary+"\n")
 	resp, body := e.get(t, "d", cookieCanary)
 	if resp.StatusCode != 422 {
 		t.Fatalf("status %d: %s", resp.StatusCode, body)

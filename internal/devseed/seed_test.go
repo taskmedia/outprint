@@ -190,14 +190,14 @@ func TestSeedCreatesTheBoundAndTheUnboundCollection(t *testing.T) {
 			unbound = c
 		}
 	}
-	if !strings.Contains(boundCol["description"].(string), "```yaml binding\ntemplate: neutral\nconfiguration: example\n```") {
+	if !strings.Contains(boundCol["description"].(string), "```yaml\nbinding:\n  template: neutral\n  configuration: example\n```") {
 		t.Errorf("the bound collection has no binding block: %q", boundCol["description"])
 	}
 	if strings.Contains(unbound["description"].(string), "binding") {
 		t.Errorf("the unbound collection must not mention a binding: %q", unbound["description"])
 	}
 	bound := f.documents[0]["text"].(string)
-	for _, want := range []string{BodySentence, "| Plant | Price |", "![](/api/attachments.redirect?id=att-0 \" =240x\")", "![](/api/attachments.redirect?id=att-1 \" =240x\")"} {
+	for _, want := range []string{"```yaml\ntype: letter\nsubject: " + BoundSubject + "\n```", BodySentence, "| Plant | Price |", "![](/api/attachments.redirect?id=att-0 \" =240x\")", "![](/api/attachments.redirect?id=att-1 \" =240x\")"} {
 		if !strings.Contains(bound, want) {
 			t.Errorf("the bound document lacks %q:\n%s", want, bound)
 		}
@@ -243,7 +243,7 @@ func TestSeedRestoresTheBindingBlock(t *testing.T) {
 	f.collections[0]["description"] = "```yaml\ntemplate: neutral\n```"
 	runSeed(t, f)
 	for _, c := range f.collections {
-		if c["name"] == BoundCollectionName && !strings.Contains(c["description"].(string), "yaml binding") {
+		if c["name"] == BoundCollectionName && !strings.Contains(c["description"].(string), "binding:") {
 			t.Errorf("binding block not restored: %q", c["description"])
 		}
 	}

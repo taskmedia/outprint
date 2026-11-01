@@ -149,7 +149,7 @@ func wantError(t *testing.T, e Error, source, code string, line int, messagePart
 }
 
 func block(lines ...string) string {
-	return "```yaml metadata\n" + strings.Join(lines, "\n") + "\n```\n"
+	return "```yaml\n" + strings.Join(lines, "\n") + "\n```\n"
 }
 
 func wantValues(t *testing.T, got, want map[string]any) {

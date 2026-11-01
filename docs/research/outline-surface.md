@@ -240,4 +240,9 @@ Feasibility of injecting a "Render with template X" item via an external script:
 
 The hybrid shape of section 7 was implemented: the service configuration is the allow-list, a fenced block in the Collection overview selects a Template ([../binding.md](../binding.md)), and the Download PDF button is injected by a reverse proxy ([../injector.md](../injector.md)).
 
-One assumption of section 2 turned out to be wrong when tested against a real Outline in the seeded dev stack: the editor keeps only the first word of a code fence's info string, so a block opened with an info string of two words is stored with the first word alone. This affects the markers used for the Binding and the Metadata Block and is tracked in issue #42 (the docs [../binding.md](../binding.md) and [../metadata.md](../metadata.md) are updated when that issue is resolved).
+One assumption of section 2 turned out to be wrong when tested against a real Outline in the seeded dev stack: the editor keeps only the first word of a code fence's info string, so a block opened with an info string of two words is stored with the first word alone. This affects the markers used for the Binding and the Metadata Block and was tracked in issue #42.
+
+Resolution (issue #42): both blocks are plain `yaml` fences. The Metadata Block is the first thing in the Document; the Binding block is told apart by its root key `binding:` ([../binding.md](../binding.md), [../metadata.md](../metadata.md)). Checked against Outline 1.12.0 in the dev stack, through the paths the editor uses:
+
+- `collections.update` with `data` (a ProseMirror `code_block` with `language: yaml`) comes back from `collections.info` (without `x-api-version`) as a `yaml` fence with the content unchanged, nested indentation included.
+- `documents.update` with `text` starting with a `yaml` fence that holds a comment, a list and nested keys comes back from `documents.info` with the fence still at the top and its content unchanged, comment and key order included.

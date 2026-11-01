@@ -70,7 +70,7 @@ func warmCache(ctx context.Context, o warmOptions, stderr io.Writer) error {
 		return fmt.Errorf("create output: %w", err)
 	}
 	for _, docType := range slices.Sorted(maps.Keys(tpl.DocumentTypes)) {
-		markdown := "```yaml metadata\ntype: " + docType + "\ntitle: Warm\n```\n" + warmDocument
+		markdown := "```yaml\ntype: " + docType + "\ntitle: Warm\n```\n" + warmDocument
 		resolved, err := metadata.Resolve(metadata.Input{
 			Markdown: []byte(markdown), Modified: "2026-01-01", Template: tpl, Configuration: cfg,
 		})

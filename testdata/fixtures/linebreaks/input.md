@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 subject: Line breaks
 opening: Dear all,
 closing: Regards

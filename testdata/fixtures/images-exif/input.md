@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 type: report
 title: Image orientation
 author: Robin Sample

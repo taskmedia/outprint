@@ -1,4 +1,4 @@
-```yaml metadata
+```yaml
 type: report
 title: Seed catalogue
 subtitle: A long table

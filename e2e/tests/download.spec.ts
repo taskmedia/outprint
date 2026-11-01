@@ -46,6 +46,10 @@ test('a bound document downloads as a PDF with its text', async ({ page, context
   expect(text).toContain('Thank you for your enquiry about the spring plant sale.');
   expect(text).toContain('Example Garden Society'); // the name in the example Configuration
   expect(text).toContain('Basil');
+  // The Metadata Block is a plain yaml fence at the top of the Document: it is
+  // read (the subject is typeset) and removed from the body (no raw YAML left).
+  expect(text).toContain('Spring plant sale');
+  expect(text).not.toContain('type: letter');
 
   // The Gateway reads a figure caption from the image's alt text. Check on
   // Outline's real export that this is where a caption is stored (docs/images.md,

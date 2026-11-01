@@ -1,5 +1,5 @@
 # Service configuration of the DEV stack. Like config/service.yaml but with no
-# defaultBinding, so a Collection without a `yaml binding` block has no button.
+# defaultBinding, so a Collection without a `binding:` block has no button.
 templatesRoot: /opt/renderer/templates
 configurationsRoot: /opt/renderer/configurations
 
