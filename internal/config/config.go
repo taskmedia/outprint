@@ -22,6 +22,10 @@ const (
 	EnvServiceConfig      = "RENDERER_SERVICE_CONFIG"
 )
 
+// imageHostPattern is a lower-case host name or IPv4 address, with an
+// optional port. It has no scheme, path, credentials or wildcard.
+var imageHostPattern = regexp.MustCompile(`^[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:[0-9]{1,5})?$`)
+
 // NamePattern is what a Template or Configuration directory name must match.
 var NamePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
 
@@ -37,6 +41,10 @@ type Service struct {
 	ConfigurationsRoot string    `yaml:"configurationsRoot"`
 	Bindings           []Binding `yaml:"bindings"`
 	DefaultBinding     *Binding  `yaml:"defaultBinding"`
+	// ImageHosts are the hosts besides the Outline origin that an image
+	// redirect may lead to, for example the file storage of the Outline.
+	// An entry is a host name or host:port.
+	ImageHosts []string `yaml:"imageHosts"`
 }
 
 // Errors is a list of configuration problems.
@@ -103,6 +111,11 @@ func (s Service) validate() []error {
 		errs = append(errs, validateBinding("defaultBinding", *s.DefaultBinding)...)
 		if !seen[*s.DefaultBinding] {
 			errs = append(errs, fmt.Errorf("defaultBinding %s/%s is not in bindings", s.DefaultBinding.Template, s.DefaultBinding.Configuration))
+		}
+	}
+	for i, h := range s.ImageHosts {
+		if !imageHostPattern.MatchString(h) {
+			errs = append(errs, fmt.Errorf("imageHosts[%d]: %q is not a lower-case host name or host:port (no scheme, path or wildcard)", i, h))
 		}
 	}
 	return errs

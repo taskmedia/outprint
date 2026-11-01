@@ -9,6 +9,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"log/slog"
 	"net/http"
 	"regexp"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
 	"github.com/taskmedia/outline-latex-pdf/internal/config"
+	"github.com/taskmedia/outline-latex-pdf/internal/images"
 	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
 	"github.com/taskmedia/outline-latex-pdf/internal/outline"
 	"github.com/taskmedia/outline-latex-pdf/internal/packages"
@@ -35,6 +37,9 @@ var documentIDRE = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$`)
 type Outline interface {
 	Document(ctx context.Context, id string, s outline.Session) (outline.Document, error)
 	Collection(ctx context.Context, id string, s outline.Session) (outline.Collection, error)
+	// Image fetches an image of the Outline by its API path and query.
+	Image(ctx context.Context, target string, s outline.Session) ([]byte, error)
+	BaseURL() string
 }
 
 // Worker is what the Gateway needs from the Worker client.
@@ -128,7 +133,7 @@ func (g *Gateway) process(r *http.Request, docID string) (rendered, *failure) {
 	if f != nil {
 		return rendered{}, f
 	}
-	b, f := g.buildBundle(doc, sel.Binding)
+	b, f := g.buildBundle(r.Context(), doc, sel.Binding, session)
 	if f != nil {
 		return rendered{}, f
 	}
@@ -142,13 +147,42 @@ func (g *Gateway) process(r *http.Request, docID string) (rendered, *failure) {
 }
 
 // buildBundle resolves the Metadata Block with the derived title and date
-// for the selected Binding, and validates the result.
-func (g *Gateway) buildBundle(doc outline.Document, binding config.Binding) (bundle.Bundle, *failure) {
+// for the selected Binding, fetches and rewrites the images, and validates
+// the result. The problems of the block and of the images end up in one list.
+func (g *Gateway) buildBundle(ctx context.Context, doc outline.Document, binding config.Binding, session outline.Session) (bundle.Bundle, *failure) {
 	tpl, okT := g.cfg.Registry.Template(binding.Template)
 	cfg, okC := g.cfg.Registry.Configuration(binding.Configuration)
 	if !okT || !okC {
 		return bundle.Bundle{}, fail(http.StatusInternalServerError, PhaseBinding, "missing_package", "the document could not be rendered", nil)
 	}
+	res, metaList, f := g.resolveMetadata(doc, tpl, cfg)
+	if f != nil {
+		return bundle.Bundle{}, f
+	}
+	imgs, problems, f := g.processImages(ctx, doc, session)
+	if f != nil {
+		return bundle.Bundle{}, f
+	}
+	if list := images.Combine(metaList, problems); list != nil {
+		return bundle.Bundle{}, validationFailure(list, metaList != nil)
+	}
+	b := bundle.Bundle{
+		Markdown:      imgs.Markdown,
+		Values:        res.Values,
+		Template:      binding.Template,
+		DocumentType:  res.DocumentType,
+		Configuration: binding.Configuration,
+		Images:        imgs.Images,
+	}
+	if err := b.Validate(); err != nil {
+		return bundle.Bundle{}, bundleFailure(err)
+	}
+	return b, nil
+}
+
+// resolveMetadata returns the metadata result, or its problem list; any
+// other error is an internal failure.
+func (g *Gateway) resolveMetadata(doc outline.Document, tpl packages.Template, cfg packages.Configuration) (metadata.Result, *metadata.ErrorList, *failure) {
 	res, err := metadata.Resolve(metadata.Input{
 		Markdown:      []byte(doc.Text),
 		Title:         doc.Title,
@@ -156,20 +190,29 @@ func (g *Gateway) buildBundle(doc outline.Document, binding config.Binding) (bun
 		Template:      tpl,
 		Configuration: cfg,
 	})
+	var list *metadata.ErrorList
+	switch {
+	case err == nil:
+		return res, nil, nil
+	case errors.As(err, &list):
+		return metadata.Result{}, list, nil
+	}
+	return metadata.Result{}, nil, metadataFailure(err)
+}
+
+// processImages runs the image pipeline on the body of the Document. It runs
+// even when the Metadata Block has problems, so that one answer holds them all.
+func (g *Gateway) processImages(ctx context.Context, doc outline.Document, session outline.Session) (images.Result, []images.Problem, *failure) {
+	src, err := images.NewOutlineSource(g.cfg.Outline.BaseURL(), g.cfg.Outline, session)
 	if err != nil {
-		return bundle.Bundle{}, metadataFailure(err)
+		return images.Result{}, nil, fail(http.StatusInternalServerError, PhaseImages, "internal", "the document could not be rendered", err)
 	}
-	b := bundle.Bundle{
-		Markdown:      res.Body,
-		Values:        res.Values,
-		Template:      binding.Template,
-		DocumentType:  res.DocumentType,
-		Configuration: binding.Configuration,
+	body, offset := metadata.Body([]byte(doc.Text))
+	res, problems, err := images.Process(ctx, body, offset, src)
+	if err != nil {
+		return images.Result{}, nil, imagesFailure(err)
 	}
-	if err := b.Validate(); err != nil {
-		return bundle.Bundle{}, bundleFailure(err)
-	}
-	return b, nil
+	return res, problems, nil
 }
 
 func modifiedDate(t time.Time) string {

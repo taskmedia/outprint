@@ -12,3 +12,10 @@ bindings:
 defaultBinding:
   template: neutral
   configuration: example
+
+# Hosts besides the Outline origin that an image redirect may lead to, for
+# example the file storage behind Outline's attachments. Empty by default:
+# only the Outline origin is allowed. A host name matches ports 80 and 443;
+# write host:port for another port. See docs/images.md.
+# imageHosts:
+#   - files.example.invalid

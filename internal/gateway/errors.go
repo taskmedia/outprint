@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -19,6 +20,7 @@ const (
 	PhaseOutline  = "outline"
 	PhaseBinding  = "binding"
 	PhaseMetadata = "metadata"
+	PhaseImages   = "images"
 	PhaseBundle   = "bundle"
 	PhaseWorker   = "worker"
 )
@@ -115,6 +117,27 @@ func metadataFailure(err error) *failure {
 		return &failure{status: http.StatusUnprocessableEntity, body: list, phase: PhaseMetadata, kind: "invalid_metadata", cause: err}
 	}
 	return fail(http.StatusInternalServerError, PhaseMetadata, "internal", "the document could not be rendered", err)
+}
+
+// validationFailure is the 422 for the problems of the Document: the
+// Metadata Block and the images, in one list.
+func validationFailure(list *metadata.ErrorList, hasMetadata bool) *failure {
+	if hasMetadata {
+		return &failure{status: http.StatusUnprocessableEntity, body: list, phase: PhaseMetadata, kind: "invalid_metadata", cause: list}
+	}
+	return &failure{status: http.StatusUnprocessableEntity, body: list, phase: PhaseImages, kind: "invalid_images", cause: list}
+}
+
+// imagesFailure maps a failure of the image source that is not the author's
+// doing.
+func imagesFailure(err error) *failure {
+	switch {
+	case errors.Is(err, outline.ErrUnauthorized):
+		return fail(http.StatusUnauthorized, PhaseImages, "unauthorized", "sign in to Outline to download this document", err)
+	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+		return fail(http.StatusGatewayTimeout, PhaseImages, "timeout", "fetching the images took too long", err)
+	}
+	return fail(http.StatusInternalServerError, PhaseImages, "unavailable", "the document could not be rendered", err)
 }
 
 func bundleFailure(err error) *failure {
