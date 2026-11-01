@@ -103,7 +103,7 @@ per document: where the action sits is an operator decision.
 | `OUTPRINT_BUTTON_STYLE` | `icon-label` or `icon`; applies to the header button | `icon-label` |
 | `OUTPRINT_BUTTON_FALLBACK` | `on` or `off`: show a floating button when the anchor is missing | `on` |
 | `OUTPRINT_BUTTON_FALLBACK_DELAY` | how long to wait for the anchor before the fallback, for example `3s` | `3s` |
-| `OUTPRINT_BUTTON_METADATA_BLOCK` | `hide` or `show`: hide the [metadata block](#hiding-the-metadata-block) in Outline's reading view | `hide` |
+| `OUTPRINT_BUTTON_METADATA_BLOCK` | `collapse`, `hide` or `show`: what readers and authors see of the [metadata block](#hiding-the-metadata-block) | `collapse` |
 | `OUTPRINT_BUTTON_LABELS` | override the texts, see below | built-in |
 
 A wrong value stops the injector at startup with a message naming the variable.
@@ -185,17 +185,26 @@ real markup is covered by the browser tests, see
 
 ## Hiding the metadata block
 
-On documents where a Binding applies, the script hides the [metadata
+On documents where a Binding applies, the script takes the [metadata
 block](../write/fill-in-the-document.md) (the `yaml` code block at the very
-start of the document) while the editor is read-only, and shows it again as soon as the
-document is editable. Readers see the content, authors see the block when they
-edit.
+start of the document) out of sight. Outline opens a document for everyone who
+may edit it straight in the editor ("seamless editing"), so there is no separate
+reading view for authors. The script therefore tells two kinds of visitors apart
+by whether the editor is editable:
 
-The operator decides whether this happens at all. It is on by default. Set
-`OUTPRINT_BUTTON_METADATA_BLOCK=show` to leave the block visible to everyone;
-the injector then adds `data-metadata-block="show"` to the script tag. Like the
-other `OUTPRINT_BUTTON_*` options it applies to the whole installation, not per
-Collection or Document, and a wrong value stops the injector at startup.
+| Visitor | `collapse` (default) | `hide` | `show` |
+|---------|----------------------|--------|--------|
+| Reader (no edit permission) | block hidden | block hidden | block shown |
+| Author (can edit) | block folded behind a **Metadata** toggle above the document | block shown | block shown |
+
+With `collapse` an author opens the block with one click on the toggle and folds
+it again with a second. The state is not remembered: each document starts folded.
+
+The operator decides with `OUTPRINT_BUTTON_METADATA_BLOCK`. For `hide` and `show`
+the injector adds `data-metadata-block="hide"` or `"show"` to the script tag; the
+default adds nothing. Like the other `OUTPRINT_BUTTON_*` options it applies to the
+whole installation, not per Collection or Document, and a wrong value stops the
+injector at startup.
 
 This is a cosmetic convenience, not access control:
 

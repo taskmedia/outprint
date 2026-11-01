@@ -22,14 +22,15 @@ const (
 )
 
 const (
-	placementMenu   = "menu"
-	placementButton = "button"
-	styleIconLabel  = "icon-label"
-	styleIcon       = "icon"
-	fallbackOn      = "on"
-	fallbackOff     = "off"
-	metadataHide    = "hide"
-	metadataShow    = "show"
+	placementMenu    = "menu"
+	placementButton  = "button"
+	styleIconLabel   = "icon-label"
+	styleIcon        = "icon"
+	fallbackOn       = "on"
+	fallbackOff      = "off"
+	metadataCollapse = "collapse"
+	metadataHide     = "hide"
+	metadataShow     = "show"
 
 	maxLabelRunes = 80
 )
@@ -57,8 +58,10 @@ type ButtonConfig struct {
 	// Labels overrides the texts: a JSON object with the keys "menu",
 	// "button" and "tooltip", each a map from language ("en", "de") to text.
 	Labels string
-	// MetadataBlock is "hide" or "show": whether the script hides the
-	// Metadata Block of a Document in Outline's reading view.
+	// MetadataBlock is "collapse", "hide" or "show": how the script treats the
+	// Metadata Block of a Document. Readers never see it unless "show".
+	// Authors see it folded behind a toggle ("collapse"), as is ("hide"), or
+	// as is ("show").
 	MetadataBlock string
 }
 
@@ -94,7 +97,7 @@ func (c ButtonConfig) attributes() (string, error) {
 	if err := oneOf(envButtonFallback, c.Fallback, fallbackOn, fallbackOff); err != nil {
 		return "", err
 	}
-	if err := oneOf(envButtonMetadataBlock, c.MetadataBlock, metadataHide, metadataShow); err != nil {
+	if err := oneOf(envButtonMetadataBlock, c.MetadataBlock, metadataCollapse, metadataHide, metadataShow); err != nil {
 		return "", err
 	}
 	if c.FallbackDelay < 0 {
@@ -112,7 +115,7 @@ func (c ButtonConfig) attributes() (string, error) {
 	if c.FallbackDelay > 0 {
 		add("fallback-delay", strconv.FormatInt(c.FallbackDelay.Milliseconds(), 10))
 	}
-	if c.MetadataBlock == metadataShow {
+	if c.MetadataBlock == metadataHide || c.MetadataBlock == metadataShow {
 		add("metadata-block", c.MetadataBlock)
 	}
 	if c.Labels != "" {

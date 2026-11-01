@@ -34,6 +34,7 @@
   var ITEM_ATTR = 'data-olp-item';
   var HEADER_WRAP_ATTR = 'data-olp-header';
   var METADATA_ATTR = 'data-olp-metadata';
+  var METADATA_TOGGLE_ID = 'olp-metadata-toggle';
   var DEFAULT_FALLBACK_DELAY_MS = 3000;
   var MAX_FALLBACK_DELAY_MS = 60000;
   var MAX_LABEL_LENGTH = 80;
@@ -45,15 +46,15 @@
   var HEADER_RIGHT_EDGE = 120;
   var PLACEMENTS = ['menu', 'button'];
   var STYLES = ['icon-label', 'icon'];
-  var METADATA_BLOCK_MODES = ['hide', 'show'];
+  var METADATA_BLOCK_MODES = ['collapse', 'hide', 'show'];
   // The items of Outline's Export submenu carry the file type as text that is
   // not translated (Markdown.md, HTML.html, ...); the labels are.
   var EXPORT_ITEM_PATTERN = /\.(md|html|textpack|pdf)$/i;
 
-  // Built-in texts. 'busy' and 'dismiss' are not configurable.
+  // Built-in texts. 'busy', 'dismiss' and 'metadata' are not configurable.
   var BUILTIN_TEXTS = {
-    en: { menu: 'Formatted PDF', button: 'PDF', tooltip: 'Download formatted PDF', busy: 'Creating PDF…', dismiss: 'Dismiss' },
-    de: { menu: 'Formatiertes PDF', button: 'PDF', tooltip: 'Formatiertes PDF herunterladen', busy: 'PDF wird erstellt…', dismiss: 'Schließen' }
+    en: { menu: 'Formatted PDF', button: 'PDF', tooltip: 'Download formatted PDF', busy: 'Creating PDF…', dismiss: 'Dismiss', metadata: 'Metadata' },
+    de: { menu: 'Formatiertes PDF', button: 'PDF', tooltip: 'Formatiertes PDF herunterladen', busy: 'PDF wird erstellt…', dismiss: 'Schließen', metadata: 'Metadaten' }
   };
   var FALLBACK_LANGUAGE = 'en';
 
@@ -260,7 +261,7 @@
       placement: oneOf(get('data-placement'), PLACEMENTS, 'menu'),
       style: oneOf(get('data-style'), STYLES, 'icon-label'),
       fallback: get('data-fallback') !== 'off',
-      metadataBlock: oneOf(get('data-metadata-block'), METADATA_BLOCK_MODES, 'hide'),
+      metadataBlock: oneOf(get('data-metadata-block'), METADATA_BLOCK_MODES, 'collapse'),
       fallbackDelay: delay >= 0 ? Math.min(delay, MAX_FALLBACK_DELAY_MS) : DEFAULT_FALLBACK_DELAY_MS,
       labels: labels
     };
@@ -289,9 +290,13 @@
     return /^yaml$/i.test(String(language || '').trim());
   }
 
-  // The block is shown while editing and hidden for readers.
-  function shouldHideMetadataBlock(page) {
-    return !!page.found && !page.editable;
+  // How the block is presented: 'visible', 'hidden' or 'collapsed' (folded,
+  // with a toggle). Readers never see it unless the operator says "show".
+  // Authors (editable page) see it folded with "collapse", as is with "hide".
+  function metadataBlockMode(option, page) {
+    if (!page.found || option === 'show') return 'visible';
+    if (!page.editable) return 'hidden';
+    return option === 'collapse' ? 'collapsed' : 'visible';
   }
 
   // The script is served at <prefix>/button.js; the API lives next to it.
@@ -329,6 +334,11 @@
     '#olp-pdf-panel a{color:var(--olp-accent);font-weight:600;text-underline-offset:2px}',
     '#olp-pdf-panel a:focus-visible{outline:3px solid var(--olp-focus);outline-offset:2px;border-radius:2px}',
     '#olp-pdf-panel .olp-fix{display:inline-block;margin-top:2px;font-size:13px}',
+    '#olp-metadata-toggle{display:inline-flex;align-items:center;gap:6px;margin:0 0 8px;padding:2px 8px;border:1px solid var(--olp-border,#c3c9d1);',
+    'border-radius:6px;background:transparent;color:inherit;font:600 12px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;cursor:pointer;opacity:.75}',
+    '#olp-metadata-toggle:hover{opacity:1}',
+    '[data-olp-metadata]>:first-child{display:none!important}',
+    '#olp-metadata-toggle:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}',
     '#olp-pdf-panel .olp-foot{margin:12px 0 0;padding-top:8px;border-top:1px solid var(--olp-border);font-size:13px}'
   ].join('');
 
@@ -344,6 +354,7 @@
     texts: textsFor(FALLBACK_LANGUAGE, {}),
     available: false,
     anchored: false,
+    metadataExpanded: false,
     observer: null,
     fallbackTimer: null,
     placePending: false,
@@ -660,27 +671,58 @@
     return isMetadataLanguage(language) ? block : null;
   }
 
+  // The marker sits on the editor and a style rule hides its first child: the
+  // editor redraws the code block and drops anything set on the block itself.
   function restoreMetadataBlock() {
+    removeById(METADATA_TOGGLE_ID);
     document.querySelectorAll('[' + METADATA_ATTR + ']').forEach(function (el) {
-      el.style.display = '';
       el.removeAttribute(METADATA_ATTR);
     });
   }
 
-  // Hides the Metadata Block while the editor is read-only and shows it again
-  // as soon as the page is editable. The block may flash before this runs.
+  // Changing the page re-runs this through the observer: only write on change.
+  function setAttributeIfChanged(el, name, value) {
+    if (el.getAttribute(name) !== value) el.setAttribute(name, value);
+  }
+
+  // The fold control for authors. It sits next to the editor, not inside it,
+  // so that the editor does not take it for a change of the document.
+  function ensureMetadataToggle(editor) {
+    var toggle = document.getElementById(METADATA_TOGGLE_ID);
+    if (!toggle || toggle.nextSibling !== editor) {
+      installStyles();
+      removeById(METADATA_TOGGLE_ID);
+      toggle = element('button', '', '');
+      toggle.id = METADATA_TOGGLE_ID;
+      toggle.type = 'button';
+      toggle.addEventListener('click', function () {
+        state.metadataExpanded = !state.metadataExpanded;
+        syncMetadataBlock();
+      });
+      editor.parentNode.insertBefore(toggle, editor);
+    }
+    var label = (state.metadataExpanded ? '▾ ' : '▸ ') + state.texts.metadata;
+    if (toggle.textContent !== label) toggle.textContent = label;
+    setAttributeIfChanged(toggle, 'aria-expanded', state.metadataExpanded ? 'true' : 'false');
+  }
+
+  // Readers do not see the Metadata Block. Authors, whose page is editable
+  // from the start, see it folded behind a toggle (or as is, by the
+  // operator's choice). The block may flash before this runs.
   function syncMetadataBlock() {
     var editor = document.querySelector('.ProseMirror');
     var block = findMetadataBlock(editor);
     var editable = !!editor && editor.getAttribute('contenteditable') === 'true';
-    if (state.options.metadataBlock !== 'hide' || !shouldHideMetadataBlock({ found: !!block, editable: editable })) {
+    var mode = metadataBlockMode(state.options.metadataBlock, { found: !!block, editable: editable });
+    if (mode === 'visible') {
       restoreMetadataBlock();
       return;
     }
-    if (block.hasAttribute(METADATA_ATTR)) return;
-    restoreMetadataBlock();
-    block.setAttribute(METADATA_ATTR, '');
-    block.style.display = 'none';
+    installStyles();
+    if (mode === 'collapsed') ensureMetadataToggle(editor);
+    else removeById(METADATA_TOGGLE_ID);
+    if (mode === 'collapsed' && state.metadataExpanded) editor.removeAttribute(METADATA_ATTR);
+    else setAttributeIfChanged(editor, METADATA_ATTR, '');
   }
 
   // Looks for the anchor of the chosen placement and keeps it in place.
@@ -719,7 +761,7 @@
     // React may redraw the header: look again whenever the page changes.
     state.observer = new MutationObserver(schedulePlace);
     // Switching to edit mode only flips contenteditable on the editor.
-    state.observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['contenteditable'] });
+    state.observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['contenteditable', METADATA_ATTR] });
     place();
     if (!state.options.fallback || state.anchored) return;
     state.fallbackTimer = setTimeout(function () {
@@ -744,6 +786,7 @@
     stopPlacing();
     removeById(BUTTON_ID);
     restoreMetadataBlock();
+    state.metadataExpanded = false;
     document.querySelectorAll('[' + HEADER_WRAP_ATTR + '],[' + ITEM_ATTR + ']').forEach(function (el) { el.remove(); });
     dismissPanel();
   }
@@ -1017,7 +1060,7 @@
       textsFor: textsFor,
       isExportItemText: isExportItemText,
       isMetadataLanguage: isMetadataLanguage,
-      shouldHideMetadataBlock: shouldHideMetadataBlock,
+      metadataBlockMode: metadataBlockMode,
       DOCS_ORIGIN: DOCS_ORIGIN
     };
   }
