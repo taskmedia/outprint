@@ -1,8 +1,14 @@
 name: security
 
+# Branch pushes are covered by the pull request run; only main runs on push.
 on:
   push:
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # To restrict this workflow if the suite grows past about three minutes, see
 # "Cadence decision" in docs/testing.md. The filter would be:
@@ -35,6 +41,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+
+      - uses: ./.github/actions/docker-cache
 
       - name: Test the skip guard
         run: task test-guard

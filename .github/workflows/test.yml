@@ -1,11 +1,17 @@
 name: test
 
+# Branch pushes are covered by the pull request run; only main runs on push.
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
   contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   unit:
@@ -90,6 +96,8 @@ jobs:
         with:
           version: 3.54.0
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ./.github/actions/docker-cache
 
       # Runs the PDF goldens, the Worker tests and the security layer 1
       # corpus in the pinned image. Fails if a golden differs or a tool is

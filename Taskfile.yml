@@ -32,6 +32,9 @@ vars:
   SANDBOX_IMAGE: '{{.SANDBOX_IMAGE | default (printf "%s-sandbox" .IMAGE)}}'
   # Where the security tasks keep their test output for the skip guard.
   SECURITY_LOG_DIR: '{{.SECURITY_LOG_DIR | default ".security-logs"}}'
+  # CI swaps in buildx with the GitHub Actions layer cache
+  # (.github/actions/docker-cache).
+  DOCKER_BUILD: '{{.DOCKER_BUILD | default "docker build"}}'
   # -v for people, -json for CI.
   GOTEST_FLAGS: '{{.GOTEST_FLAGS | default "-v"}}'
   SANDBOX_PARALLEL: '{{.SANDBOX_PARALLEL | default "4"}}'
@@ -122,7 +125,7 @@ tasks:
   test-golden:
     desc: "Tier 2: PDF goldens, Worker and security tests, in the pinned image"
     cmds:
-      - docker build --target golden -t {{.GOLDEN_IMAGE}} .
+      - '{{.DOCKER_BUILD}} --target golden -t {{.GOLDEN_IMAGE}} .'
       - docker run --rm {{.GOLDEN_IMAGE}}
 
   test-security:
@@ -138,7 +141,7 @@ tasks:
       image. Part of test-golden as well; this is the quick way to run it.
     cmds:
       - mkdir -p {{.SECURITY_LOG_DIR}}
-      - docker build --target golden -t {{.GOLDEN_IMAGE}} .
+      - '{{.DOCKER_BUILD}} --target golden -t {{.GOLDEN_IMAGE}} .'
       - docker run --rm -e GOLDEN_RUN='Security|TestEngine|TestFilters|TestRender|TestSVG' {{.GOLDEN_IMAGE}} -test.v 2>&1 | tee {{.SECURITY_LOG_DIR}}/layer1.log
       - ./scripts/security-guard.sh {{.SECURITY_LOG_DIR}}/layer1.log
 
@@ -151,8 +154,8 @@ tasks:
       that. The log is always shown before the skip guard runs.
     cmds:
       - mkdir -p {{.SECURITY_LOG_DIR}}
-      - docker build -t {{.IMAGE}} .
-      - docker build --target sandbox -t {{.SANDBOX_IMAGE}} .
+      - '{{.DOCKER_BUILD}} -t {{.IMAGE}} .'
+      - '{{.DOCKER_BUILD}} --target sandbox -t {{.SANDBOX_IMAGE}} .'
       - |
         rc=0
         RELEASE_IMAGE={{.IMAGE}} SANDBOX_IMAGE={{.SANDBOX_IMAGE}} \
