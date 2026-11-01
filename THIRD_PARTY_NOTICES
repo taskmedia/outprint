@@ -218,9 +218,9 @@ and similar licences; each is listed with its licence in the image.
   file, fontconfig resolved the generic families `sans-serif`, `serif`,
   `monospace` to TeX Gyre Adventor and `Helvetica` to TeX Gyre Heros, so SVG
   text is drawn with TeX Gyre fonts of section 5.2, unless the SVG's font name
-  matches an installed font (see docs/images.md). No proprietary font is
+  matches an installed font (see docs/internals/images.md). No proprietary font is
   shipped. Do not add fonts to Templates or Configurations unless their licence
-  allows redistribution; see docs/template-author-guide.md.
+  allows redistribution; see docs/templates/template-author-guide.md.
 
 
 6. Go dependencies
@@ -261,7 +261,7 @@ modules were checked by hand.)
 
 The browser test suite (e2e/package.json) uses @playwright/test, pdfjs-dist,
 typescript and @types/node as development dependencies. They are installed
-from npm by `make e2e-install`, are not part of any image or release, and are
+from npm by `task e2e:install`, are not part of any image or release, and are
 licensed under Apache-2.0 (Playwright, pdf.js, TypeScript) and MIT
 (@types/node), as their packages state; not re-verified in this run.
 
@@ -269,7 +269,7 @@ licensed under Apache-2.0 (Playwright, pdf.js, TypeScript) and MIT
 7. Development and end-to-end test stack (not distributed)
 ----------------------------------------------------------
 
-`make dev` and `make e2e` start these images from public registries on the
+`task dev` and `task e2e:run` start these images from public registries on the
 developer's or the CI machine, from deploy/dev/versions.env. This repository
 contains only configuration files for them. They are separate containers that
 talk to our code over HTTP and OIDC. They are not copied into, built into or

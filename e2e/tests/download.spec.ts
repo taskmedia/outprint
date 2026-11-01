@@ -52,7 +52,7 @@ test('a bound document downloads as a PDF with its text', async ({ page, context
   expect(text).not.toContain('type: letter');
 
   // The Gateway reads a figure caption from the image's alt text. Check on
-  // Outline's real export that this is where a caption is stored (docs/images.md,
+  // Outline's real export that this is where a caption is stored (docs/internals/images.md,
   // "Captions"). The captioned figures live in the unbound document: the
   // neutral letter cannot typeset a captioned figure yet.
   const token = (await context.cookies()).find((c) => c.name === 'accessToken')?.value;

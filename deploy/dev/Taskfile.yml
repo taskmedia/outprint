@@ -1,6 +1,6 @@
 # https://taskfile.dev
 #
-# Development stack (docs/development.md): Outline with login, the injector,
+# Development stack (docs/internals/development.md): Outline with login, the injector,
 # Gateway and Worker, seeded with a fictional user, a bound and an unbound
 # Collection. DEV ONLY. Included by the root Taskfile as `dev:`; tasks run in
 # the repository root.

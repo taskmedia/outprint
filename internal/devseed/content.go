@@ -74,7 +74,7 @@ func boundBody() string {
 
 // boundFigures adds the two images to the bound Document, each alone in its
 // paragraph, without alt text and so without a caption: the neutral letter
-// cannot typeset a captioned figure (see docs/development.md). The size
+// cannot typeset a captioned figure (see docs/internals/development.md). The size
 // follows Outline's syntax.
 func boundFigures(chartURL, diagramURL string) string {
 	return boundBody() +
@@ -102,7 +102,7 @@ func unboundBody() string {
 
 // unboundFigures adds the two images with a caption each. In Outline the
 // caption of an image is its alt text; the browser test reads the exported
-// Markdown of this Document to check that (docs/images.md).
+// Markdown of this Document to check that (docs/internals/images.md).
 func unboundFigures(chartURL, diagramURL string) string {
 	return unboundBody() +
 		"\n![" + ChartCaption + "](" + chartURL + " \" =240x\")\n" +

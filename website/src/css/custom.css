@@ -59,6 +59,10 @@
   --op-link-hover: #5be08f;
   --op-focus: #2ecc71;
 
+  --ifm-background-color: var(--op-bg);
+  --ifm-background-surface-color: var(--op-card);
+  --ifm-font-color-base: var(--op-text);
+  --ifm-navbar-background-color: var(--op-card);
   --ifm-color-primary: var(--op-link);
   --ifm-color-primary-dark: #29b865;
   --ifm-color-primary-darker: #27ad5f;
@@ -132,4 +136,11 @@ pre code {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Show ASCII arrows and asterisks in code as typed (no font ligatures). */
+code,
+pre,
+kbd {
+  font-variant-ligatures: none;
 }

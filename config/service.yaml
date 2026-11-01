@@ -16,11 +16,11 @@ defaultBinding:
 # Hosts besides the Outline origin that an image redirect may lead to, for
 # example the file storage behind Outline's attachments. Empty by default:
 # only the Outline origin is allowed. A host name matches ports 80 and 443;
-# write host:port for another port. See docs/images.md.
+# write host:port for another port. See docs/deploy/image-fetching.md.
 # imageHosts:
 #   - files.example.invalid
 
-# Admission control of the Gateway (docs/limits.md). One Worker runs one job,
+# Admission control of the Gateway (docs/deploy/limits-and-admission.md). One Worker runs one job,
 # so keep slots equal to the number of Worker replicas. Every key is optional;
 # the values below are the defaults. Environment variables override the file:
 # OUTPRINT_ADMISSION_SLOTS, _QUEUE_DEPTH, _PER_USER and _MAX_WAIT.

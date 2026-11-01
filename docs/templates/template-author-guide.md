@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # Template author guide
 
 This guide is for people who write a **Template** (a style family such as a
@@ -10,10 +14,12 @@ Reference pages this guide builds on:
 - [Packages](packages.md): package format, field types, typed patterns, the
   TeX deny-list, drift guard, `validate`
 - [Standard Fields](standard-fields.md): the Standard Fields
-- [Metadata](metadata.md): what a Document author can write and how values
-  are layered
-- [Worker pipeline](worker.md): what the engine allows, and why
-- [Images](images.md): images and logos
+- [Metadata Block reference](metadata-reference.md): what a Document author can write
+  and how values are layered
+- [Template catalogue](catalogue/README.md): the shipped Templates, as the
+  authors see them
+- [Worker pipeline](../internals/worker.md): what the engine allows, and why
+- [Images in the pipeline](../internals/images.md): how images are checked and placed
 
 ## The model in one minute
 
@@ -130,7 +136,7 @@ does):
 
 Fonts are loaded by **file path** with `Path=./fonts/`, never by name (the
 engine cannot build the font name database under paranoid reads; see
-[Worker pipeline](worker.md#reading-below-the-job-directory-only)):
+[Worker pipeline](../internals/worker.md#reading-below-the-job-directory-only)):
 
 ```tex
 \setmainfont{texgyrepagella-regular.otf}[Path=./fonts/,
@@ -146,8 +152,18 @@ repository.
 ### Images and logos
 
 A logo is an `asset` field. SVG files are converted to vector PDF; raster
-formats are limited as described in [Images](images.md). Text inside an SVG
-is drawn with the fonts of the Worker image, not the Template's fonts.
+formats are limited as described in [Images in the pipeline](../internals/images.md). Text inside
+an SVG is drawn with the fonts of the Worker image, not the Template's fonts.
+
+**Templates** must scale images to the page. The Gateway gives every image
+an explicit size in points, so only the Template knows the text area. The
+`neutral` Template redefines `\includegraphics` to scale an image down to the
+line width and `0.9\textheight`, keeping the aspect ratio, and sets figure
+captions through the `caption` package. Its `letter` has no float: the KOMA
+letter class has none, so the Template defines a `figure` environment that
+keeps the figure in place on one page, with the same caption style and
+numbering as the report. A Template that shows Document images
+must do the same.
 
 ## The TeX deny-list
 
@@ -168,7 +184,7 @@ Every TeX file of a Template (`.latex`, `.tex`, `.sty`, `.cls`, `.def`, `.cfg`,
 The full list is in [Packages](packages.md#tex-deny-list). It is a safety
 net against accidents and careless Templates, not a sandbox: the Worker still
 runs without network or secrets and with shell escape off
-([Security](security.md)).
+([Security](../internals/security.md)).
 
 ## Standard Fields
 
@@ -244,8 +260,8 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" outprint render \
 ```
 
 `--debug-tex-log` prints the full TeX log (it may contain document content;
-see [Worker pipeline](worker.md)); `--json-errors` prints the JSON error body on
-stdout ([Metadata](metadata.md)).
+see [Worker pipeline](../internals/worker.md)); `--json-errors` prints the JSON error body on
+stdout ([Metadata Block reference](metadata-reference.md)).
 
 ### Drift guard
 
@@ -338,7 +354,7 @@ with `validate` and `render` against the image of this repository.
    listing the field and it is an error.
 
 5. Render a Document that sets it. The Metadata Block of a Document is a
-   `yaml` block at its start ([Metadata](metadata.md)):
+   `yaml` block at its start ([Metadata Block reference](metadata-reference.md)):
 
    ````markdown
    ```yaml

@@ -12,7 +12,56 @@ tasks:
       - npm run build
 
   serve:
-    desc: Build the site, then serve it at http://localhost:3000/outprint/
+    desc: Build the site, then serve it at http://localhost:3000/
     cmds:
       - task: build
       - npm run serve
+
+  catalogue:
+    desc: Generate the Template catalogue pages (docs/templates/catalogue) from the packages
+    summary: |
+      Writes one page per Template package under templates/, built from its
+      manifest and the example Configuration. Go, because the generator uses
+      the product's own package loader and metadata resolver, so a block it
+      shows has passed the real checks. Run it after changing a package and
+      commit the result.
+    dir: '{{.ROOT_DIR}}'
+    sources:
+      - templates/**/*
+      - configurations/**/*
+      - scripts/docs-catalogue/*.go
+      - internal/packages/**/*.go
+      - internal/metadata/**/*.go
+    generates:
+      - docs/templates/catalogue/*.md
+    cmds:
+      - go run ./scripts/docs-catalogue
+
+  catalogue-check:
+    desc: Fail when the generated catalogue pages differ from the packages (no Docker)
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - go run ./scripts/docs-catalogue -check
+
+  catalogue-preview:
+    desc: Render the catalogue preview images with the real pipeline (needs Docker)
+    summary: |
+      Builds the golden image (the pipeline plus pdftoppm), renders the example
+      document of every Template and writes docs/assets/screens/template-<name>.png.
+      Commit the images; the site build does not render anything.
+    dir: '{{.ROOT_DIR}}'
+    vars:
+      GOLDEN_IMAGE: '{{.GOLDEN_IMAGE | default "outprint-golden"}}'
+    cmds:
+      - docker build --target golden -t {{.GOLDEN_IMAGE}} .
+      - GOLDEN_IMAGE={{.GOLDEN_IMAGE}} ./scripts/docs-catalogue-preview.sh
+
+  errors-check:
+    desc: Fail when the error catalogue and the error codes in the source differ
+    summary: |
+      Compares the codes in the source with the headings of
+      docs/write/when-something-goes-wrong.md (one anchor per code).
+      `scripts/docs-error-codes.sh list` prints the codes found in the source.
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - ./scripts/docs-error-codes.sh check
