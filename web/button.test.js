@@ -500,3 +500,39 @@ test('fallback off shows nothing when the anchor is missing', async () => {
   assert.equal(env.body.find('olp-pdf-button'), null);
   assert.equal(env.warnings.length, 0);
 });
+
+// A list of fake elements chained through nextElementSibling, enough for
+// trimAfterLabel without a DOM.
+function fakeItem(texts) {
+  const nodes = texts.map((textContent) => ({ textContent, nextElementSibling: null }));
+  nodes.forEach((node, i) => {
+    node.remove = () => {
+      if (i > 0) nodes[i - 1].nextElementSibling = node.nextElementSibling;
+      node.removed = true;
+    };
+    node.nextElementSibling = nodes[i + 1] || null;
+  });
+  return nodes;
+}
+
+test('trimAfterLabel keeps the file type of an item cloned from the Export menu and sets it to .pdf', () => {
+  const [label, fileType, extra] = fakeItem(['Markdown', '.md', 'extra']);
+  b.trimAfterLabel(label, true);
+  assert.equal(fileType.textContent, '.pdf');
+  assert.equal(fileType.removed, undefined);
+  assert.equal(extra.removed, true);
+  assert.equal(label.nextElementSibling, fileType);
+});
+
+test('trimAfterLabel drops the shortcut of an item cloned from a root menu', () => {
+  const [label, shortcut] = fakeItem(['Print', '⌘P']);
+  b.trimAfterLabel(label, false);
+  assert.equal(shortcut.removed, true);
+  assert.equal(label.nextElementSibling, null);
+});
+
+test('trimAfterLabel copes with an Export item without a file type and with no label', () => {
+  const [label] = fakeItem(['Markdown']);
+  assert.doesNotThrow(() => b.trimAfterLabel(label, true));
+  assert.doesNotThrow(() => b.trimAfterLabel(null, true));
+});
