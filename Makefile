@@ -13,7 +13,7 @@ SANDBOX_PARALLEL ?= 4
 # Fixed so that PDFs are reproducible across runs.
 SOURCE_DATE_EPOCH ?= 1700000000
 
-.PHONY: dev dev-up dev-secrets seed dev-down dev-down-volumes dev-logs dev-clean e2e e2e-install build test test-web image image-injector test-golden test-security test-security-layer1 test-sandbox test-guard update-goldens sanitize test-sanitize
+.PHONY: dev dev-up dev-secrets seed dev-down dev-down-volumes dev-logs dev-clean e2e e2e-install build test test-web image image-injector test-golden test-security test-security-layer1 test-sandbox test-guard update-goldens sanitize test-sanitize audit test-audit
 
 build:
 	go build -o bin/renderer ./cmd/renderer
@@ -87,6 +87,14 @@ sanitize:
 
 test-sanitize:
 	./scripts/sanitize_test.sh
+
+# Pre-publish audit (docs/sanitize.md, docs/publishing.md): make sanitize plus
+# a scan of issues and pull requests through gh. Read-only.
+audit:
+	./scripts/prepublish-audit.sh
+
+test-audit:
+	./scripts/prepublish_audit_test.sh
 
 # Development stack (docs/development.md): Outline with login, the injector,
 # Gateway and Worker, seeded with a fictional user, a bound and an unbound
