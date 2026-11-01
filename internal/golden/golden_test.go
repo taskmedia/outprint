@@ -46,6 +46,14 @@ type testCase struct {
 	// repeatHeader is the table header text that every page showing a row
 	// containing rowMarker must repeat.
 	repeatHeader, rowMarker string
+	// imageFacts adds the images of the PDF (pdfimages -list) to the facts
+	// golden: page, pixel size, encoding and resolution.
+	imageFacts bool
+	// maxImageInches caps the placed size (pixels over resolution) of every
+	// image of the PDF in both directions; zero means no check.
+	maxImageInches float64
+	// uprightImages lists images (by order) that must be taller than wide.
+	uprightImages bool
 }
 
 var cases = []testCase{
@@ -79,6 +87,18 @@ var cases = []testCase{
 	{name: "literal-dollars", template: "neutral", config: "example", checkLogo: true, expectLogo: true,
 		literal: []string{"$5 per bag and $10 for two", "$5.00 against $6.00", "$x$", "$a + b$", "$$y = 2$$", "Escaped $ signs and US$ 1,000",
 			"cost = $5 + $6", "total=$(( $a + $b ))", `echo "$HOME"`, "100% of $#1 & {braces} ~tilde^ under_score."}},
+	{name: "images-formats", template: "neutral", config: "example", imageFacts: true,
+		literal: []string{"Figure 1: PNG chart", "Figure 2: JPEG photo", "Figure 3: WebP banner", "Figure 4: GIF badge"}},
+	{name: "images-exif", template: "neutral", config: "example", imageFacts: true, uprightImages: true,
+		literal: []string{"Figure 1: Upright photo"}},
+	{name: "images-sizes", template: "neutral", config: "example", imageFacts: true,
+		literal:   []string{"Figure 1: Natural size", "Figure 2: Width only", "Figure 3: Both sides", "Figure 4: Height only", "image sits in a line of text"},
+		forbidden: []string{"=120", "=x200", "inline"}},
+	{name: "images-oversize", template: "neutral", config: "example", imageFacts: true, maxImageInches: 8,
+		literal: []string{"Figure 1: Natural size, tall", "Figure 2: Requested width"}},
+	{name: "images-figure", template: "neutral", config: "example", imageFacts: true,
+		literal:   []string{"Figure 1: A chart: stars, under_score & 100% of $5 {braces}", "Column Picture", "Figure 2: In a list"},
+		forbidden: []string{"Figure 3", "Linked image", "In a cell"}},
 }
 
 func TestGoldens(t *testing.T) {
@@ -93,6 +113,9 @@ func TestGoldens(t *testing.T) {
 			pdf := render(t, root, tc)
 
 			facts := pdfFacts(t, pdf)
+			if tc.imageFacts {
+				facts += imageFactsText(t, pdf)
+			}
 			checkGolden(t, root, tc.name, "facts.txt", facts)
 			checkGolden(t, root, tc.name, "text.txt", pdfText(t, pdf))
 			assertFontsEmbedded(t, pdf)
@@ -105,6 +128,7 @@ func TestGoldens(t *testing.T) {
 			assertForbidden(t, pdf, tc.forbidden)
 			assertOwnLines(t, pdf, tc.ownLine)
 			assertPages(t, pdf, tc.minPages)
+			assertImageGeometry(t, pdf, tc)
 			assertHeaderRepeats(t, pdf, tc.repeatHeader, tc.rowMarker)
 			if tc.title != "" {
 				if got := field(t, tool(t, "pdfinfo", pdf), "Title"); got != tc.title {
@@ -389,4 +413,69 @@ func repoRoot(t *testing.T) string {
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+// pdfImage is one row of `pdfimages -list`.
+type pdfImage struct {
+	page, width, height int
+	kind, colour, enc   string
+	xppi, yppi          int
+}
+
+func listImages(t *testing.T, pdf string) []pdfImage {
+	t.Helper()
+	rows := strings.Split(strings.TrimSpace(tool(t, "pdfimages", "-list", pdf)), "\n")
+	var out []pdfImage
+	for _, row := range rows[min(2, len(rows)):] { // header and separator
+		cols := strings.Fields(row)
+		// page num type width height color comp bpc enc interp object ID x-ppi y-ppi size ratio
+		if len(cols) < 14 {
+			t.Fatalf("unexpected pdfimages row %q", row)
+		}
+		out = append(out, pdfImage{
+			page: atoi(t, cols[0]), width: atoi(t, cols[3]), height: atoi(t, cols[4]),
+			kind: cols[2], colour: cols[5], enc: cols[8], xppi: atoi(t, cols[12]), yppi: atoi(t, cols[13]),
+		})
+	}
+	return out
+}
+
+func atoi(t *testing.T, s string) int {
+	t.Helper()
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		t.Fatalf("not a number: %q", s)
+	}
+	return n
+}
+
+// imageFactsText describes the images of a PDF without their pixels.
+func imageFactsText(t *testing.T, pdf string) string {
+	t.Helper()
+	lines := []string{"images:"}
+	for _, im := range listImages(t, pdf) {
+		lines = append(lines, fmt.Sprintf("  page %d | %s | %d x %d px | %s | %s | %d x %d ppi",
+			im.page, im.kind, im.width, im.height, im.colour, im.enc, im.xppi, im.yppi))
+	}
+	return strings.Join(lines, "\n") + "\n"
+}
+
+// assertImageGeometry checks what the goldens only record: images upright
+// and inside the page.
+func assertImageGeometry(t *testing.T, pdf string, tc testCase) {
+	t.Helper()
+	for i, im := range listImages(t, pdf) {
+		if im.kind != "image" {
+			continue
+		}
+		if tc.uprightImages && im.height <= im.width {
+			t.Errorf("image %d is %d x %d px: not upright", i+1, im.width, im.height)
+		}
+		if tc.maxImageInches > 0 && im.xppi > 0 && im.yppi > 0 {
+			w, h := float64(im.width)/float64(im.xppi), float64(im.height)/float64(im.yppi)
+			if w > tc.maxImageInches || h > tc.maxImageInches {
+				t.Errorf("image %d is placed %.1f x %.1f in, at most %.1f", i+1, w, h, tc.maxImageInches)
+			}
+		}
+	}
 }

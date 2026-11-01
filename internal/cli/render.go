@@ -9,9 +9,11 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/taskmedia/outline-latex-pdf/internal/config"
+	"github.com/taskmedia/outline-latex-pdf/internal/images"
 	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
 	"github.com/taskmedia/outline-latex-pdf/internal/packages"
 	"github.com/taskmedia/outline-latex-pdf/internal/worker"
@@ -158,18 +160,11 @@ func render(ctx context.Context, o renderOptions, stderr io.Writer) error {
 	if err != nil {
 		return err
 	}
-	resolved, err := metadata.Resolve(metadata.Input{
-		Markdown:      markdown,
-		Title:         o.Title,
-		Modified:      modified,
-		Template:      tpl,
-		Configuration: cfg,
-	})
+	resolved, imgs, err := resolveDocument(ctx, o, markdown, tpl, cfg, modified)
 	if err != nil {
 		return err
 	}
-
-	pdf, err := worker.Render(ctx, workerJob(o, resolved, tpl, cfg, stderr))
+	pdf, err := worker.Render(ctx, workerJob(o, resolved, imgs, tpl, cfg, stderr))
 	if err != nil {
 		return err
 	}
@@ -177,6 +172,35 @@ func render(ctx context.Context, o renderOptions, stderr io.Writer) error {
 		return fmt.Errorf("write output: %w", err)
 	}
 	return nil
+}
+
+// resolveDocument resolves the Metadata Block and the images of the input.
+// The images are read from the directory of the input file by the same
+// pipeline the Gateway runs on Outline attachments. The problems of both
+// come back as one list.
+func resolveDocument(ctx context.Context, o renderOptions, markdown []byte, tpl packages.Template,
+	cfg packages.Configuration, modified string) (metadata.Result, images.Result, error) {
+	resolved, err := metadata.Resolve(metadata.Input{
+		Markdown:      markdown,
+		Title:         o.Title,
+		Modified:      modified,
+		Template:      tpl,
+		Configuration: cfg,
+	})
+	var metaList *metadata.ErrorList
+	if err != nil && !errors.As(err, &metaList) {
+		return metadata.Result{}, images.Result{}, err
+	}
+	body, offset := metadata.Body(markdown)
+	imgs, problems, err := images.Process(ctx, body, offset, images.DirSource{Root: filepath.Dir(o.Input)})
+	if err != nil {
+		return metadata.Result{}, images.Result{}, fmt.Errorf("read images: %w", err)
+	}
+	if list := images.Combine(metaList, problems); list != nil {
+		return metadata.Result{}, images.Result{}, list
+	}
+	resolved.Body = imgs.Markdown
+	return resolved, imgs, nil
 }
 
 // lastModified is the date given by --date, else the input file's
@@ -201,9 +225,10 @@ func firstNonEmpty(values ...string) string {
 	return ""
 }
 
-func workerJob(o renderOptions, r metadata.Result, tpl packages.Template, cfg packages.Configuration, stderr io.Writer) worker.Job {
+func workerJob(o renderOptions, r metadata.Result, imgs images.Result, tpl packages.Template, cfg packages.Configuration, stderr io.Writer) worker.Job {
 	job := worker.Job{
 		Markdown:      r.Body,
+		Images:        imgs.Images,
 		Values:        r.Values,
 		Template:      tpl,
 		DocumentType:  r.DocumentType,

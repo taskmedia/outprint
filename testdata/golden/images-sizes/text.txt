@@ -1,0 +1,39 @@
+                                Image sizes
+                                   Robin Sample
+
+                                    2 March 2026
+
+
+
+1 Sizes
+
+Outline writes the size an author chose inside the image title.
+
+
+A small          image sits in a line of text and has no caption.
+
+
+
+
+                                  Figure 1: Natural size
+
+
+
+Example Garden Society                      1
+                         Figure 2: Width only
+
+
+
+
+                         Figure 3: Both sides
+
+
+
+
+                         Figure 4: Height only
+
+
+
+
+Example Garden Society             2
+
