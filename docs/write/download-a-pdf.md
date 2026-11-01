@@ -13,6 +13,8 @@ Open any document in your Collection. If the Collection is set up for PDFs, the
 **Export** menu has a **Formatted PDF** item. Open the **…** menu at the top right
 of the document, then **Export**.
 
+![A document in Outline with the Export menu open and Formatted PDF in it](../assets/screens/bound-document-with-button.png)
+
 Your admin may have put the action in a button before **Share** instead. It does
 the same.
 

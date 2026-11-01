@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
-import { chooseFormattedPdf, MENU_LABEL, openExportSubmenu } from '../support/placement';
+import { chooseFormattedPdf, MENU_LABEL, openExportSubmenu, useLocalScript } from '../support/placement';
 import { loadSeed } from '../support/seed';
 
 // Generates the screenshots of the Outline UI used by the documentation, from
@@ -121,6 +121,7 @@ function firstPageToPng(pdfPath: string, pngPath: string): void {
 }
 
 test('screenshots of the Outline UI for the documentation', async ({ page }) => {
+  await useLocalScript(page);
   rmSync(RAW_DIR, { recursive: true, force: true });
   mkdirSync(RAW_DIR, { recursive: true });
   await signIn(page);

@@ -13,6 +13,7 @@ change that markup. This page says which versions have been checked.
 |---------|----------|--------|
 | 1.12.0 | development (no release yet) | **tested** on every change to the injector, the script and the browser tests; this is the version pinned in `deploy/dev/versions.env` |
 | newest stable release | development | **tested weekly**, not blocking; a failure opens an issue |
+| 1.12.0 (`OUTLINE_OLDEST_IMAGE`) | development | the **oldest supported** version; the same tests run against it in CI once it differs from the pin |
 | older than 1.12.0 | | **untested** |
 
 "Tested" means the browser tests pass: the **Export → Formatted PDF** entry and

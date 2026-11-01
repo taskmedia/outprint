@@ -323,6 +323,7 @@
     lastShown: null,
     token: 0,
     busy: false,
+    busyId: null,
     base: DEFAULT_BASE,
     options: parseOptions(function () { return null; }),
     language: FALLBACK_LANGUAGE,
@@ -497,7 +498,7 @@
   }
 
   function startDownload(anchor) {
-    if (state.busy || !state.id) return;
+    if (!state.id || (state.busy && state.busyId === state.id)) return;
     state.panelAnchor = anchor;
     download(state.id);
   }
@@ -835,6 +836,7 @@
 
   function download(id) {
     dismissPanel();
+    state.busyId = id;
     setBusy(true);
     if (!document.getElementById(BUTTON_ID) && !document.querySelector('.olp-header-button')) showBusyPanel();
     fetch(state.base + '/render/' + encodeURIComponent(id), { credentials: 'same-origin', cache: 'no-store' })
@@ -850,7 +852,8 @@
         });
       })
       .catch(function () { report(id, { status: 0, retryAfter: null, body: null }); })
-      .then(function () { setBusy(false); });
+      // A render of another document may have started since: leave its state alone.
+      .then(function () { if (state.busyId === id) setBusy(false); });
   }
 
   function report(id, response) {
