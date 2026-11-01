@@ -351,3 +351,43 @@ func TestSuggest(t *testing.T) {
 		}
 	}
 }
+
+func TestSubjectDefaultsToTheDerivedTitle(t *testing.T) {
+	env := newEnv(t, testConfiguration)
+	for name, tc := range map[string]struct {
+		doc  string
+		want any
+	}{
+		"absent uses the title":  {"x\n", "From the wiki"},
+		"own text wins":          {block("subject: Own subject"), "Own subject"},
+		"empty string opts out":  {block(`subject: ""`), nil},
+		"null opts out":          {block("subject:"), nil},
+		"empty block uses title": {block("closing: Best wishes"), "From the wiki"},
+	} {
+		in := env.input(tc.doc)
+		in.Title = "From the wiki"
+		got, present := resolveOK(t, in).Values["subject"]
+		if tc.want == nil && present {
+			t.Errorf("%s: subject = %v, want none", name, got)
+		}
+		if tc.want != nil && got != tc.want {
+			t.Errorf("%s: subject = %v, want %v", name, got, tc.want)
+		}
+	}
+}
+
+func TestSubjectStaysAbsentWithoutATitle(t *testing.T) {
+	env := newEnv(t, testConfiguration)
+	if _, present := resolveOK(t, env.input("x\n")).Values["subject"]; present {
+		t.Error("subject must stay unset when there is no title")
+	}
+}
+
+func TestConfigurationSubjectDefaultTrumpsTheTitle(t *testing.T) {
+	env := newEnv(t, "manifest_version: 1\ndefaults:\n  document_type: letter\n  subject: Newsletter\n")
+	in := env.input("x\n")
+	in.Title = "From the wiki"
+	if got := resolveOK(t, in).Values["subject"]; got != "Newsletter" {
+		t.Errorf("subject = %v", got)
+	}
+}
