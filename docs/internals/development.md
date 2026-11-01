@@ -214,6 +214,16 @@ stays flat) and recompressed with oxipng, through the npm packages `sharp` and
 `@napi-rs/image`. Each file stays under 150 KB or the task fails. Two runs
 produce byte-identical files.
 
+`.github/workflows/screenshots.yml` is the visual check. On pull requests that
+touch the injector, the button, the seed, the dev stack, the screenshot specs or
+the committed PNGs (and on demand) it regenerates the screenshots and compares
+them with the committed ones. The screenshots that differ are listed in the job
+summary and uploaded as the `screenshots-changed` artifact (14 days) for review.
+It is informational: the job is allowed to fail and is not a required check,
+because the committed images come from a developer machine and the runner's
+fonts may render slightly differently. A difference after an intended UI change
+means: run `task screenshots` and commit the result.
+
 ## CI
 
 `.github/workflows/e2e.yml` runs the suite on every push to `main`, on
