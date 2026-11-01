@@ -105,6 +105,10 @@ var cases = []testCase{
 	{name: "images-svg", template: "neutral", config: "example", imageFacts: true, noRaster: true,
 		literal:   []string{"Figure 1: A diagram: seed to flower", "Figure 2: In a list", "Seed to flower"},
 		forbidden: []string{"=120", "=60x30", "diagram.svg"}},
+	{name: "letter-figure", template: "neutral", config: "example", checkLogo: true, expectLogo: true, imageFacts: true,
+		literal: []string{"Figure 1: Plants sold: stars, under_score & 100% of $5", "Figure 2: Second chart"}},
+	{name: "letter-figure-svg", template: "neutral", config: "example", checkLogo: true, expectLogo: true, imageFacts: true, noRaster: true,
+		literal: []string{"Figure 1: A diagram: seed to flower"}},
 	{name: "images-svg-embedded", template: "neutral", config: "example", imageFacts: true,
 		literal: []string{"Figure 1: Badge with an embedded picture"}},
 }
