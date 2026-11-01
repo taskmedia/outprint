@@ -42,7 +42,7 @@ fields:
     description: Sender address lines, printed under the organisation name.
   subject:
     type: string
-    description: Subject line.
+    description: Subject line. Defaults to the title of the Outline document; an empty value prints no subject line.
   opening:
     type: string
     description: Salutation.

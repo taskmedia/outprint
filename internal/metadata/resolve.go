@@ -10,15 +10,16 @@ import (
 )
 
 const (
-	typeKey          = "type"
-	configTypeKey    = "document_type"
-	derivedTitleName = "title"
-	derivedDateName  = "date"
+	typeKey            = "type"
+	configTypeKey      = "document_type"
+	derivedTitleName   = "title"
+	derivedSubjectName = "subject"
+	derivedDateName    = "date"
 )
 
 // Input is everything Resolve needs. Title and Modified are the derived
 // values: the Document's title and its last-modified date (ISO, YYYY-MM-DD).
-// Both may be empty.
+// Both may be empty. The title also defaults the `subject` field.
 type Input struct {
 	Markdown      []byte
 	Title         string
@@ -254,7 +255,7 @@ func nativeLayer(f packages.Field, raw any, source string) layer {
 
 func (r *resolver) derived(f packages.Field) (string, bool) {
 	switch {
-	case f.Name == derivedTitleName && r.in.Title != "":
+	case (f.Name == derivedTitleName || f.Name == derivedSubjectName) && r.in.Title != "":
 		return r.in.Title, true
 	case f.Name == derivedDateName && r.in.Modified != "":
 		return r.in.Modified, true

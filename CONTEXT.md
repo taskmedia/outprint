@@ -29,7 +29,7 @@ The fenced block at the very start of a Document in which its author sets field 
 _Avoid_: Frontmatter, Header
 
 **Standard Fields**:
-A documented set of common field names (for example subject, recipient) that Templates are encouraged to reuse so Template Configurations stay portable. A convention, not a requirement: a Template may declare any fields it likes.
+A documented set of common field names (for example subject, recipient) that Templates are encouraged to reuse so Template Configurations stay portable. A convention, not a requirement: a Template may declare any fields it likes. Where the pipeline derives a default, it applies to every Template that declares the field: `title`, `date`, and `subject` (the Document's title, unless the author sets it, even to empty).
 _Avoid_: Core fields, Reserved fields
 
 **Binding**:

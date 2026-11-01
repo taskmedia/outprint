@@ -61,7 +61,7 @@ For every field of the Document Type the highest layer that has a value wins:
 | Fixed Values                       | Configuration `fields:`; a Document cannot change them |
 | Document                           | the Metadata Block                                    |
 | Configuration Defaults             | Configuration `defaults:`                             |
-| Derived value                      | `title` and `date`, see below                         |
+| Derived value                      | `title`, `subject` and `date`, see below              |
 | Manifest default                   | the Template's `fields:` and Document Type overrides  |
 
 - An **empty** Document value suppresses every lower layer: `closing:`,
@@ -75,10 +75,13 @@ For every field of the Document Type the highest layer that has a value wins:
 
 ### Derived values
 
-The pipeline supplies two values, from the Outline document in the Gateway and
-from `--title` and `--date` in the `render` CLI:
+The pipeline supplies the document title and the last-modified date, from the
+Outline document in the Gateway and from `--title` and `--date` in the `render` CLI:
 
 - `title`: the document title, the default of the field `title`.
+- `subject`: the document title too, the default of the field `subject`. A
+  Document that sets `subject: "Some text"` prints that text. An empty
+  `subject:` or `subject: ""` opts out, and the letter has no subject line.
 - `date`: the last-modified date as ISO `YYYY-MM-DD`, the default of the field
   `date`. The Template writes it out by `language` (`en`: `2 March 2026`,
   `de`: `2. März 2026`). Text that is not an ISO date, for example
