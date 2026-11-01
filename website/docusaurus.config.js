@@ -1,6 +1,8 @@
 // @ts-check
 
-const baseUrl = '/outprint/';
+// The site has its own domain (GitHub Pages custom domain, see
+// website/README.md), so it lives at the root.
+const baseUrl = '/';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -9,7 +11,7 @@ const config = {
     'Outprint for Outline: turn Outline documents into typeset PDFs (letters, reports, custom LaTeX templates) with a Download PDF button. Self-hosted, no Outline fork.',
   favicon: 'brand/favicon.ico',
 
-  url: 'https://taskmedia.github.io',
+  url: 'https://outprint.task.media',
   baseUrl,
   organizationName: 'taskmedia',
   projectName: 'outprint',

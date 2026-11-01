@@ -1,7 +1,7 @@
 # Documentation site
 
 The Outprint docs site: [Docusaurus](https://docusaurus.io) 3, published to
-GitHub Pages at <https://taskmedia.github.io/outprint/>. The pages live in
+GitHub Pages at <https://outprint.task.media/> (custom domain). The pages live in
 [`../docs`](../docs), so GitHub's rendering and the site share the same files;
 this directory holds only the site shell (config, theme, sidebar).
 
@@ -18,14 +18,14 @@ Needs Node 22 (`nvm use` reads `.nvmrc`).
 ```sh
 cd website
 npm ci
-npm start        # dev server with live reload, http://localhost:3000/outprint/
+npm start        # dev server with live reload, http://localhost:3000/
 ```
 
 ## Build
 
 ```sh
 npm run build    # strict: broken links, anchors and markdown links fail
-npm run serve    # serves the build at http://localhost:3000/outprint/
+npm run serve    # serves the build at http://localhost:3000/
 ```
 
 From the repository root: `make docs` and `make docs-serve`. Search only works
@@ -53,7 +53,7 @@ The search plugin needs `language: ['en', 'de']` in its options.
 ## Versions
 
 Until the first release exists the current docs are the only version and
-live at the site root (`/outprint/`).
+live at the site root (`/`).
 
 ### Create a snapshot
 
@@ -95,3 +95,18 @@ README and rebuild script). `npm start` and `npm run build` first run
 `npm run brand`, which copies only the files the site uses (lockup in light and
 dark, favicons, social preview) into `static/brand/`. That folder is generated
 and git-ignored; the kit is excluded from the docs pages.
+
+## Custom domain
+
+The site is served at `outprint.task.media`:
+
+- DNS: a `CNAME` record `outprint.task.media` pointing to `taskmedia.github.io`
+  (the host only, no path). No wildcard records.
+- Repository Settings > Pages > Custom domain: `outprint.task.media`, then
+  **Enforce HTTPS** once GitHub has issued the certificate. Because the site is
+  published with a GitHub Actions workflow, a `CNAME` file in the repository is
+  ignored; the setting is what counts.
+- If `task.media` has CAA records, `letsencrypt.org` must be allowed to issue.
+- `docusaurus.config.js` has `url: https://outprint.task.media` and
+  `baseUrl: '/'`. Links from the product to the docs are built from this
+  address, so change it only together with those links.
