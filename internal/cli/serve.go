@@ -15,6 +15,7 @@ import (
 	"github.com/taskmedia/outprint/internal/gateway"
 	"github.com/taskmedia/outprint/internal/limits"
 	"github.com/taskmedia/outprint/internal/startup"
+	"github.com/taskmedia/outprint/internal/version"
 	"github.com/taskmedia/outprint/internal/workerserver"
 )
 
@@ -72,6 +73,11 @@ func serviceLogger(stderr io.Writer, getenv func(string) string) *slog.Logger {
 	return slog.New(slog.NewTextHandler(stderr, &slog.HandlerOptions{Level: level}))
 }
 
+// logStartup records which build is running, once, at info level.
+func logStartup(log *slog.Logger, service string) {
+	log.Info("starting "+service, "version", version.Version, "commit", version.Commit)
+}
+
 func signalContext() (context.Context, context.CancelFunc) {
 	return signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 }
@@ -94,6 +100,7 @@ func runGateway(args []string, getenv func(string) string, stderr io.Writer) int
 		return 2
 	}
 	log := serviceLogger(stderr, getenv)
+	logStartup(log, "gateway")
 	if getenv(envOutlineURL) == "" || getenv(envWorkerURL) == "" {
 		fmt.Fprintf(stderr, "outprint: gateway needs %s and %s\n", envOutlineURL, envWorkerURL)
 		return 2
@@ -126,6 +133,7 @@ func runWorker(args []string, getenv func(string) string, stderr io.Writer) int 
 		return 2
 	}
 	log := serviceLogger(stderr, getenv)
+	logStartup(log, "worker")
 	jobLimits, err := limits.FromEnv(getenv)
 	if err != nil {
 		fmt.Fprintf(stderr, "outprint: %v\n", err)

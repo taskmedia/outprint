@@ -16,6 +16,7 @@ import (
 	"github.com/taskmedia/outprint/internal/images"
 	"github.com/taskmedia/outprint/internal/metadata"
 	"github.com/taskmedia/outprint/internal/packages"
+	"github.com/taskmedia/outprint/internal/version"
 	"github.com/taskmedia/outprint/internal/worker"
 )
 
@@ -28,6 +29,7 @@ const usage = `usage: outprint render --template NAME --config NAME [--title TEX
        outprint validate [--service-config FILE]
                          [--templates-root DIR] [--configs-root DIR]
                          [--template NAME] [--config NAME]
+       outprint version
 ` + serveUsage
 
 const (
@@ -85,6 +87,9 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return runWorker(args[1:], os.Getenv, stderr)
 	case "healthcheck":
 		return runHealthcheck(args[1:], stderr)
+	case "version":
+		fmt.Fprintln(stdout, version.Line("outprint"))
+		return 0
 	}
 	fmt.Fprintln(stderr, usage)
 	return 2

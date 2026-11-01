@@ -12,6 +12,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/taskmedia/outprint/internal/version"
 )
 
 const (
@@ -86,7 +88,7 @@ func Healthcheck(ctx context.Context, target string) error {
 // "outprint-injector healthcheck URL" probes.
 func Main(args []string, getenv func(string) string, stdout, stderr io.Writer) int {
 	if len(args) > 0 {
-		return mainSubcommand(args, stderr)
+		return mainSubcommand(args, stdout, stderr)
 	}
 	cfg, err := ConfigFromEnv(getenv)
 	if err != nil {
@@ -94,6 +96,7 @@ func Main(args []string, getenv func(string) string, stdout, stderr io.Writer) i
 		return 2
 	}
 	configureLogging(cfg.LogLevel, stderr)
+	slog.Info("starting outprint-injector", "version", version.Version, "commit", version.Commit)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	if err := Run(ctx, cfg); err != nil {
@@ -103,9 +106,13 @@ func Main(args []string, getenv func(string) string, stdout, stderr io.Writer) i
 	return 0
 }
 
-func mainSubcommand(args []string, stderr io.Writer) int {
+func mainSubcommand(args []string, stdout, stderr io.Writer) int {
+	if len(args) == 1 && (args[0] == "version" || args[0] == "--version") {
+		fmt.Fprintln(stdout, version.Line("outprint-injector"))
+		return 0
+	}
 	if args[0] != "healthcheck" || len(args) != 2 {
-		fmt.Fprintln(stderr, "usage: outprint-injector            (configured by OUTPRINT_INJECTOR_* variables)\n       outprint-injector healthcheck URL")
+		fmt.Fprintln(stderr, "usage: outprint-injector            (configured by OUTPRINT_INJECTOR_* variables)\n       outprint-injector healthcheck URL\n       outprint-injector version")
 		return 2
 	}
 	if err := Healthcheck(context.Background(), args[1]); err != nil {

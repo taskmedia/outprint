@@ -37,5 +37,6 @@
 | [testing.md](testing.md) | test tiers and CI |
 | [sanitize.md](sanitize.md) | the sanitisation gate and the pre-publish audit |
 | [publishing.md](publishing.md) | the maintainer's checklist before the repository goes public |
+| [releasing.md](releasing.md) | the maintainer's release procedure: release PR, image publishing, one-time settings |
 | [research/](research/README.md) | the research notes behind the design |
 | [../THIRD_PARTY_NOTICES](../THIRD_PARTY_NOTICES) | third-party licences and the Pandoc source offer |
