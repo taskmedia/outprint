@@ -20,6 +20,11 @@ const (
 	// BoundSubject is the subject in the Metadata Block of the bound Document.
 	BoundSubject = "Spring plant sale"
 
+	// InvalidDocumentTitle is a third Document in the Bound Collection whose
+	// Metadata Block has mistakes, so that the error an author sees can be
+	// shown in the documentation screenshots.
+	InvalidDocumentTitle = "Autumn bulb order"
+
 	ChartCaption   = "Germination over six weeks"
 	DiagramCaption = "From seed to flower"
 
@@ -75,6 +80,20 @@ func boundFigures(chartURL, diagramURL string) string {
 	return boundBody() +
 		"\n![](" + chartURL + " \" =240x\")\n" +
 		"\n![](" + diagramURL + " \" =240x\")\n"
+}
+
+// invalidBody has a misspelled field name (subjekt) and a Document Type that
+// the Template does not have (leter). The renderer reports both.
+func invalidBody() string {
+	return strings.Join([]string{
+		"```yaml",
+		"type: leter",
+		"subjekt: Autumn bulb order",
+		"```",
+		"",
+		"Draft of the autumn bulb order, not ready to download yet.",
+		"",
+	}, "\n")
 }
 
 func unboundBody() string {

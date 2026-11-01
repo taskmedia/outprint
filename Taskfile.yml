@@ -97,6 +97,11 @@ tasks:
       - cmd: 'echo "note: node is not installed; skipping the button script tests"'
         if: '! command -v node >/dev/null 2>&1'
 
+  screenshots:
+    desc: Regenerate the documentation screenshots (needs `task dev`; see docs/development.md)
+    cmds:
+      - task: e2e:screenshots
+
   image:
     desc: Build the outprint image
     sources:

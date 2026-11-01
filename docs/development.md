@@ -157,6 +157,32 @@ task e2e:run
 cd e2e && npx playwright test --ui   # while writing tests (stack running, seeded)
 ```
 
+## Documentation screenshots
+
+`task screenshots` regenerates the six PNGs in `docs/assets/screens/` that the
+documentation shows. They are committed; run the task before a release and
+whenever the Outline UI or the button changes, and commit the result.
+
+```sh
+task dev            # the stack must be up
+task screenshots    # seeds, drives it, writes and optimises the PNGs
+```
+
+It is its own Playwright config (`e2e/playwright.screenshots.config.ts`), so
+`task e2e:run` never runs it. It signs in as the seeded user, uses a fixed
+1280x800 viewport at 2x, the light theme and reduced motion, waits for network
+idle and the button rather than sleeping, and shows only the fictional seed
+data (the byline with the update time is hidden; the one date in the example
+letter is painted over). The seed adds a third Document, *Autumn bulb order*,
+with a misspelled Metadata Block, for the error shot. The example letter is the
+first page of the PDF from the button, converted with `pdftoppm` (host) or
+Alpine's poppler in Docker.
+
+The PNGs are palette-quantised (256 colours, no dithering: lossy, but flat UI
+stays flat) and recompressed with oxipng, through the npm packages `sharp` and
+`@napi-rs/image`. Each file stays under 150 KB or the task fails. Two runs
+produce byte-identical files.
+
 ## CI
 
 `.github/workflows/e2e.yml` runs the suite on every push to `main`, on

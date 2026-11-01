@@ -270,3 +270,15 @@ func TestLoginFormAction(t *testing.T) {
 		t.Error("a page without a form was accepted")
 	}
 }
+
+func TestSeedAddsADocumentWithAFaultyMetadataBlockToTheBoundCollection(t *testing.T) {
+	f := newFakeStack(t)
+	res := runSeed(t, f)
+
+	if res.Invalid.DocumentTitle != InvalidDocumentTitle || res.Invalid.CollectionID != res.Bound.CollectionID {
+		t.Fatalf("invalid item: %+v", res.Invalid)
+	}
+	if res.Invalid.DocumentID == res.Bound.DocumentID {
+		t.Fatal("the faulty document is the bound document")
+	}
+}

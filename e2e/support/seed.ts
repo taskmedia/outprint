@@ -14,6 +14,8 @@ export interface Seed {
   password: string;
   bound: SeedItem;
   unbound: SeedItem;
+  // A Document in the Bound Collection whose Metadata Block has mistakes.
+  invalid: SeedItem;
   captions: string[];
 }
 
