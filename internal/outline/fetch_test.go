@@ -2,6 +2,8 @@ package outline
 
 import (
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"net/netip"
 	"net/url"
 	"strings"
@@ -75,5 +77,60 @@ func TestImageTargetMustStayUnderTheAPI(t *testing.T) {
 	}
 	if !strings.HasSuffix(c.BaseURL(), "/team") {
 		t.Error(c.BaseURL())
+	}
+}
+
+func TestRedirectToThePublicOriginIsFetchedFromTheInternalOne(t *testing.T) {
+	var sawCookie []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sawCookie = append(sawCookie, r.URL.Path+" cookie="+r.Header.Get("Cookie"))
+		switch r.URL.Path {
+		case "/api/attachments.redirect":
+			http.Redirect(w, r, "http://wiki.example.invalid:8090/api/files.get?sig=1", http.StatusFound)
+		case "/api/files.get":
+			_, _ = w.Write([]byte("image-bytes"))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+
+	c, err := NewClient(srv.URL, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, err = c.WithImages(ImageOptions{PublicURL: "http://wiki.example.invalid:8090"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := c.Image(t.Context(), "/api/attachments.redirect?id=x", Session{Cookie: "accessToken=canary"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != "image-bytes" {
+		t.Errorf("got %q", got)
+	}
+	want := []string{"/api/attachments.redirect cookie=accessToken=canary", "/api/files.get cookie="}
+	if strings.Join(sawCookie, "|") != strings.Join(want, "|") {
+		t.Errorf("requests %v, want %v", sawCookie, want)
+	}
+}
+
+func TestPublicOriginDoesNotWidenTheAllowList(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "http://other.example.invalid:8090/api/files.get", http.StatusFound)
+	}))
+	defer srv.Close()
+	c, _ := NewClient(srv.URL, 0)
+	c, err := c.WithImages(ImageOptions{PublicURL: "http://wiki.example.invalid:8090"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var blockedErr *BlockedError
+	if _, err := c.Image(t.Context(), "/api/attachments.redirect?id=x", Session{}); !errors.As(err, &blockedErr) {
+		t.Errorf("a redirect to another host must stay blocked: %v", err)
+	}
+	if _, err := c.WithImages(ImageOptions{PublicURL: "ftp://x"}); err == nil {
+		t.Error("a public URL that is not http(s) was accepted")
 	}
 }
