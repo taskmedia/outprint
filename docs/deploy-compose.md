@@ -31,6 +31,8 @@ into both services at the paths of the shipped `service.yaml`. Replace the
 sources to install your own packages; the service configuration inside the
 image lists the allowed Bindings and the default Binding.
 
+For a local stack with Outline, a login and seeded content, see [development.md](development.md); it layers its own file over this one.
+
 ## The injector
 
 The `injector` service is built from the `injector` target of the Dockerfile

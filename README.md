@@ -37,7 +37,12 @@ make test-sandbox    # security layers 2 and 3 only (needs a Docker daemon)
 make update-goldens  # regenerate goldens, only ever inside the pinned image
 make sanitize        # scan tree and history for forbidden strings
 make test-sanitize   # test the sanitize gate itself
+make dev             # Outline + injector + Gateway + Worker, seeded, at http://localhost:8090
+make e2e             # tier 3: browser tests against that stack
 ```
+
+The local stack, its login, the seeding and the end-to-end tests are described
+in [docs/development.md](docs/development.md).
 
 Render a letter with the shipped Template and Configuration:
 

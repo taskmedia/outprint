@@ -180,6 +180,19 @@ Entries are lower-case host names, optionally with a port: no scheme, path or
 wildcard. A redirect target needs a public address, so a storage host on a
 private network cannot be listed.
 
+### Outline behind an internal address
+
+When the Gateway reaches Outline at an address such as `http://outline:3000`
+while Outline's own `URL` setting is public (`https://wiki.example.invalid`, or
+`http://localhost:8090` in the dev stack), Outline's redirect to a stored file
+points at the public URL. Set `OUTLINE_PUBLIC_URL` on the Gateway to that
+public URL: a redirect to exactly that origin is then fetched from
+`OUTLINE_URL` instead, still without the cookie and under the same checks on
+the address of the configured origin. It adds no host to the allow-list: a
+redirect to any other host is refused as before. Public and internal URL must
+use the same path prefix, if any. Not needed when `OUTLINE_URL` is the public
+URL, or when files live in S3-compatible storage (use `imageHosts`).
+
 **Templates** must scale images to the page. The Gateway gives every image
 an explicit size in points, so only the Template knows the text area. The
 `neutral` Template redefines `\includegraphics` to scale an image down to the
@@ -191,18 +204,25 @@ must do the same.
 
 - Verified: images, links and tables are found at the right source range, and
   attachments are fetched with the redirect rules above, against fakes.
-- **Assumption, not yet verified: Outline stores an image caption in the alt
-  text.** The research notes in this repository describe the size syntax
-  (`![alt](url " =WxH")`) and the attachment URL, but contain no export of a
-  real document showing a caption. Alt text is therefore used as the caption,
-  as the specification says.
-  <!-- TODO(#28): in the end-to-end stack, upload an image, give it a caption in
-  Outline, export the document and check that the caption is in the alt text
-  and where the size appears. Also check that a redirect from an attachment
-  to Outline's own file path works without the cookie (local storage). -->
-- A redirect to the Outline origin carries no cookie, like every redirect.
-  If an Outline with local file storage needs the cookie there, the end-to-end
-  check will show it.
+- **Verified (Outline 1.12.0, E2E stack): an image caption is the alt text.**
+  Outline's image node has no separate caption field. The editor's caption line
+  under an image is the node's `alt` attribute (`shared/editor/nodes/Image`
+  renders `alt` as the `<p>` caption), and the Markdown export is
+  `![caption](/api/attachments.redirect?id=<uuid> " =WxH")`: the caption in the
+  brackets, the size after the title as ` =WxH` (width or height may be empty).
+  A layout choice such as full width is written into the title position as a
+  class name and a size follows it; the Gateway does not use them. The E2E test
+  reads `documents.info` of a seeded Document with two captioned images and
+  checks this, and the editor view of the same Document shows the captions
+  under the images. So the specification's "alt text is the caption" holds.
+- **Verified: attachments with Outline's local file storage.**
+  `/api/attachments.redirect?id=...` answers 302 to a signed
+  `<Outline URL>/api/files.get?sig=...`. The signature is the credential, so the
+  Gateway's rule of following redirects without the cookie works. The target
+  names Outline by its public URL (the `URL` setting). When the Gateway reaches
+  Outline at an internal address, that host is not the configured origin and
+  would be refused, so set `OUTLINE_PUBLIC_URL` on the Gateway; see
+  [below](#outline-behind-an-internal-address).
 - SVG: the Gateway pre-check is in `internal/images/svg*.go`; the conversion is
   the first phase of the Worker (`internal/worker/svg.go`). The attack corpus
   that backs the table above is `internal/svgcorpus` (see
