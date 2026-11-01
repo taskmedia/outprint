@@ -50,7 +50,7 @@ templates/neutral/
 ```
 
 Fonts are loaded by file path, never by name: the Worker's TeX engine cannot
-use the system font database (see [worker.md](worker.md)). A Template loads
+use the system font database (see [Worker pipeline](worker.md)). A Template loads
 its fonts with the fontspec option `Path=./fonts/`:
 
 ```tex
@@ -237,7 +237,7 @@ fields:
   warning.
 
 How a Document's Metadata Block, the Configuration Defaults and the manifest
-defaults combine into field values is described in [metadata.md](metadata.md).
+defaults combine into field values is described in [Metadata](metadata.md).
 
 ## Path confinement
 
@@ -255,7 +255,7 @@ For both package kinds:
 
 A documented set of common field names (`title`, `date`, `language`, `author`,
 `recipient`, `subject`, `accent_color`, ...) is listed in
-[standard-fields.md](standard-fields.md). Reusing them keeps Configurations
+[Standard Fields](standard-fields.md). Reusing them keeps Configurations
 portable. They are a convention: any field may be declared. `validate` warns
 when a Template declares a Standard Field name with a different type.
 

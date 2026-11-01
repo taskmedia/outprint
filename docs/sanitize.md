@@ -62,7 +62,7 @@ make test-audit          # tests the matching logic with a fake gh
 The audit only reads. It never edits issues or pull requests; fix findings by
 hand. Limits: `AUDIT_LIMIT` (default 1000) caps the issue and pull request
 lists and the script fails when the cap is reached. Discussions, wikis and
-Actions logs are not scanned. See [publishing.md](publishing.md) for the whole
+Actions logs are not scanned. See [Publishing checklist](publishing.md) for the whole
 checklist.
 
 ## Optional pre-commit hook

@@ -23,7 +23,7 @@ GET http://localhost:8080/render/<documentId>
 
 The browser must send the user's Outline session cookie, so in a real
 deployment the Gateway is served from the same site as Outline: the injector
-routes `/pdf` to it ([injector.md](injector.md)). Check the file with `docker compose -f
+routes `/pdf` to it ([Injector and download button](injector.md)). Check the file with `docker compose -f
 deploy/compose/compose.yaml config`.
 
 `./templates` and `./configurations` of the repository are mounted read-only
@@ -31,7 +31,7 @@ into both services at the paths of the shipped `service.yaml`. Replace the
 sources to install your own packages; the service configuration inside the
 image lists the allowed Bindings and the default Binding.
 
-For a local stack with Outline, a login and seeded content, see [development.md](development.md); it layers its own file over this one.
+For a local stack with Outline, a login and seeded content, see [Development stack and end-to-end tests](development.md); it layers its own file over this one.
 
 ## The injector
 
@@ -70,7 +70,7 @@ Gateway sends no CORS headers and must stay same-origin.
 The baseline is enforced by the build: `internal/sandbox` reads this file,
 fails if any row above is weakened or if the service uses a key it does not
 know, and the security suite runs the Worker with exactly these settings
-([security.md](security.md)).
+([Security](security.md)).
 
 At start the Worker logs its posture (`worker security posture`); anything
 weaker than this table is logged as `worker posture is weaker than the shipped
@@ -86,5 +86,5 @@ without it.
 Throughput scales by Worker replicas, not by parallel jobs in one Worker. One
 slow render delays others; a busy Worker answers `429` with `Retry-After`
 through the Gateway. The Gateway's admission control (slots, a queue, a
-per-user limit) sits in front of the Workers, see [limits.md](limits.md); raise
+per-user limit) sits in front of the Workers, see [Limits and admission control](limits.md); raise
 its `slots` together with the number of Worker replicas.

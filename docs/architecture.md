@@ -16,7 +16,7 @@ browser --> injector --> Outline          (adds the button script to HTML pages)
 ```
 
 A third deployable, the **injector**, is a separate slim image
-([injector.md](injector.md)). It is not a role of the outprint image.
+([Injector and download button](injector.md)). It is not a role of the outprint image.
 
 ## Roles
 
@@ -39,11 +39,11 @@ file. The endpoint changes nothing on the server, and the response is
 `Cache-Control: no-store`. `GET /healthz` answers 200. `GET /button.js` serves the button script (embedded
 from `web/button.js`; `text/javascript`, `nosniff`, `max-age=300`, no cookie
 needed). The Gateway sends no CORS headers: it is reached through the injector's
-`/pdf` prefix, on the origin of Outline ([injector.md](injector.md)).
+`/pdf` prefix, on the origin of Outline ([Injector and download button](injector.md)).
 
 `GET /status/{documentId}` tells the button script whether to show the button
 (see [Status endpoint](#status-endpoint)). The Template and Configuration come
-from the Collection's Binding block ([binding.md](binding.md)) and nowhere
+from the Collection's Binding block ([Binding](binding.md)) and nowhere
 else: no query parameter or header selects or overrides them.
 
 Configuration (environment):
@@ -51,20 +51,20 @@ Configuration (environment):
 | Variable | Meaning | Default |
 |----------|---------|---------|
 | `OUTLINE_URL` | base URL of Outline; the only origin the cookie is sent to | required |
-| `OUTLINE_PUBLIC_URL` | Outline's own `URL` setting, when `OUTLINE_URL` is an internal address; a redirect to this origin is fetched from `OUTLINE_URL` ([images.md](images.md#outline-behind-an-internal-address)) | none |
+| `OUTLINE_PUBLIC_URL` | Outline's own `URL` setting, when `OUTLINE_URL` is an internal address; a redirect to this origin is fetched from `OUTLINE_URL` ([Images](images.md#outline-behind-an-internal-address)) | none |
 | `OUTPRINT_WORKER_URL` | base URL of the Worker | required |
 | `OUTPRINT_WORKER_TOKEN` | optional shared bearer token | none |
 | `OUTPRINT_LISTEN` | listen address | `:8080` |
 | `OUTPRINT_TIMEOUT` | render limit; the Gateway waits 30 s longer for the Worker | `60s` |
 | `OUTPRINT_SERVICE_CONFIG` | service configuration file | |
-| `OUTPRINT_ADMISSION_SLOTS`, `_QUEUE_DEPTH`, `_PER_USER`, `_MAX_WAIT` | override the `admission` keys of the service configuration, see [limits.md](limits.md) | `1`, `4`, `1`, `60s` |
+| `OUTPRINT_ADMISSION_SLOTS`, `_QUEUE_DEPTH`, `_PER_USER`, `_MAX_WAIT` | override the `admission` keys of the service configuration, see [Limits and admission control](limits.md) | `1`, `4`, `1`, `60s` |
 | `OUTPRINT_LOG_LEVEL` | `debug`, `info`, `warn`, `error` | `info` |
 
 ### Worker
 
 `POST /render` takes a bundle and answers `application/pdf` or a JSON error
 `{"phase", "kind", "job_id"}`. `GET /healthz` answers 200 and needs no token.
-The pipeline behind it is described in [worker.md](worker.md).
+The pipeline behind it is described in [Worker pipeline](worker.md).
 
 - One job per instance. While a job runs, a second request gets `503` with
   kind `busy`.
@@ -108,7 +108,7 @@ to the Worker. It is JSON, `Content-Type: application/json`:
 | `values` | the merged, typed field values of the Document Type: string, list of strings or bool |
 | `template`, `configuration` | package names; the Worker also checks the pairing against its allow-list |
 | `documentType` | one of the Template's Document Types |
-| `images` | image files by bundle name (`images/<name>` in the Markdown). Fetched and canonicalised by the Gateway (an SVG is checked and passed on as `.svg`; the Worker converts it to a vector PDF), see [images.md](images.md) |
+| `images` | image files by bundle name (`images/<name>` in the Markdown). Fetched and canonicalised by the Gateway (an SVG is checked and passed on as `.svg`; the Worker converts it to a vector PDF), see [Images](images.md) |
 
 There is no field for a cookie, a URL or a secret, and unknown fields are
 rejected, so none can be added by accident. A test serialises a bundle built
@@ -128,7 +128,7 @@ types are checked, and the limits below apply. The limits live in
 | pages of the PDF | 500 |
 
 The per-job limits (time, pages, PDF size, TeX runs) and the container limits
-are named in one place, `internal/limits`; see [security.md](security.md).
+are named in one place, `internal/limits`; see [Security](security.md).
 
 ## Request flow
 
@@ -146,7 +146,7 @@ are named in one place, `internal/limits`; see [security.md](security.md).
    unknown name or a pair off the allow-list is a 422 with `source:
    collection`, never a fallback to the default. No block and no default is a
    422 `no_binding`. A Document without a Collection has no block. See
-   [binding.md](binding.md).
+   [Binding](binding.md).
 5. `metadata.Resolve` merges the Metadata Block with the derived values: `title`
    is the Outline title and `date` is the last-modified date (`updatedAt`, in
    UTC, as an ISO date).
@@ -175,7 +175,7 @@ id, 401 without a cookie or when Outline answers 401, 403 and 404 when the
 user cannot read the Document or its Collection, 500 otherwise. A client must
 treat any non-200 answer as "do not decide" and may keep the button hidden.
 
-Admission control ([limits.md](limits.md)) sits in `gateway.process`. After the
+Admission control ([Limits and admission control](limits.md)) sits in `gateway.process`. After the
 Binding is selected the Gateway asks Outline for the confirmed user id
 (`auth.info`) and counts the render against that user, before the images are
 fetched; a slot of the global limit is taken right before the Worker call. Both
@@ -197,7 +197,7 @@ Content-Disposition: attachment; filename="Gruesse aus Koeln.pdf"; filename*=UTF
 
 ## Error mapping
 
-Validation problems are the structured body of [metadata.md](metadata.md):
+Validation problems are the structured body of [Metadata](metadata.md):
 `{"errors":[{"field","source","code","message","line"}]}`. Every other error is
 `{"message", "phase", "job_id"}`, where the message is a fixed sentence. No
 response carries a log excerpt, TeX output, Document content or a cause.
@@ -210,13 +210,13 @@ response carries a log excerpt, TeX output, Document content or a cause.
 | Outline answers 404 | 404 | |
 | metadata errors | 422 | the error list; all problems at once |
 | no Binding | 422 | one error with `source: collection`, `code: no_binding` |
-| invalid Binding block | 422 | errors with `source: collection` and a `binding_*` code, see [binding.md](binding.md) |
+| invalid Binding block | 422 | errors with `source: collection` and a `binding_*` code, see [Binding](binding.md) |
 | Outline answers 403 or 404 for the Collection | 403 / 404 | `phase: binding`, no fallback |
 | Markdown, bundle or PDF over a limit | 413 | |
 | too many pages (`pages_exceeded`), PDF too large (`pdf_too_large`) | 413 | `phase: output` |
 | the job ran out of memory or scratch space (`resource`) | 413 | the Worker restarts |
 | Worker busy | 429 | with `Retry-After` |
-| renderer at capacity (`busy`), user already has a render (`user_limit`) | 429 | admission control, with `Retry-After`; error list with `source: service`, see [limits.md](limits.md) |
+| renderer at capacity (`busy`), user already has a render (`user_limit`) | 429 | admission control, with `Retry-After`; error list with `source: service`, see [Limits and admission control](limits.md) |
 | Outline does not confirm the user | 401 / 403 / 500 | never counted by address |
 | Worker timeout | 504 | `phase: timeout` |
 | Outline or Worker unreachable, TeX error, any other failure | 500 | only phase and job id |
@@ -230,7 +230,7 @@ Both roles log with `log/slog` to stderr.
   error of the clients and carries no response text. The `job` is the Worker's
   job id when the Worker answered, else a Gateway request id.
 - The Worker logs, per failed job, `job`, `phase`, `duration_ms`, `exit_code`
-  and the first TeX error line, see [worker.md](worker.md#logging). The first
+  and the first TeX error line, see [Worker pipeline](worker.md#logging). The first
   TeX error line stays in the Worker's log and does not travel to the Gateway;
   find it by the job id.
 - Neither role logs Document content, metadata values or the cookie.

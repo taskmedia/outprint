@@ -179,4 +179,4 @@ Outline keeps its public URL (`URL=https://wiki.example.invalid`) and its
 
 With Docker Compose, `deploy/compose/compose.yaml` has an `injector` service next
 to `gateway` and `worker`. It publishes port 8090 (`OUTPRINT_INJECTOR_PORT`) and needs
-`OUTPRINT_INJECTOR_UPSTREAM`; see [deploy-compose.md](deploy-compose.md).
+`OUTPRINT_INJECTOR_UPSTREAM`; see [Deploying with Docker Compose](deploy-compose.md).

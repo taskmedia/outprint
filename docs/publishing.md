@@ -16,11 +16,11 @@ settings. Work through this list in order.
 
    It runs `make sanitize` (tree, history, refs, secrets) and scans every
    issue, pull request, comment, review comment, commit message, release note
-   and the repository description and topics. See [sanitize.md](sanitize.md).
+   and the repository description and topics. See [Sanitisation gate](sanitize.md).
    Findings name the issue or pull request and the field, never the pattern.
    Fix each one:
    - issue or pull request text: edit it on GitHub (the audit does not edit);
-   - tree or history: see [sanitize.md](sanitize.md); history rewrites need a
+   - tree or history: see [Sanitisation gate](sanitize.md); history rewrites need a
      coordinated force-push, so prefer fixing forward if the history is clean;
    - repeat until `audit: clean`.
 3. Read `docs/research/` and the other docs once more by eye. The denylist
@@ -67,7 +67,7 @@ These are settings you change on GitHub; the project does not do it for you.
 - **Secret scanning and push protection**, **Dependabot alerts**: enable.
 - **Actions**: require approval for workflows from outside collaborators on
   public repositories; keep the `SANITIZE_DENYLIST` secret (fork pull
-  requests only run the generic checks, see [sanitize.md](sanitize.md)).
+  requests only run the generic checks, see [Sanitisation gate](sanitize.md)).
 - **Features**: turn off Wikis and Projects if unused; set the repository
   description and topics (the audit checks them).
 - **Merge settings**: as you prefer; the commit style is Conventional Commits.
