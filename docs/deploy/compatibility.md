@@ -33,6 +33,22 @@ If a new Outline version breaks the placement, the floating button appears and
 the browser console says why. Nothing else stops working: the Gateway and the
 PDF are not affected.
 
+## Current CI status
+
+The table above is a statement about releases and does not change by itself.
+These badges show what the browser tests do **today on the `main` branch**, so a
+run that has just failed is visible here. They do not describe the version of the
+docs you are reading.
+
+| Run | Covers | Status |
+|-----|--------|--------|
+| [`e2e`](https://github.com/taskmedia/outprint/actions/workflows/e2e.yml) | the pinned and the oldest supported Outline | [![e2e](https://github.com/taskmedia/outprint/actions/workflows/e2e.yml/badge.svg?branch=main)](https://github.com/taskmedia/outprint/actions/workflows/e2e.yml) |
+| [`e2e-latest-outline`](https://github.com/taskmedia/outprint/actions/workflows/e2e-latest-outline.yml) | the newest stable Outline, weekly | [![e2e-latest-outline](https://github.com/taskmedia/outprint/actions/workflows/e2e-latest-outline.yml/badge.svg?branch=main)](https://github.com/taskmedia/outprint/actions/workflows/e2e-latest-outline.yml) |
+
+The badges come from GitHub itself and need no other service. The weekly run does
+not block changes, so a red badge there means "look at the newest Outline", not
+"this release is broken".
+
 ## Try another Outline version
 
 The browser tests run against the dev stack. `OUTLINE_IMAGE` in the shell wins
