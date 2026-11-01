@@ -29,12 +29,12 @@ with the default `GITHUB_TOKEN` does not trigger other workflows, so a separate
 
 A release PR created with the default `GITHUB_TOKEN` does not run the `test`
 workflow, so required checks on `main` could never pass. The workflow therefore
-uses the repository secret `RELEASE_PLEASE_TOKEN` when it exists and falls back
+uses the repository secret `PAT` when it exists and falls back
 to `GITHUB_TOKEN` otherwise. Create a fine-grained personal access token (of a
 user who may push to the repository) with access to this repository only and
 the permissions **Contents: read and write**, **Pull requests: read and write**
 and **Issues: read and write**, give it an expiry, and store it as the secret
-`RELEASE_PLEASE_TOKEN` (Settings > Secrets and variables > Actions). Put the
+`PAT` (Settings > Secrets and variables > Actions). Put the
 expiry date in your calendar: when the token expires the release PR silently
 stops getting its checks.
 
