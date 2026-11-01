@@ -2,6 +2,11 @@
 
 Turns [Outline](https://www.getoutline.com/) documents into typeset PDFs.
 
+Pick a Template, bind it to an Outline Collection, write a few fields at the
+top of a Document and download a typeset PDF: letters, reports or your own
+design in LaTeX, with fixed organisation values (name, logo, colours) kept apart
+from the content. Nothing in Outline is forked.
+
 A **Template** provides the look and structure (letter, report, ...). A
 **Template Configuration** adapts it to an organisation or purpose (name, logo,
 colours, defaults). A Collection admin binds a Template and a Configuration to a
@@ -20,9 +25,30 @@ block and downloads the PDF with one click.
 See [CONTEXT.md](CONTEXT.md) for the vocabulary and
 [docs/adr](docs/adr) for architecture decisions.
 
+## Quick start
+
+You need Docker, Go and `make`.
+
+```sh
+make dev     # Outline with login, the injector, Gateway and Worker, seeded, at http://localhost:8090
+make e2e     # optional: the browser tests against that stack
+```
+
+The log-in, the seed data and what to click are described in
+[docs/development.md](docs/development.md). To try only the renderer, see
+"Development" below.
+
+## Documentation
+
+Start at the index, [docs/README.md](docs/README.md). Template authors begin
+with the [Template author guide](docs/template-author-guide.md). The research
+behind the design is in [docs/research](docs/research/README.md).
+
 ## Status
 
-Work in progress. Tracked in the project issues.
+Work in progress. Tracked in the project issues. Known gaps are listed there,
+for example how Outline's code fences keep the `yaml metadata` marker
+(issue #42).
 
 ## Development
 
@@ -37,6 +63,7 @@ make test-sandbox    # security layers 2 and 3 only (needs a Docker daemon)
 make update-goldens  # regenerate goldens, only ever inside the pinned image
 make sanitize        # scan tree and history for forbidden strings
 make test-sanitize   # test the sanitize gate itself
+make audit           # pre-publish audit: sanitize plus issues and pull requests via gh
 make dev             # Outline + injector + Gateway + Worker, seeded, at http://localhost:8090
 make e2e             # tier 3: browser tests against that stack
 ```
@@ -85,8 +112,13 @@ proves, the limits and how to run the suite, and
 [docs/testing.md](docs/testing.md) for the test tiers and the CI schedule.
 See [docs/limits.md](docs/limits.md) for the limits and admission control
 (slots, queue, per-user limit, and how to configure them).
-See [docs/sanitize.md](docs/sanitize.md) for the sanitisation gate.
+See [docs/sanitize.md](docs/sanitize.md) for the sanitisation gate and the
+pre-publish audit, and [docs/publishing.md](docs/publishing.md) for the
+maintainer's checklist.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). The renderer image also contains Pandoc, TeX Live, librsvg and
+fonts under their own licences; see [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES),
+which includes the written source offer. Operators remain bound by Outline's
+own licence for their Outline instance.

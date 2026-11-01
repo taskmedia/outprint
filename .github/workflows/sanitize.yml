@@ -23,7 +23,7 @@ jobs:
         run: go install github.com/zricethezav/gitleaks/v8@v8.21.2
 
       - name: Test the sanitize gate
-        run: make test-sanitize
+        run: make test-sanitize test-audit
 
       # The private denylist is an Actions secret. Secrets are not available to
       # fork pull requests, so those runs only perform the generic checks.

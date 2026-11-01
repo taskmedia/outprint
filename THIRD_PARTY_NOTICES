@@ -1,0 +1,312 @@
+THIRD-PARTY NOTICES
+===================
+
+outline-latex-pdf is licensed under the MIT License (see LICENSE). This file
+lists the third-party software that is shipped in, or used with, the project,
+under which licences, and how to obtain the source of the GPL-licensed
+programs.
+
+Scope and honesty note. The facts below were taken from the release image
+built from this repository's Dockerfile (base image debian:trixie-20261027-slim,
+Debian 13) with `dpkg-query`, the packages' own `/usr/share/doc/*/copyright`
+files and the file headers of the LaTeX packages the neutral Template loads.
+Licence names are as the upstream projects or the Debian copyright files state
+them. This is not legal advice. Anything that could not be verified is marked
+"not verified". The authoritative text is always the licence file inside the
+component. To list every package of the image with its licence:
+
+    docker run --rm --entrypoint dpkg-query <image> -W
+    docker run --rm --entrypoint sh <image> -c 'cat /usr/share/doc/<package>/copyright'
+
+To refresh this file after a base image or package change, see
+docs/publishing.md ("Refreshing the notices").
+
+
+1. What is distributed
+----------------------
+
+The project publishes source code. It may also publish container images:
+
+  * the RENDERER image (default target of the Dockerfile): the Go binary
+    `renderer`, the Templates and Configurations of this repository, and the
+    Debian packages pandoc, librsvg2-bin, texlive-luatex, texlive-latex-base,
+    texlive-latex-recommended and fonts-texgyre with their dependencies
+    (about 175 Debian packages in total);
+  * the INJECTOR image: the Go binary `injector` on gcr.io/distroless/static-debian13
+    (no TeX toolchain, no shell, no package manager). The licences of the
+    distroless base are in the image under /usr/share/doc; not verified in
+    this run.
+
+Not part of the release images: poppler-utils (installed only in the `golden`
+and `sandbox` build stages, which are test images and are not published), the
+sandbox probe, the Go toolchain, Node, Playwright and the dev stack images of
+section 7.
+
+The Debian packages are unmodified. They are an aggregate with the Go binary
+in one image, not a combined program: the Worker starts `pandoc` and `lualatex`
+as separate processes. See docs/research/license.md ("GPL FAQ recheck") for
+the reasoning and the FAQ entries it rests on. Each component keeps its own
+licence; the MIT licence of this project does not apply to them.
+
+
+2. Pandoc (GPL-2.0-or-later) and the source offer
+-------------------------------------------------
+
+  Packages:   pandoc 3.1.11.1+ds-2, pandoc-data 3.1.11.1-3 (Debian trixie)
+  Upstream:   https://pandoc.org, https://github.com/jgm/pandoc (John MacFarlane and contributors)
+  Licence:    GNU General Public License, version 2 or (at your option) any
+              later version. Debian's copyright file for `pandoc` lists
+              GPL-2+ and GPL-3+ (Debian does not say which parts are GPL-3+); `pandoc-data` lists GPL-2+, BSD-3-Clause and
+              public-domain parts (templates and data files are GPL-2+ or
+              BSD-3-Clause). The full texts are in the image under
+              /usr/share/common-licenses (GPL-2, GPL-3) and the copyright
+              files in /usr/share/doc/pandoc and /usr/share/doc/pandoc-data.
+
+Pandoc is a Haskell program. The image holds the Debian binary; the Haskell
+libraries it was built from are compiled into it (the image has no shared
+Haskell runtime libraries). The image also holds the Lua filters of this
+project, which Pandoc loads; they are MIT licensed and are in this repository.
+
+WRITTEN OFFER OF SOURCE CODE
+
+We distribute the Debian-built Pandoc binary without modification. The
+complete corresponding source code is the Debian source package of the exact
+versions named above, and the source packages of the libraries Debian built it
+with. You can get it in either of these ways, at no cost:
+
+  1. From Debian, which publishes it for as long as the release exists and
+     keeps older versions on snapshot.debian.org:
+       https://deb.debian.org/debian/pool/main/p/pandoc/   (pandoc_3.1.11.1+ds-2.dsc and tarballs)
+       https://deb.debian.org/debian/pool/main/h/haskell-pandoc/   (pandoc-data)
+       https://snapshot.debian.org/      (search the package and version)
+       https://sources.debian.org/src/pandoc/
+     or, with `deb-src` enabled for trixie:
+       apt-get source pandoc=3.1.11.1+ds-2
+     The `.dsc` file lists the build dependencies (the Haskell libraries).
+     Their source packages are retrieved the same way.
+  2. From us. If you received a copy of the renderer image from this project
+     and cannot obtain the source as described, open an issue at
+     https://github.com/taskmedia/outline-latex-pdf/issues naming the image
+     tag, or write to the maintainer address on the repository profile, and
+     we will send you the source on a physical medium or by download. We may
+     charge no more than the cost of physically performing the distribution.
+
+This offer is valid for three years from the date the image containing that
+Pandoc version was published, and for as long as that image remains available
+for download, whichever is longer. It is given to anyone who received the
+image, as GPL-2.0 section 3(b) requires.
+
+Pandoc's upstream source for the same version is also available at
+https://github.com/jgm/pandoc/tree/3.1.11.1 (the Debian package adds
+packaging files and, via "+ds", removes some files from the upstream tarball).
+
+Not verified: the licence of each Haskell library inside the Debian binary
+beyond what the Debian copyright file of `pandoc` states.
+
+
+3. TeX Live, LuaTeX, KOMA-Script and the LaTeX packages
+-------------------------------------------------------
+
+  Packages (Debian trixie, TeX Live 2024 packaging):
+    texlive-binaries 2024.20240313.70630+ds-6 (LuaTeX / LuaHBTeX, kpathsea;
+                     GPL-2+, LPPL, MIT, TeX-Live per Debian's copyright file)
+    texlive-base, texlive-latex-base, texlive-latex-recommended, texlive-luatex
+                     2024.20250309-1
+    tex-common 6.19 (GPL-2+), fonts-lmodern / lmodern 2.005-1
+  Upstream:   https://tug.org/texlive/, https://www.latex-project.org
+  Source:     Debian source packages `texlive-bin` (binaries), `texlive-base`
+              (all four texlive-* packages above), `lmodern`, `tex-common`,
+              at the same places as in section 2, e.g.
+              apt-get source texlive-bin=2024.20240313.70630+ds-6
+              apt-get source texlive-base=2024.20250309-1
+  Licence:    TeX Live is a collection of many packages, each under its own
+              free licence. Debian's copyright file for these packages
+              (/usr/share/doc/texlive-*/copyright) states: all software is
+              freely redistributable under the FSF's definition and the Debian
+              Free Software Guidelines, and the individual licences apply.
+              The per-package list that file refers to (`Licenses`) is not
+              installed in the image. The licences below were therefore read
+              from the file headers inside the image.
+
+The LaTeX classes and packages the neutral Template and the Pandoc LaTeX
+writer load, with the licence their files state (verified in the image):
+
+  LaTeX Project Public License (LPPL), version 1.3 or 1.3c, or later:
+    KOMA-Script (scrartcl, scrlttr2, scrlayer-scrpage), fontspec, hyperref,
+    longtable, array, calc (LaTeX "tools"), booktabs, etoolbox, caption,
+    footnotehyper, graphicx (graphics), amsmath, bookmark, iftex, the LaTeX
+    kernel and base classes, expl3 (l3kernel)
+  LPPL, version "as described in lppl.txt": fancyvrb
+  LPPL version 2 or later (stated in the file): url
+  GNU General Public License, version 2 (exactly): luaotfload (the LuaTeX font
+    loader; its Lua and TeX files state "GPL v2.0 (exactly)")
+  GNU General Public License, version 2 or later: footnote.sty (mdwtools),
+    which the neutral Template loads only as a fallback when footnotehyper is
+    not found; footnotehyper is present, so it is not used
+  Not verified from file headers in this run: xcolor (the TeX Catalogue lists
+    the LPPL), lualibs (the file refers to the ConTeXt licence; the
+    terms were not read)
+
+LPPL requirement: the files are distributed unmodified; if you modify one you
+must rename it. This project does not modify any of them. The LPPL text is in
+the image at /usr/share/texlive/texmf-dist/doc/latex/base/lppl.txt when the
+documentation tree is installed; otherwise at
+https://www.latex-project.org/lppl/.
+
+Source offer for the GPL-licensed TeX components (luaotfload, LuaTeX binaries
+and others under GPL-2+): the Debian source packages named above contain the
+complete corresponding source. The written offer of section 2 applies to them
+in the same words and for the same period.
+
+PDFs produced with these tools are not covered by their licences.
+
+
+4. librsvg (LGPL-2.1-or-later and others)
+-----------------------------------------
+
+  Packages:   librsvg2-bin and librsvg2-2, 2.60.0+dfsg-1+deb13u1
+  Upstream:   https://gitlab.gnome.org/GNOME/librsvg
+  Licence:    The library is under the GNU Lesser General Public License,
+              version 2.1 or later (Debian: "LGPL-2+"); librsvg is written in
+              Rust and Debian's copyright file lists the licences of its Rust
+              crates (Apache-2.0, MIT/Expat, BSD-2-Clause, BSD-3-Clause,
+              MPL-2.0, Unlicense, Zlib, Boost-1.0, 0BSD, OFL-1.1 for bundled
+              test fonts and others).
+  Use:        `rsvg-convert` is started as a separate process to turn an SVG
+              image or logo into a vector PDF. Nothing is linked into our code.
+  Source:     apt-get source librsvg=2.60.0+dfsg-1+deb13u1 (Debian pool and
+              snapshot.debian.org as in section 2). The offer of section 2
+              applies to the copyleft parts in the same words.
+  LGPL note:  the LGPL library is used as an unmodified shared system library
+              of the Debian image; a user can replace it by installing another
+              version into the image.
+
+Libraries librsvg depends on (cairo, pango, glib, harfbuzz, freetype,
+gdk-pixbuf, libxml2 and others) are Debian packages under LGPL, MIT, FTL/GPL-2
+and similar licences; each is listed with its licence in the image.
+
+
+5. Fonts
+--------
+
+5.1 Fonts shipped in this repository (templates/neutral/fonts)
+
+  TeX Gyre Pagella and TeX Gyre Heros, OpenType, regular, bold, italic and
+  bold italic of each (8 files).
+  Copyright (C) 2006-2018 Boguslaw Jackowski and Janusz M. Nowacki.
+  Licence: GUST Font License (GFL), a free licence based on the LaTeX Project
+  Public License, version 1.3c or later: https://www.gust.org.pl/projects/e-foundry/licenses
+  The files are byte-identical to the ones in the Debian package fonts-texgyre
+  20180621-6 (compared by SHA-256 in the image build used for this file). The
+  licence text is in that package's /usr/share/doc/fonts-texgyre/copyright;
+  the upstream README of each family is in the same directory. The GFL allows
+  use, copying and distribution of the unmodified fonts, with this notice. If
+  you modify a font you must rename it (the same rule as the LPPL).
+  Documents embed font subsets in PDFs; the GFL does not restrict documents.
+
+5.2 Fonts installed in the renderer image
+
+  fonts-texgyre 20180621-6 (GUST Font License; Debian's copyright file also
+  lists GPL-2+ and the DejaVu licence for some parts of the package) and fonts-lmodern / lmodern 2.005-1 (Latin Modern, GUST Font
+  License; the Debian copyright file for fonts-lmodern lists no licence field
+  that could be read automatically, so this is the upstream licence: not
+  verified in this run).
+
+5.3 Fonts used for text inside SVG images
+
+  The renderer image has no other font packages. In the image used for this
+  file, fontconfig resolved the generic families `sans-serif`, `serif`,
+  `monospace` to TeX Gyre Adventor and `Helvetica` to TeX Gyre Heros, so SVG
+  text is drawn with TeX Gyre fonts of section 5.2, unless the SVG's font name
+  matches an installed font (see docs/images.md). No proprietary font is
+  shipped. Do not add fonts to Templates or Configurations unless their licence
+  allows redistribution; see docs/template-author-guide.md.
+
+
+6. Go dependencies
+------------------
+
+Direct dependencies of the Go module (go.mod), compiled into the renderer and
+injector binaries. Licences were read from the LICENSE files in the module
+cache of the pinned versions.
+
+  github.com/yuin/goldmark v1.7.17
+    MIT License, Copyright (c) 2019 Yusuke Inuzuka.
+    Used to parse Markdown (Gateway side).
+  golang.org/x/image v0.47.0
+    BSD 3-Clause "New" licence, Copyright 2009 The Go Authors, plus the Go
+    patent grant (file PATENTS). Only the packages riff, vp8, vp8l and webp are
+    linked (WebP decoding).
+  gopkg.in/yaml.v3 v3.0.1
+    MIT licence (the files ported from the C library libyaml) and the Apache
+    License 2.0 (the rest, Copyright 2011-2016 Canonical Ltd), as stated in the
+    module's LICENSE and NOTICE files.
+
+The Go standard library and runtime are linked into the binaries: BSD
+3-Clause licence, Copyright 2009 The Go Authors (https://go.dev/LICENSE).
+
+go.sum also names golang.org/x/sys, golang.org/x/text and
+gopkg.in/check.v1 for module-graph resolution. None of their packages is
+compiled into the binaries (checked with `go list -deps ./...`), so they are
+not distributed.
+
+To regenerate the list:
+
+    go list -m -f '{{.Path}} {{.Version}}' all
+    go list -deps ./... | grep -v '^[a-z0-9/]*$' | sort -u    # packages linked
+    # then read LICENSE in each module (go list -m -f '{{.Dir}}' MODULE)
+
+(`go-licenses` was not available when this file was written; the three
+modules were checked by hand.)
+
+The browser test suite (e2e/package.json) uses @playwright/test, pdfjs-dist,
+typescript and @types/node as development dependencies. They are installed
+from npm by `make e2e-install`, are not part of any image or release, and are
+licensed under Apache-2.0 (Playwright, pdf.js, TypeScript) and MIT
+(@types/node), as their packages state; not re-verified in this run.
+
+
+7. Development and end-to-end test stack (not distributed)
+----------------------------------------------------------
+
+`make dev` and `make e2e` start these images from public registries on the
+developer's or the CI machine, from deploy/dev/versions.env. This repository
+contains only configuration files for them. They are separate containers that
+talk to our code over HTTP and OIDC. They are not copied into, built into or
+published with any image of this project, and the release images do not
+contain them.
+
+  Outline 1.12.0 (outlinewiki/outline), by General Outline, Inc.
+    Business Source License 1.1 (checked at the v1.12.0 tag). Licensor:
+    General Outline, Inc. Additional Use Grant: "You may make use of the
+    Licensed Work, provided that you may not use the Licensed Work for a
+    Document Service." (a commercial offering that lets third parties create
+    teams and documents). Change Date 2030-10-23, Change License Apache-2.0.
+    The BSL is not an open-source licence until the Change Date. The dev stack
+    runs a local instance for testing, which the Additional Use Grant allows.
+    No Outline source or branding is copied into this repository. Operators
+    of a production Outline remain bound by Outline's terms for their own
+    instance; this project's licence does not change that.
+  Dex v2.46.1 (ghcr.io/dexidp/dex): Apache License 2.0 (checked).
+  PostgreSQL 17.11 (postgres:17.11-alpine): PostgreSQL License (COPYRIGHT file
+    checked at REL_17_11); the Alpine base and other layers of the image have
+    their own licences, not verified.
+  Redis 7.4.12 (redis:7.4.12-alpine): from version 7.4 Redis is available
+    under the user's choice of the Redis Source Available License v2 (RSALv2)
+    or the Server Side Public License v1 (SSPLv1) (checked in LICENSE.txt at
+    tag 7.4.12). Neither is an OSI open-source licence. Redis is used only as
+    a separate container in the local stack. If you prefer a different
+    in-memory store, change REDIS_IMAGE in deploy/dev/versions.env to a
+    Redis-compatible image whose licence suits you.
+
+Because these images are only pulled by the person who runs the stack, this
+project does not redistribute them. If you publish a derivative that bundles
+any of these images, their licences become yours to satisfy.
+
+
+8. Trademarks
+-------------
+
+"Outline" is a trademark of its owner; this project names it descriptively
+and is not affiliated with or endorsed by General Outline, Inc. Pandoc, TeX,
+LaTeX, Debian and the other names are the property of their owners.
