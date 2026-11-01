@@ -5,7 +5,7 @@ package web
 
 import _ "embed"
 
-// ButtonJS is the "Download PDF" button script (web/button.js).
+// ButtonJS is the "Formatted PDF" action script (web/button.js).
 //
 //go:embed button.js
 var ButtonJS []byte

@@ -20,6 +20,9 @@ const (
 type statusResponse struct {
 	Available bool   `json:"available"`
 	Reason    string `json:"reason"`
+	// Language is the user's Outline language (for example "de_DE"), empty
+	// when unknown. The script picks its labels from it.
+	Language string `json:"language,omitempty"`
 }
 
 // status answers whether the button belongs on this Document: the
@@ -55,7 +58,20 @@ func (g *Gateway) statusOf(r *http.Request) (statusResponse, *failure) {
 	if f != nil {
 		return statusResponse{}, f
 	}
-	return statusFor(sel), nil
+	resp := statusFor(sel)
+	resp.Language = g.userLanguage(r, session)
+	return resp, nil
+}
+
+// userLanguage is best effort: a label in the wrong language is better than
+// no button, so a failed lookup yields an empty language.
+func (g *Gateway) userLanguage(r *http.Request, session outline.Session) string {
+	lang, err := g.cfg.Outline.UserLanguage(r.Context(), session)
+	if err != nil {
+		g.cfg.Logger.Debug("user language not available", "err", err)
+		return ""
+	}
+	return lang
 }
 
 func statusFor(sel selection) statusResponse {

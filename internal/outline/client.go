@@ -131,6 +131,21 @@ func (c *Client) UserID(ctx context.Context, s Session) (string, error) {
 	return out.User.ID, nil
 }
 
+// UserLanguage returns the interface language Outline has stored for the
+// user of the session (auth.info), for example "de_DE". It is empty when
+// Outline names none.
+func (c *Client) UserLanguage(ctx context.Context, s Session) (string, error) {
+	var out struct {
+		User struct {
+			Language string `json:"language"`
+		} `json:"user"`
+	}
+	if err := c.call(ctx, "auth.info", map[string]string{}, s, &out); err != nil {
+		return "", err
+	}
+	return out.User.Language, nil
+}
+
 func (c *Client) call(ctx context.Context, method string, params map[string]string, s Session, out any) error {
 	body, err := json.Marshal(params)
 	if err != nil {

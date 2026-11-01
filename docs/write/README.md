@@ -41,5 +41,5 @@ them all. These four are enough to start.
 **Binding**
 : The choice of one Template and one Configuration for a Collection. A
   Collection admin makes it once. You do not choose it yourself. If your
-  Collection has no Binding, there is no Download PDF button. See
+  Collection has no Binding, there is no Formatted PDF action. See
   [Configure](../configure/README.md).

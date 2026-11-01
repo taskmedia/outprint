@@ -134,17 +134,38 @@ Outline and both tracked:
 
 ## Browser tests
 
-`e2e/` holds Playwright (Chromium, one worker) with exactly two tests:
+`e2e/` holds Playwright (Chromium, one worker). `tests/download.spec.ts` has two
+tests:
 
 1. **A bound document downloads as a PDF.** Sign in through Dex's form, open
-   *Spring plant sale*, wait for the `/pdf/status/<id>` answer, see the button
-   (`#olp-pdf-button`, name "Download this document as PDF"), click it, take the
-   download, check the `%PDF` header and the text (the opening sentence, the
-   name of the example Configuration, a table cell). It also fetches the export
-   of the captioned Document through the API and checks that the captions are
-   the alt text (the verification recorded in [Images in the pipeline](images.md#notes)).
-2. **No Binding, no button.** Open *Garden notes*, wait for the status answer
-   (`available: false`) and check that the button is absent.
+   *Spring plant sale*, wait for the `/pdf/status/<id>` answer, open the **…**
+   menu, **Export**, click **Formatted PDF**, take the download, check the
+   `%PDF` header and the text (the opening sentence, the name of the example
+   Configuration, a table cell). It also fetches the export of the captioned
+   Document through the API and checks that the captions are the alt text (the
+   verification recorded in [Images in the pipeline](images.md#notes)).
+2. **No Binding, no action.** Open *Garden notes*, wait for the status answer
+   (`available: false`) and check that there is no floating button, no header
+   button and no menu item.
+
+`tests/placement.spec.ts` covers the placement of the action in Outline's real
+markup, with one shared sign-in because Outline rate-limits logins:
+
+- the Export menu entry downloads a PDF, closes the menu and returns the focus;
+- the entry appears once however often the menu opens, and the arrow keys and
+  Enter reach and use it;
+- no entry for a document without a Binding;
+- `placement=button`: the header button sits directly before Share, with the
+  `icon` style keeping an accessible name and a tooltip;
+- operator labels, and the German label of a user whose Outline language is
+  German;
+- a markup change that removes the anchor: the floating fallback and a console
+  warning, or nothing with `fallback=off`.
+
+The tests change the script options the way the injector does, by adding `data-`
+attributes to the script tag in the page they receive. To try a change to
+`web/button.js` without rebuilding the stack, serve it from disk:
+`E2E_BUTTON_JS=../web/button.js npx playwright test`.
 
 Everything goes through the injector origin; the only other host the browser
 visits is Dex's sign-in page. No test sleeps: they wait for the network answers

@@ -1,5 +1,5 @@
 // Command outprint-injector is a reverse proxy in front of Outline that adds the
-// "Download PDF" button script to its HTML pages.
+// "Formatted PDF" action script to its HTML pages.
 package main
 
 import (

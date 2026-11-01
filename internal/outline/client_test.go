@@ -175,3 +175,23 @@ func TestPathPrefixIsKept(t *testing.T) {
 		t.Errorf("path = %q", gotPath)
 	}
 }
+
+func TestUserLanguage(t *testing.T) {
+	c := newClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, `{"data":{"user":{"id":"u-42","language":"de_DE"}}}`)
+	}))
+	lang, err := c.UserLanguage(context.Background(), Session{Cookie: sessionCookie})
+	if err != nil || lang != "de_DE" {
+		t.Errorf("UserLanguage = %q, %v", lang, err)
+	}
+}
+
+func TestUserLanguageMayBeAbsent(t *testing.T) {
+	c := newClient(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		io.WriteString(w, `{"data":{"user":{"id":"u-42"}}}`)
+	}))
+	lang, err := c.UserLanguage(context.Background(), Session{Cookie: sessionCookie})
+	if err != nil || lang != "" {
+		t.Errorf("UserLanguage = %q, %v; want empty and no error", lang, err)
+	}
+}

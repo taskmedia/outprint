@@ -21,7 +21,8 @@ look. The authors do not choose it.
 | Page | What you learn |
 |------|----------------|
 | [Choose a Template and Configuration](choose-a-template.md) | The block to copy, the rules for it, and the errors you may see. |
+| [Where the PDF action appears](pdf-action.md) | Export menu or header button, the labels, and how it differs from Outline's own PDF. |
 
 Before you start, check that someone has [deployed Outprint](../deploy/README.md)
-for your Outline. If a document shows no **Download PDF** button in a Collection
+for your Outline. If a document shows no **Formatted PDF** action in a Collection
 that has a block, ask that person.

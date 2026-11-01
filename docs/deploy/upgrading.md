@@ -43,7 +43,7 @@ lists what to check when versions exist. It will grow with the first releases.
 
 ## After you upgrade
 
-1. Open a document in a Collection with a Binding and click **Download PDF**.
+1. Open a document in a Collection with a Binding and use **Export → Formatted PDF**.
 2. If an author reports a message you do not know, look up its code in
    [When something goes wrong](../write/when-something-goes-wrong.md).
    The codes are stable per version.

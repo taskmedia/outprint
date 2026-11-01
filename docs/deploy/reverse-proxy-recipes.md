@@ -12,7 +12,7 @@ and the forwarding headers that the injector expects. The shape is always the
 same: `edge proxy -> injector -> Outline`, with `/pdf/*` going to the Gateway.
 
 Today there is one worked example, for Traefik, in
-[Injector and download button](injector.md#routing-example). The rules in
+[Injector and PDF action](injector.md#routing-example). The rules in
 [Where the injector sits](injector.md) hold for every proxy.
 
 Progress is tracked in [issue #51](https://github.com/taskmedia/outprint/issues/51).

@@ -146,6 +146,7 @@ class FakeElement {
   appendChild(child) { child.parent = this; this.children.push(child); return child; }
   remove() { if (this.parent) this.parent.children = this.parent.children.filter((c) => c !== this); this.parent = null; }
   setAttribute(k, v) { this.attributes[k] = String(v); }
+  getAttribute(k) { return k in this.attributes ? this.attributes[k] : null; }
   addEventListener(type, fn) { (this.listeners[type] = this.listeners[type] || []).push(fn); }
   click() { (this.listeners.click || []).forEach((fn) => fn()); }
   focus() { this.focused = true; }
@@ -160,19 +161,27 @@ class FakeElement {
   text() { return this.textContent + this.children.map((c) => c.text()).join('|'); }
 }
 
-function setup(pathname, responses) {
+function setup(pathname, responses, scriptAttributes) {
   const body = new FakeElement('body');
   const head = new FakeElement('head');
   const calls = [];
+  const warnings = [];
   const windowListeners = {};
   const history = { pushState() {}, replaceState() {} };
   const document = {
     readyState: 'complete',
     visibilityState: 'visible',
     body, head,
-    currentScript: { src: 'https://wiki.example.invalid/pdf/button.js' },
+    // No Outline header in this stub: the anchor is never found, so the
+    // script ends in its floating fallback after the (zero) wait.
+    currentScript: {
+      src: 'https://wiki.example.invalid/pdf/button.js',
+      getAttribute: (name) => Object.assign({ 'data-fallback-delay': '0' }, scriptAttributes)[name] ?? null,
+    },
     getElementById: (id) => body.find(id) || head.find(id),
     createElement: (tag) => new FakeElement(tag),
+    querySelector: () => null,
+    querySelectorAll: () => [],
     addEventListener() {},
     removeEventListener() {},
   };
@@ -180,7 +189,10 @@ function setup(pathname, responses) {
     location: { pathname },
     history,
     document,
+    navigator: { language: 'en-US' },
+    console: { warn: (...args) => warnings.push(args.join(' ')) },
     addEventListener: (type, fn) => { (windowListeners[type] = windowListeners[type] || []).push(fn); },
+    removeEventListener() {},
     dispatchEvent: (e) => { (windowListeners[e.type] || []).forEach((fn) => fn(e)); return true; },
   };
   const fetch = (url, options) => {
@@ -190,10 +202,11 @@ function setup(pathname, responses) {
   };
   const context = vm.createContext({
     window: win, document, fetch, history, Event: class { constructor(type) { this.type = type; } },
-    CSSStyleSheet: undefined, setTimeout, URL, Date, console,
+    CSSStyleSheet: undefined, setTimeout, clearTimeout, URL, Date, console,
+    MutationObserver: class { observe() {} disconnect() {} },
   });
   vm.runInContext(fs.readFileSync(path.join(__dirname, 'button.js'), 'utf8'), context);
-  return { body, calls, win, history };
+  return { body, calls, win, history, warnings };
 }
 
 const json = (status, data) => ({
@@ -202,7 +215,7 @@ const json = (status, data) => ({
   json: () => Promise.resolve(data),
   text: () => Promise.resolve(JSON.stringify(data)),
 });
-const tick = () => new Promise((resolve) => setTimeout(resolve, 5));
+const tick = () => new Promise((resolve) => setTimeout(resolve, 20));
 
 test('the button appears when the status says available, with the cookie sent', async () => {
   const env = setup('/doc/plan-aB3dE5fGh1', { '/pdf/status/aB3dE5fGh1': json(200, { available: true, reason: 'collection_binding' }) });
@@ -211,7 +224,7 @@ test('the button appears when the status says available, with the cookie sent', 
   assert.ok(button, 'button is shown');
   assert.equal(button.tag, 'button');
   assert.equal(button.type, 'button');
-  assert.equal(button.attributes['aria-label'], 'Download this document as PDF');
+  assert.equal(button.attributes['aria-label'], 'Download formatted PDF');
   assert.equal(env.calls[0].options.credentials, 'same-origin');
 });
 
@@ -392,4 +405,98 @@ test('a plain failure with a docs link shows it under the title', async () => {
 
 test('the script trusts the same docs origin as the Gateway', () => {
   assert.equal(b.DOCS_ORIGIN, DOCS);
+});
+
+// ---- placement, language and texts ---------------------------------------
+
+const attrs = (map) => (name) => (name in map ? map[name] : null);
+
+test('parseOptions defaults to the menu, icon and label, fallback on', () => {
+  const o = b.parseOptions(attrs({}));
+  assert.equal(o.placement, 'menu');
+  assert.equal(o.style, 'icon-label');
+  assert.equal(o.fallback, true);
+  assert.equal(o.fallbackDelay, 3000);
+  assert.deepEqual(o.labels, {});
+});
+
+test('parseOptions reads the data attributes of the tag', () => {
+  const o = b.parseOptions(attrs({
+    'data-placement': 'button', 'data-style': 'icon', 'data-fallback': 'off', 'data-fallback-delay': '1500',
+    'data-labels': '{"menu":{"de":"PDF mit Briefkopf"}}',
+  }));
+  assert.equal(o.placement, 'button');
+  assert.equal(o.style, 'icon');
+  assert.equal(o.fallback, false);
+  assert.equal(o.fallbackDelay, 1500);
+  assert.deepEqual(o.labels, { menu: { de: 'PDF mit Briefkopf' } });
+});
+
+test('parseOptions ignores unusable values', () => {
+  const o = b.parseOptions(attrs({
+    'data-placement': 'floating', 'data-style': 'big', 'data-fallback-delay': '-5', 'data-labels': '{not json',
+  }));
+  assert.equal(o.placement, 'menu');
+  assert.equal(o.style, 'icon-label');
+  assert.equal(o.fallbackDelay, 3000);
+  assert.deepEqual(o.labels, {});
+  const odd = b.parseOptions(attrs({ 'data-labels': '{"menu":{"de":"","DE":"x","en":' + JSON.stringify('x'.repeat(81)) + '},"other":{"en":"x"},"tooltip":{"en":7}}' }));
+  assert.deepEqual(odd.labels, {});
+  assert.equal(b.parseOptions(attrs({ 'data-fallback-delay': '99999999' })).fallbackDelay, 60000);
+});
+
+test('resolveLanguage follows the Outline language, then the browser, then English', () => {
+  assert.equal(b.resolveLanguage('de_DE', 'en-US'), 'de');
+  assert.equal(b.resolveLanguage('en_US', 'de-DE'), 'en');
+  assert.equal(b.resolveLanguage(undefined, 'de-AT'), 'de');
+  assert.equal(b.resolveLanguage('', 'de'), 'de');
+  assert.equal(b.resolveLanguage(undefined, undefined), 'en');
+  assert.equal(b.resolveLanguage(undefined, 'xx'), 'en');
+});
+
+test('resolveLanguage falls back to English for a language without texts', () => {
+  assert.equal(b.resolveLanguage('fr_FR', 'de-DE'), 'en');
+  assert.equal(b.resolveLanguage('fr_FR', 'de-DE', ['fr']), 'fr');
+});
+
+test('textsFor gives the built-in texts in English and German', () => {
+  const en = b.textsFor('en', {});
+  assert.equal(en.menu, 'Formatted PDF');
+  assert.equal(en.button, 'PDF');
+  assert.equal(en.tooltip, 'Download formatted PDF');
+  const de = b.textsFor('de', {});
+  assert.equal(de.menu, 'Formatiertes PDF');
+  assert.equal(de.tooltip, 'Formatiertes PDF herunterladen');
+});
+
+test('textsFor prefers a configured text for the language, then the built-in one, then configured English', () => {
+  const labels = { menu: { de: 'PDF mit Briefkopf', en: 'Letterhead PDF' }, tooltip: { en: 'Get the PDF' }, button: { fr: 'PDF' } };
+  assert.equal(b.textsFor('de', labels).menu, 'PDF mit Briefkopf');
+  assert.equal(b.textsFor('de', labels).tooltip, 'Formatiertes PDF herunterladen');
+  assert.equal(b.textsFor('en', labels).tooltip, 'Get the PDF');
+  assert.equal(b.textsFor('fr', labels).menu, 'Letterhead PDF');
+  assert.equal(b.textsFor('fr', labels).button, 'PDF');
+  assert.equal(b.textsFor('zz', {}).menu, 'Formatted PDF');
+});
+
+test('isExportItemText recognises the file types of the Export items, not their translated names', () => {
+  for (const text of ['Markdown.md', 'HTML.html', 'TextBundle.textpack', 'PDF.pdf', ' Markdown.md ']) assert.equal(b.isExportItemText(text), true, text);
+  for (const text of ['Print⌘P', 'Copy link', 'Copy as Markdown', 'Pin to home', '', null, undefined]) assert.equal(b.isExportItemText(text), false, String(text));
+});
+
+test('without an anchor the floating button appears after the wait, with a console warning', async () => {
+  const env = setup('/doc/plan-aB3dE5fGh1', { '/pdf/status/aB3dE5fGh1': json(200, { available: true, language: 'de_DE' }) });
+  await tick();
+  const button = env.body.find('olp-pdf-button');
+  assert.ok(button);
+  assert.equal(button.attributes['aria-label'], 'Formatiertes PDF herunterladen');
+  assert.equal(env.warnings.length, 1);
+  assert.match(env.warnings[0], /menu/);
+});
+
+test('fallback off shows nothing when the anchor is missing', async () => {
+  const env = setup('/doc/plan-aB3dE5fGh1', { '/pdf/status/aB3dE5fGh1': json(200, { available: true }) }, { 'data-fallback': 'off' });
+  await tick();
+  assert.equal(env.body.find('olp-pdf-button'), null);
+  assert.equal(env.warnings.length, 0);
 });

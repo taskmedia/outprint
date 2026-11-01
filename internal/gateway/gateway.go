@@ -43,6 +43,9 @@ type Outline interface {
 	Image(ctx context.Context, target string, s outline.Session) ([]byte, error)
 	// UserID is the id Outline confirms for the session.
 	UserID(ctx context.Context, s outline.Session) (string, error)
+	// UserLanguage is the interface language Outline has stored for the user
+	// of the session; empty when it names none.
+	UserLanguage(ctx context.Context, s outline.Session) (string, error)
 	BaseURL() string
 }
 

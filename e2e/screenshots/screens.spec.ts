@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
+import { chooseFormattedPdf, MENU_LABEL, openExportSubmenu } from '../support/placement';
 import { loadSeed } from '../support/seed';
 
 // Generates the screenshots of the Outline UI used by the documentation, from
@@ -10,7 +11,7 @@ import { loadSeed } from '../support/seed';
 // docs/assets/screens/. Only the fictional seed data is ever on screen.
 const seed = loadSeed();
 const RAW_DIR = resolve(process.env.SCREENSHOTS_RAW_DIR ?? 'test-results/screens-raw');
-const BUTTON = '#olp-pdf-button';
+const ANY_ACTION = '#olp-pdf-button, .olp-header-button';
 const ERROR_PANEL = '[role="alert"]';
 const DOCUMENT_TITLE = '[role="textbox"][aria-label="Document title"]';
 const COLLECTION_TITLE = 'span[role="textbox"]';
@@ -128,10 +129,13 @@ test('screenshots of the Outline UI for the documentation', async ({ page }) => 
   const status = page.waitForResponse((r) => new URL(r.url()).pathname.startsWith('/pdf/status/'));
   await open(page, seed.bound.documentPath, DOCUMENT_TITLE, seed.bound.documentTitle);
   expect((await status).status()).toBe(200);
-  await expect(page.locator(BUTTON)).toBeVisible();
+  // The action sits in the Export menu: show the menu open.
+  await openExportSubmenu(page);
+  await expect(page.getByRole('menuitem', { name: MENU_LABEL })).toBeVisible();
   await hideDocumentTimestamps(page);
-  await page.mouse.move(130, 540);
   await shot(page, 'bound-document-with-button.png');
+  await page.keyboard.press('Escape');
+  await page.mouse.move(130, 540);
 
   // The leading Metadata Block with a line of body text below it. The title
   // is left out: the hidden byline would leave a gap between the two.
@@ -139,7 +143,7 @@ test('screenshots of the Outline UI for the documentation', async ({ page }) => 
   await shot(page, 'document-metadata-block.png', metadata);
 
   // The example letter: the PDF of this document, first page.
-  const [download] = await Promise.all([page.waitForEvent('download'), page.locator(BUTTON).click()]);
+  const [download] = await Promise.all([page.waitForEvent('download'), chooseFormattedPdf(page)]);
   const pdfPath = join(RAW_DIR, 'letter.pdf');
   await download.saveAs(pdfPath);
   firstPageToPng(pdfPath, join(RAW_DIR, 'example-letter.png'));
@@ -149,7 +153,7 @@ test('screenshots of the Outline UI for the documentation', async ({ page }) => 
   const unboundStatus = page.waitForResponse((r) => new URL(r.url()).pathname.startsWith('/pdf/status/'));
   await open(page, seed.unbound.documentPath, DOCUMENT_TITLE, seed.unbound.documentTitle);
   expect(await (await unboundStatus).json()).toMatchObject({ available: false });
-  await expect(page.locator(BUTTON)).toHaveCount(0);
+  await expect(page.locator(ANY_ACTION)).toHaveCount(0);
   await hideDocumentTimestamps(page);
   await shot(page, 'unbound-document-no-button.png');
 
@@ -160,9 +164,8 @@ test('screenshots of the Outline UI for the documentation', async ({ page }) => 
 
   // What an author sees when the Metadata Block is wrong.
   await open(page, seed.invalid.documentPath, DOCUMENT_TITLE, seed.invalid.documentTitle);
-  await expect(page.locator(BUTTON)).toBeVisible();
   await hideDocumentTimestamps(page);
-  await page.locator(BUTTON).click();
+  await chooseFormattedPdf(page);
   await expect(page.locator(ERROR_PANEL)).toBeVisible();
   await expect(page.locator(ERROR_PANEL)).toContainText('subjekt');
   await page.mouse.move(130, 540);
