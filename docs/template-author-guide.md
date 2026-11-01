@@ -3,17 +3,17 @@
 This guide is for people who write a **Template** (a style family such as a
 letter or a report) or a **Template Configuration** (the values that adapt a
 Template to an organisation). It ties together the reference pages and walks
-through one complete example. Terms are defined in [CONTEXT.md](https://github.com/taskmedia/outprint/blob/main/CONTEXT.md).
+through one complete example. Terms are defined in [Vocabulary](https://github.com/taskmedia/outprint/blob/main/CONTEXT.md).
 
 Reference pages this guide builds on:
 
-- [packages.md](packages.md): package format, field types, typed patterns, the
+- [Packages](packages.md): package format, field types, typed patterns, the
   TeX deny-list, drift guard, `validate`
-- [standard-fields.md](standard-fields.md): the Standard Fields
-- [metadata.md](metadata.md): what a Document author can write and how values
+- [Standard Fields](standard-fields.md): the Standard Fields
+- [Metadata](metadata.md): what a Document author can write and how values
   are layered
-- [worker.md](worker.md): what the engine allows, and why
-- [images.md](images.md): images and logos
+- [Worker pipeline](worker.md): what the engine allows, and why
+- [Images](images.md): images and logos
 
 ## The model in one minute
 
@@ -71,7 +71,7 @@ document_types:
 
 A field has a `type`, and optionally `required`, `description`, `default`,
 `pattern` and (for `enum`) `values`. Field names match `^[a-z][a-z0-9_]*$`.
-Unknown keys anywhere are errors. See [packages.md](packages.md#manifestyaml).
+Unknown keys anywhere are errors. See [Packages](packages.md#manifestyaml).
 
 ### Field types
 
@@ -130,7 +130,7 @@ does):
 
 Fonts are loaded by **file path** with `Path=./fonts/`, never by name (the
 engine cannot build the font name database under paranoid reads; see
-[worker.md](worker.md#reading-below-the-job-directory-only)):
+[Worker pipeline](worker.md#reading-below-the-job-directory-only)):
 
 ```tex
 \setmainfont{texgyrepagella-regular.otf}[Path=./fonts/,
@@ -146,7 +146,7 @@ repository.
 ### Images and logos
 
 A logo is an `asset` field. SVG files are converted to vector PDF; raster
-formats are limited as described in [images.md](images.md). Text inside an SVG
+formats are limited as described in [Images](images.md). Text inside an SVG
 is drawn with the fonts of the Worker image, not the Template's fonts.
 
 ## The TeX deny-list
@@ -165,17 +165,17 @@ Every TeX file of a Template (`.latex`, `.tex`, `.sty`, `.cls`, `.def`, `.cfg`,
 - `\includegraphics` with a literal absolute or `..` path;
 - any `.lua` file in the package.
 
-The full list is in [packages.md](packages.md#tex-deny-list). It is a safety
+The full list is in [Packages](packages.md#tex-deny-list). It is a safety
 net against accidents and careless Templates, not a sandbox: the Worker still
 runs without network or secrets and with shell escape off
-([security.md](security.md)).
+([Security](security.md)).
 
 ## Standard Fields
 
 Reuse the Standard Fields (`title`, `date`, `language`, `author`, `name`,
 `logo`, `accent_color`, letter and report fields) with the listed types so
 that Configurations stay portable between Templates. The page
-[standard-fields.md](standard-fields.md) and the machine-readable table
+[Standard Fields](standard-fields.md) and the machine-readable table
 `internal/packages/standard_fields.yaml` (used by the loader) are kept in step
 by a test, and `neutral` declares its fields with those types. `validate`
 warns, never fails, when a Template uses a Standard Field name with another
@@ -201,7 +201,7 @@ When a Configuration is bound to a Template, every value of a declared field
 is checked against that field. A Fixed Value the Template does not declare has
 no effect and gives a warning, so one Configuration can serve several
 Templates. `extends` is reserved and not supported in v1. See
-[packages.md](packages.md#configuration-package).
+[Packages](packages.md#configuration-package).
 
 ## validate and render
 
@@ -244,8 +244,8 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" outprint render \
 ```
 
 `--debug-tex-log` prints the full TeX log (it may contain document content;
-see [worker.md](worker.md)); `--json-errors` prints the JSON error body on
-stdout ([metadata.md](metadata.md)).
+see [Worker pipeline](worker.md)); `--json-errors` prints the JSON error body on
+stdout ([Metadata](metadata.md)).
 
 ### Drift guard
 
@@ -253,7 +253,7 @@ stdout ([metadata.md](metadata.md)).
 manifest: an undeclared variable, or one not listed by the Document Type that
 uses it, is an **error**; a declared field no template uses is a **warning**.
 Pandoc's own variables (`body`, `highlighting-macros`, `lang`, ...) are
-ignored. See [packages.md](packages.md#drift-guard).
+ignored. See [Packages](packages.md#drift-guard).
 
 ## Goldens for Template authors
 
@@ -274,7 +274,7 @@ To cover your Template:
 
 **Not available yet:** a per-Document-Type opt-in to compare rasterised pages
 (PNG diff). The research suggested it as an optional narrow check
-([research/test-environment.md](https://github.com/taskmedia/outprint/blob/main/docs/research/test-environment.md)), but it is not
+([test environment research](https://github.com/taskmedia/outprint/blob/main/docs/research/test-environment.md)), but it is not
 implemented: there is no PNG golden and no manifest or fixture switch for it.
 Today, layout regressions are caught by the text goldens and by the asserted
 facts only. If you need visual checks, render and look at the PDF; do not rely
@@ -338,7 +338,7 @@ with `validate` and `render` against the image of this repository.
    listing the field and it is an error.
 
 5. Render a Document that sets it. The Metadata Block of a Document is a
-   `yaml` block at its start ([metadata.md](metadata.md)):
+   `yaml` block at its start ([Metadata](metadata.md)):
 
    ````markdown
    ```yaml
@@ -356,7 +356,7 @@ with `validate` and `render` against the image of this repository.
    ```
 
 6. To offer it to Collections, add the pair to `bindings` in the service
-   configuration ([packages.md](packages.md#service-configuration)) and bake
+   configuration ([Packages](packages.md#service-configuration)) and bake
    the package into the image or mount it.
 
 ## Checklist before you publish a Template
@@ -367,4 +367,4 @@ with `validate` and `render` against the image of this repository.
 - Every non-text field has a narrow pattern.
 - A golden fixture covers each Document Type.
 - No organisation-specific names, logos or addresses in a public repository:
-  run `task sanitize` ([sanitize.md](https://github.com/taskmedia/outprint/blob/main/docs/sanitize.md)).
+  run `task sanitize` ([Sanitisation gate](https://github.com/taskmedia/outprint/blob/main/docs/sanitize.md)).

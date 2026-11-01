@@ -29,7 +29,7 @@ CI fails if any test of the security suite reports a skip.
 ## The shipped baseline
 
 `deploy/compose/compose.yaml`, service `worker` (see
-[deploy-compose.md](deploy-compose.md)):
+[Deploying with Docker Compose](deploy-compose.md)):
 
 - fixed non-root user `10001:10001`, `no-new-privileges`, all capabilities
   dropped, Docker's default seccomp profile, read-only root file system
@@ -169,7 +169,7 @@ for memory is reported as `resource`; a full job directory is reported as
 `resource` the Worker answers, then exits non-zero; `restart: always` gives the
 next job a new process and an empty tmpfs. The Gateway maps `pages_exceeded`,
 `pdf_too_large` and `resource` to 413 with a sentence that tells the author
-what to change, `timeout` to 504 (see [architecture.md](architecture.md)).
+what to change, `timeout` to 504 (see [Architecture](architecture.md)).
 
 A page count is only known after LuaLaTeX has finished, so the wall clock is
 what bounds a document that makes pages endlessly.
@@ -204,4 +204,4 @@ task test-sandbox      # layers 2 and 3 only
 `RELEASE_IMAGE` pointing at them. The skip guard, `scripts/security-guard.sh`,
 reads the test output and fails on any skip or when nothing ran. CI uses
 `-json` (`task test-security GOTEST_FLAGS=-json`); see
-[testing.md](https://github.com/taskmedia/outprint/blob/main/docs/testing.md).
+[Testing](https://github.com/taskmedia/outprint/blob/main/docs/testing.md).

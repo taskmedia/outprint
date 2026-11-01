@@ -18,7 +18,7 @@ truncated: a Document that does not fit fails, it is not cut short.
 | Pages | 500 | Worker | 413 `the document has too many pages; shorten it` | `OUTPRINT_MAX_PAGES` (Worker, lower only in practice) |
 | PDF size | 50 MiB | Worker, Gateway | 413 `the resulting PDF is too large; remove or shrink images` | `OUTPRINT_MAX_PDF_BYTES` (Worker, up to 50 MiB) |
 | TeX runs | 2 | Worker | | no |
-| Worker memory, CPUs, PIDs, scratch space | 1 GiB, 1, 128, 256 MiB | container runtime ([deploy-compose.md](deploy-compose.md)) | 413 `resource` | Compose file |
+| Worker memory, CPUs, PIDs, scratch space | 1 GiB, 1, 128, 256 MiB | container runtime ([Deploying with Docker Compose](deploy-compose.md)) | 413 `resource` | Compose file |
 | Concurrent renders | 1 | Gateway admission control | 429 | see below |
 | Queue depth | 4 | Gateway admission control | 429 | see below |
 | Renders per user | 1 | Gateway admission control | 429 | see below |
