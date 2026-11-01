@@ -185,8 +185,8 @@ real markup is covered by the browser tests, see
 ## Hiding the metadata block
 
 On documents where a Binding applies, the script hides the [metadata
-block](../write/fill-in-the-document.md) (the first `yaml` code block of the
-document) while the editor is read-only, and shows it again as soon as the
+block](../write/fill-in-the-document.md) (the `yaml` code block at the very
+start of the document) while the editor is read-only, and shows it again as soon as the
 document is editable. Readers see the content, authors see the block when they
 edit.
 

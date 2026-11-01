@@ -7,8 +7,9 @@
  * of the document menu (default), or as a header button before Share. When the
  * anchor cannot be found it falls back to a small floating button. The
  * operator chooses through data attributes the injector writes on the script
- * tag. Plain ES2019, no dependencies. All server text reaches the page through
- * textContent.
+ * tag. On those documents it also hides the Metadata Block while the editor
+ * is read-only. Plain ES2019, no dependencies. All server text reaches the
+ * page through textContent.
  */
 (function (root) {
   'use strict';
@@ -281,14 +282,9 @@
     return EXPORT_ITEM_PATTERN.test(String(text || '').trim());
   }
 
-  // The Metadata Block is the first fenced yaml block of a Document. Returns
-  // its index in the languages of the page's code blocks, or -1.
-  function firstMetadataBlockIndex(languages) {
-    if (!languages) return -1;
-    for (var i = 0; i < languages.length; i++) {
-      if (/^ya?ml$/i.test(String(languages[i] || '').trim())) return i;
-    }
-    return -1;
+  // The Metadata Block is the fenced yaml block at the very start of a Document.
+  function isMetadataLanguage(language) {
+    return /^yaml$/i.test(String(language || '').trim());
   }
 
   // The block is shown while editing and hidden for readers.
@@ -649,13 +645,17 @@
 
   // ---- Metadata Block ----------------------------------------------------
 
-  // Outline renders a code block as a <pre>; the language sits on it or on a
-  // wrapper (data-language) or in a language-* class. Depends on Outline's DOM.
-  function codeBlockLanguage(pre) {
-    var holder = pre.closest('[data-language]');
-    if (holder) return holder.getAttribute('data-language');
+  // The first block of the editor, when it is a fenced yaml code block. Outline
+  // renders a code block as a <pre>, with its language on the block or on the
+  // <pre> (data-language, or a language-* class). Depends on Outline's DOM.
+  function findMetadataBlock(editor) {
+    var block = editor && editor.firstElementChild;
+    if (!block) return null;
+    var pre = block.tagName === 'PRE' ? block : block.querySelector('pre');
+    if (!pre) return null;
     var match = /(?:^|\s)language-(\S+)/.exec(pre.className || '');
-    return match ? match[1] : '';
+    var language = block.getAttribute('data-language') || pre.getAttribute('data-language') || (match && match[1]);
+    return isMetadataLanguage(language) ? block : null;
   }
 
   function restoreMetadataBlock() {
@@ -669,18 +669,16 @@
   // as soon as the page is editable. The block may flash before this runs.
   function syncMetadataBlock() {
     var editor = document.querySelector('.ProseMirror');
-    var pres = editor ? Array.prototype.slice.call(editor.querySelectorAll('pre')) : [];
-    var index = firstMetadataBlockIndex(pres.map(codeBlockLanguage));
-    var page = { found: index !== -1, editable: !!editor && editor.getAttribute('contenteditable') === 'true' };
-    if (!shouldHideMetadataBlock(page)) {
+    var block = findMetadataBlock(editor);
+    var editable = !!editor && editor.getAttribute('contenteditable') === 'true';
+    if (!shouldHideMetadataBlock({ found: !!block, editable: editable })) {
       restoreMetadataBlock();
       return;
     }
-    var target = pres[index].closest('[data-language]') || pres[index];
-    if (target.hasAttribute(METADATA_ATTR)) return;
+    if (block.hasAttribute(METADATA_ATTR)) return;
     restoreMetadataBlock();
-    target.setAttribute(METADATA_ATTR, '');
-    target.style.display = 'none';
+    block.setAttribute(METADATA_ATTR, '');
+    block.style.display = 'none';
   }
 
   // Looks for the anchor of the chosen placement and keeps it in place.
@@ -718,7 +716,8 @@
     // Radix mounts the menu when it opens and removes it when it closes, and
     // React may redraw the header: look again whenever the page changes.
     state.observer = new MutationObserver(schedulePlace);
-    state.observer.observe(document.body, { childList: true, subtree: true });
+    // Switching to edit mode only flips contenteditable on the editor.
+    state.observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['contenteditable'] });
     place();
     if (!state.options.fallback || state.anchored) return;
     state.fallbackTimer = setTimeout(function () {
@@ -1015,7 +1014,7 @@
       resolveLanguage: resolveLanguage,
       textsFor: textsFor,
       isExportItemText: isExportItemText,
-      firstMetadataBlockIndex: firstMetadataBlockIndex,
+      isMetadataLanguage: isMetadataLanguage,
       shouldHideMetadataBlock: shouldHideMetadataBlock,
       DOCS_ORIGIN: DOCS_ORIGIN
     };
