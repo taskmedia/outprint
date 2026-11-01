@@ -500,3 +500,21 @@ test('fallback off shows nothing when the anchor is missing', async () => {
   assert.equal(env.body.find('olp-pdf-button'), null);
   assert.equal(env.warnings.length, 0);
 });
+
+test('firstMetadataBlockIndex picks the first yaml block', () => {
+  assert.equal(b.firstMetadataBlockIndex(['yaml', 'js']), 0);
+  assert.equal(b.firstMetadataBlockIndex(['js', 'YAML', 'yaml']), 1);
+  assert.equal(b.firstMetadataBlockIndex(['sh', 'yml']), 1);
+});
+
+test('firstMetadataBlockIndex finds nothing without a yaml block', () => {
+  assert.equal(b.firstMetadataBlockIndex([]), -1);
+  assert.equal(b.firstMetadataBlockIndex(['js', '', null, undefined]), -1);
+  assert.equal(b.firstMetadataBlockIndex(null), -1);
+});
+
+test('shouldHideMetadataBlock hides only in the reading view', () => {
+  assert.equal(b.shouldHideMetadataBlock({ found: true, editable: false }), true);
+  assert.equal(b.shouldHideMetadataBlock({ found: true, editable: true }), false);
+  assert.equal(b.shouldHideMetadataBlock({ found: false, editable: false }), false);
+});

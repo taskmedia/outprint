@@ -182,6 +182,22 @@ prints a note when it is not; CI always runs it. The placement against Outline's
 real markup is covered by the browser tests, see
 [Compatibility](compatibility.md).
 
+## Hiding the metadata block
+
+On documents where a Binding applies, the script hides the [metadata
+block](../write/fill-in-the-document.md) (the first `yaml` code block of the
+document) while the editor is read-only, and shows it again as soon as the
+document is editable. Readers see the content, authors see the block when they
+edit.
+
+This is a cosmetic convenience, not access control:
+
+- It depends on Outline's markup (a `.ProseMirror` editor with `contenteditable`
+  and code blocks carrying their language). An Outline update can break it; the
+  block is then simply shown again.
+- The block can flash briefly before the script hides it.
+- Share links, Outline's own exports and Outline's search still show it.
+
 ## Security notes
 
 - **Fixed upstream.** The injector forwards to `OUTPRINT_INJECTOR_UPSTREAM` and the

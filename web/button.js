@@ -32,6 +32,7 @@
 
   var ITEM_ATTR = 'data-olp-item';
   var HEADER_WRAP_ATTR = 'data-olp-header';
+  var METADATA_ATTR = 'data-olp-metadata';
   var DEFAULT_FALLBACK_DELAY_MS = 3000;
   var MAX_FALLBACK_DELAY_MS = 60000;
   var MAX_LABEL_LENGTH = 80;
@@ -278,6 +279,21 @@
   // "Markdown.md" this is true, for "Print" and "Copy link" it is not.
   function isExportItemText(text) {
     return EXPORT_ITEM_PATTERN.test(String(text || '').trim());
+  }
+
+  // The Metadata Block is the first fenced yaml block of a Document. Returns
+  // its index in the languages of the page's code blocks, or -1.
+  function firstMetadataBlockIndex(languages) {
+    if (!languages) return -1;
+    for (var i = 0; i < languages.length; i++) {
+      if (/^ya?ml$/i.test(String(languages[i] || '').trim())) return i;
+    }
+    return -1;
+  }
+
+  // The block is shown while editing and hidden for readers.
+  function shouldHideMetadataBlock(page) {
+    return !!page.found && !page.editable;
   }
 
   // The script is served at <prefix>/button.js; the API lives next to it.
@@ -631,9 +647,46 @@
     });
   }
 
+  // ---- Metadata Block ----------------------------------------------------
+
+  // Outline renders a code block as a <pre>; the language sits on it or on a
+  // wrapper (data-language) or in a language-* class. Depends on Outline's DOM.
+  function codeBlockLanguage(pre) {
+    var holder = pre.closest('[data-language]');
+    if (holder) return holder.getAttribute('data-language');
+    var match = /(?:^|\s)language-(\S+)/.exec(pre.className || '');
+    return match ? match[1] : '';
+  }
+
+  function restoreMetadataBlock() {
+    document.querySelectorAll('[' + METADATA_ATTR + ']').forEach(function (el) {
+      el.style.display = '';
+      el.removeAttribute(METADATA_ATTR);
+    });
+  }
+
+  // Hides the Metadata Block while the editor is read-only and shows it again
+  // as soon as the page is editable. The block may flash before this runs.
+  function syncMetadataBlock() {
+    var editor = document.querySelector('.ProseMirror');
+    var pres = editor ? Array.prototype.slice.call(editor.querySelectorAll('pre')) : [];
+    var index = firstMetadataBlockIndex(pres.map(codeBlockLanguage));
+    var page = { found: index !== -1, editable: !!editor && editor.getAttribute('contenteditable') === 'true' };
+    if (!shouldHideMetadataBlock(page)) {
+      restoreMetadataBlock();
+      return;
+    }
+    var target = pres[index].closest('[data-language]') || pres[index];
+    if (target.hasAttribute(METADATA_ATTR)) return;
+    restoreMetadataBlock();
+    target.setAttribute(METADATA_ATTR, '');
+    target.style.display = 'none';
+  }
+
   // Looks for the anchor of the chosen placement and keeps it in place.
   function place() {
     if (!state.available) return;
+    syncMetadataBlock();
     var anchored;
     if (state.options.placement === 'button') {
       anchored = ensureHeaderButton();
@@ -689,6 +742,7 @@
   function removeInjected() {
     stopPlacing();
     removeById(BUTTON_ID);
+    restoreMetadataBlock();
     document.querySelectorAll('[' + HEADER_WRAP_ATTR + '],[' + ITEM_ATTR + ']').forEach(function (el) { el.remove(); });
     dismissPanel();
   }
@@ -961,6 +1015,8 @@
       resolveLanguage: resolveLanguage,
       textsFor: textsFor,
       isExportItemText: isExportItemText,
+      firstMetadataBlockIndex: firstMetadataBlockIndex,
+      shouldHideMetadataBlock: shouldHideMetadataBlock,
       DOCS_ORIGIN: DOCS_ORIGIN
     };
   }
