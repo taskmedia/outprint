@@ -206,6 +206,31 @@ Validation problems are the structured body of [Metadata Block reference](../tem
 `{"message", "phase", "job_id"}`, where the message is a fixed sentence. No
 response carries a log excerpt, TeX output, Document content or a cause.
 
+Every error also carries `docs_url`: a ready-made link to its entry in
+[When something goes wrong](../write/when-something-goes-wrong.md), in the docs of
+the version that is running. The Gateway adds it to each entry of the error
+list (from `code`) and to the other bodies (from the failure kind), so the
+button needs no URL logic. A response without a code or kind has none. The
+`render --json-errors` output of the CLI does not carry it.
+
+The link is `https://outprint.task.media/<path>/write/when-something-goes-wrong/#<code>`.
+The base address is a constant (`internal/docslink`), not a setting. `<path>`
+comes from the embedded version:
+
+| Version | Docs path |
+|---------|-----------|
+| `0.3.2`, `v0.3.2` | `0.3`, the docs of the minor release |
+| `dev`, `0.3.2-dev`, `-dirty`, `v0.3.2-5-gabc1234`, a bare commit | `dev`, the unreleased docs |
+| a pre-release such as `0.4.0-rc.1`, an empty or unparsable version | none: the latest docs at the site root |
+
+The site serves the newest release at its root, so `/<newest minor>/` is a
+redirect there that keeps the `#<code>` anchor, and until the first release
+snapshot exists `/dev/` redirects to the root ([site setup](https://github.com/taskmedia/outprint/blob/main/website/README.md#versions)).
+The button renders only `https:` links to that origin, as "How to fix" next
+to each error and a "Help" link to the docs home of the same version. A test
+fails when a code in the source has no anchor on the page
+(`internal/docslink`, with `task docs:errors-check`).
+
 | Situation | Status | Notes |
 |-----------|--------|-------|
 | invalid document id | 400 | |

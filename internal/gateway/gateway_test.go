@@ -483,7 +483,7 @@ func TestWorkerFailuresAreMapped(t *testing.T) {
 	}
 }
 
-func TestInternalFailureBodyHoldsOnlyJobAndPhase(t *testing.T) {
+func TestInternalFailureBodyHoldsOnlyJobPhaseAndDocsLink(t *testing.T) {
 	e := newEnv(t, true)
 	e.outline.add("d", 200, "T", docText)
 	e.worker.status = 500
@@ -491,7 +491,7 @@ func TestInternalFailureBodyHoldsOnlyJobAndPhase(t *testing.T) {
 	resp, body := e.get(t, "d", cookieCanary)
 	var m map[string]any
 	_ = json.Unmarshal(body, &m)
-	if resp.StatusCode != 500 || len(m) != 3 || m["phase"] != "tex" || m["job_id"] != "j9" {
+	if resp.StatusCode != 500 || len(m) != 4 || m["docs_url"] == "" || m["phase"] != "tex" || m["job_id"] != "j9" {
 		t.Errorf("status %d body %s", resp.StatusCode, body)
 	}
 	for _, want := range []string{"j9", "tex", "tex_error", "status=500", "duration_ms"} {

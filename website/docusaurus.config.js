@@ -1,5 +1,36 @@
 // @ts-check
 
+const fs = require('fs');
+const path = require('path');
+
+// Release snapshots, newest first. Empty until the first `docs:version`.
+const versionsFile = path.join(__dirname, 'versions.json');
+const releasedVersions = fs.existsSync(versionsFile)
+  ? JSON.parse(fs.readFileSync(versionsFile, 'utf8'))
+  : [];
+const hasSnapshot = releasedVersions.length > 0;
+
+// The product links to /<minor>/... for a release and to /dev/... for a
+// development build (internal/docslink). Docusaurus serves the newest
+// release at the site root and the unreleased docs at /dev/, so the paths the
+// product uses for those two do not exist as folders. They are redirects,
+// created here from the same versions.json, so they are right from the first
+// snapshot on:
+//   with a snapshot:     /<newest minor>/*  ->  /*
+//   without a snapshot:  /dev/*             ->  /*   (the current docs are the root)
+const rootAlias = hasSnapshot ? releasedVersions[0] : 'dev';
+const versionFolders = ['dev', ...releasedVersions];
+
+/** @param {string} existingPath */
+function createRedirects(existingPath) {
+  if (existingPath.endsWith('.html')) return undefined;
+  const inVersionFolder = versionFolders.some(
+    (v) => existingPath === `/${v}` || existingPath.startsWith(`/${v}/`),
+  );
+  if (inVersionFolder) return undefined;
+  return [`/${rootAlias}${existingPath}`];
+}
+
 // The site has its own domain (GitHub Pages custom domain, see
 // website/README.md), so it lives at the root.
 const baseUrl = '/';
@@ -19,7 +50,7 @@ const config = {
   // GitHub Pages serves page/index.html at /page/ and redirects /page to
   // /page/. Using the slash form everywhere avoids that redirect and keeps
   // one canonical URL per page, which the version-correct links from the
-  // product (/<minor>/errors/<code>/) rely on.
+  // product (/<minor>/write/when-something-goes-wrong/#<code>) rely on.
   trailingSlash: true,
 
   // Strict: a broken link, anchor or markdown link fails the build.
@@ -82,10 +113,12 @@ const config = {
             'assets/**',
           ],
           // Until the first release snapshot exists, the current docs are the
-          // only version and stay at the site root. At the first snapshot:
-          // see website/README.md ("What to change at the first snapshot").
-          // Do NOT set lastVersion.
-          // versions: {current: {label: 'dev', path: 'dev', banner: 'unreleased'}},
+          // only version and stay at the site root; with a snapshot they move to
+          // /dev/ and the newest release takes the root. Do NOT set lastVersion
+          // (see website/README.md, "Versions").
+          versions: hasSnapshot
+            ? {current: {label: 'dev', path: 'dev', banner: 'unreleased'}}
+            : undefined,
         },
         blog: false,
         theme: {
@@ -94,6 +127,8 @@ const config = {
       }),
     ],
   ],
+
+  plugins: [['@docusaurus/plugin-client-redirects', {createRedirects}]],
 
   themes: [
     [
@@ -132,7 +167,7 @@ const config = {
           {to: '/deploy/', label: 'Deploy', position: 'left', activeBaseRegex: '^/deploy/'},
           {to: '/templates/', label: 'Templates', position: 'left', activeBaseRegex: '^/templates/'},
           {to: '/internals/', label: 'Internals', position: 'left', activeBaseRegex: '^/(internals|adr)/'},
-          // At the first snapshot add: {type: 'docsVersionDropdown', position: 'right'}
+          ...(hasSnapshot ? [{type: 'docsVersionDropdown', position: 'right'}] : []),
           {
             href: 'https://github.com/taskmedia/outprint',
             label: 'GitHub',

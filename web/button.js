@@ -17,6 +17,10 @@
   var DEFAULT_FILENAME = 'document.pdf';
   var MAX_LISTED_ERRORS = 50;
   var ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$/;
+  // The only origin a docs link may point at. The Gateway adds docs_url to its
+  // errors (internal/docslink); a link to anywhere else is not rendered.
+  var DOCS_ORIGIN = 'https://outprint.task.media';
+  var DOCS_PAGE_SUFFIX = '/write/when-something-goes-wrong/';
   var UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   var LABEL = 'Download PDF';
@@ -69,15 +73,42 @@
     return typeof value === 'string' && value !== '';
   }
 
+  // A docs link from the server, or '' when it is not an https URL on the docs
+  // origin. Only the parsed, normalised URL is ever used.
+  function safeDocsUrl(value) {
+    if (typeof value !== 'string' || value === '') return '';
+    var url;
+    try {
+      url = new URL(value);
+    } catch (e) {
+      return '';
+    }
+    if (url.protocol !== 'https:' || url.origin !== DOCS_ORIGIN || url.username !== '' || url.password !== '') return '';
+    return url.href;
+  }
+
+  // The start page of the docs of the version a link points into:
+  // <origin>/<version>/write/when-something-goes-wrong/#code -> <origin>/<version>/.
+  function docsHome(docsUrl) {
+    var safe = safeDocsUrl(docsUrl);
+    if (!safe) return '';
+    var path = new URL(safe).pathname;
+    if (path.slice(-DOCS_PAGE_SUFFIX.length) !== DOCS_PAGE_SUFFIX) return '';
+    return DOCS_ORIGIN + path.slice(0, path.length - DOCS_PAGE_SUFFIX.length) + '/';
+  }
+
   // One entry of the Gateway's {"errors":[...]} list: the message, and the
-  // field, line and source as short details.
+  // field, line and source as short details, and the docs link if it is safe.
   function formatErrorItem(error) {
     var e = error && typeof error === 'object' ? error : {};
     var details = [];
     if (isText(e.field)) details.push('Field: ' + e.field);
     if (typeof e.line === 'number' && e.line > 0) details.push('Line: ' + e.line);
     if (isText(e.source)) details.push('Source: ' + e.source);
-    return { message: isText(e.message) ? e.message : 'Unknown problem.', details: details };
+    var item = { message: isText(e.message) ? e.message : 'Unknown problem.', details: details };
+    var docsUrl = safeDocsUrl(e.docs_url);
+    if (docsUrl) item.docsUrl = docsUrl;
+    return item;
   }
 
   // Retry-After is a number of seconds or an HTTP date.
@@ -117,18 +148,35 @@
     if (status === 429) return { title: busyTitle(response.retryAfter), items: [], omitted: 0 };
     var errors = body && Array.isArray(body.errors) ? body.errors : [];
     if (errors.length > 0 && status >= 400 && status < 500 && status !== 401) {
-      return {
+      var items = errors.slice(0, MAX_LISTED_ERRORS).map(formatErrorItem);
+      return withHelp({
         title: 'The document cannot be rendered yet. Fix the following and try again.',
-        items: errors.slice(0, MAX_LISTED_ERRORS).map(formatErrorItem),
+        items: items,
         omitted: Math.max(0, errors.length - MAX_LISTED_ERRORS)
-      };
+      }, items.map(function (item) { return item.docsUrl; }));
     }
     var title = STATUS_TITLES[status];
     if (!title) {
       title = status >= 500 ? 'The PDF could not be created. Try again later.'
         : 'The PDF could not be created (status ' + status + ').';
     }
-    return { title: title, items: [], omitted: 0 };
+    var failure = { title: title, items: [], omitted: 0 };
+    var docsUrl = body && !Array.isArray(body.errors) ? safeDocsUrl(body.docs_url) : '';
+    if (docsUrl) failure.docsUrl = docsUrl;
+    return withHelp(failure, [docsUrl]);
+  }
+
+  // The "Help" link of the panel: the docs home of the version of the first
+  // docs link there is.
+  function withHelp(failure, docsUrls) {
+    for (var i = 0; i < docsUrls.length; i++) {
+      var home = docsHome(docsUrls[i]);
+      if (home) {
+        failure.helpUrl = home;
+        break;
+      }
+    }
+    return failure;
   }
 
   // The script is served at <prefix>/button.js; the API lives next to it.
@@ -159,7 +207,11 @@
     'padding:2px 6px;cursor:pointer;border-radius:4px}',
     '#olp-pdf-panel ul{margin:10px 0 0;padding-left:20px}',
     '#olp-pdf-panel li{margin:0 0 8px}',
-    '#olp-pdf-panel .olp-detail{display:block;font-size:12px;opacity:.8}'
+    '#olp-pdf-panel .olp-detail{display:block;font-size:12px;opacity:.8}',
+    '#olp-pdf-panel a{color:var(--olp-accent);font-weight:600;text-underline-offset:2px}',
+    '#olp-pdf-panel a:focus-visible{outline:3px solid var(--olp-focus);outline-offset:2px;border-radius:2px}',
+    '#olp-pdf-panel .olp-fix{display:inline-block;margin-top:2px;font-size:13px}',
+    '#olp-pdf-panel .olp-foot{margin:12px 0 0;padding-top:8px;border-top:1px solid var(--olp-border);font-size:13px}'
   ].join('');
 
   var state = { id: null, lastShown: null, token: 0, busy: false, base: DEFAULT_BASE };
@@ -237,11 +289,23 @@
     return el;
   }
 
+  // A link to the docs. href comes only from safeDocsUrl, never from raw
+  // server text.
+  function docsLink(href, text, className) {
+    var a = element('a', className, text);
+    a.href = href;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    if (text !== 'Help') a.setAttribute('aria-label', text + ' (opens in a new tab)');
+    return a;
+  }
+
   function buildList(failure) {
     var list = element('ul');
     failure.items.forEach(function (item) {
       var li = element('li', '', item.message);
       item.details.forEach(function (detail) { li.appendChild(element('span', 'olp-detail', detail)); });
+      if (item.docsUrl) li.appendChild(docsLink(item.docsUrl, 'How to fix', 'olp-fix'));
       list.appendChild(li);
     });
     if (failure.omitted > 0) list.appendChild(element('li', '', '…and ' + failure.omitted + ' more.'));
@@ -266,7 +330,13 @@
     });
     head.appendChild(close);
     panel.appendChild(head);
+    if (failure.docsUrl) panel.appendChild(docsLink(failure.docsUrl, 'How to fix', 'olp-fix'));
     if (failure.items.length > 0) panel.appendChild(buildList(failure));
+    if (failure.helpUrl) {
+      var foot = element('p', 'olp-foot');
+      foot.appendChild(docsLink(failure.helpUrl, 'Help'));
+      panel.appendChild(foot);
+    }
     document.body.appendChild(panel);
     document.addEventListener('keydown', onPanelKey, true);
   }
@@ -389,7 +459,10 @@
       formatErrorItem: formatErrorItem,
       parseRetryAfter: parseRetryAfter,
       describeFailure: describeFailure,
-      basePathFromScriptSrc: basePathFromScriptSrc
+      basePathFromScriptSrc: basePathFromScriptSrc,
+      safeDocsUrl: safeDocsUrl,
+      docsHome: docsHome,
+      DOCS_ORIGIN: DOCS_ORIGIN
     };
   }
 

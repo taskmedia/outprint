@@ -20,6 +20,8 @@ target: `#no_binding` leads to the entry for `no_binding`.
   the problem starts.
 - **All problems come at once.** Fix everything the message lists, then click
   the button again.
+- **How to fix** next to a problem links to its entry on this page, in the
+  docs of the Outprint version that is running.
 - **A hint** such as `did you mean "recipient"?` is almost always right.
 - **A job number** appears for some failures. Give it to the person who runs
   Outprint. It finds the failure in the log.

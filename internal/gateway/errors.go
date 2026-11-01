@@ -9,8 +9,10 @@ import (
 	"strconv"
 
 	"github.com/taskmedia/outprint/internal/bundle"
+	"github.com/taskmedia/outprint/internal/docslink"
 	"github.com/taskmedia/outprint/internal/metadata"
 	"github.com/taskmedia/outprint/internal/outline"
+	"github.com/taskmedia/outprint/internal/version"
 	"github.com/taskmedia/outprint/internal/workerapi"
 )
 
@@ -37,11 +39,13 @@ const (
 
 // message is the body of every error that is not a validation list. It never
 // holds Document content, tool output or a cause: only a fixed sentence, the
-// phase and the job id.
+// phase, the job id and the link to the docs of its kind.
 type message struct {
 	Message string `json:"message"`
 	Phase   string `json:"phase,omitempty"`
 	JobID   string `json:"job_id,omitempty"`
+	// DocsURL is set when the response is written, from the failure kind.
+	DocsURL string `json:"docs_url,omitempty"`
 }
 
 // failure is a request that ends in an error response.
@@ -66,7 +70,43 @@ func (f *failure) write(w http.ResponseWriter) {
 		w.Header().Set("Retry-After", strconv.Itoa(f.retryAfter))
 	}
 	w.WriteHeader(f.status)
-	_ = json.NewEncoder(w).Encode(f.body)
+	_ = json.NewEncoder(w).Encode(f.responseBody())
+}
+
+// errorEntry is one entry of the error list as the Gateway sends it: the
+// fields of metadata.Error, unchanged, and the link to the docs of its code.
+type errorEntry struct {
+	metadata.Error
+	DocsURL string `json:"docs_url,omitempty"`
+}
+
+type errorListBody struct {
+	Errors []errorEntry `json:"errors"`
+}
+
+// responseBody adds the docs link of the running version to the body. The
+// links are made here, at the last step, so the CLI and the log lines keep
+// using the plain types.
+func (f *failure) responseBody() any {
+	v := version.Version
+	switch b := f.body.(type) {
+	case *metadata.ErrorList:
+		return docsErrorBody(*b, v)
+	case metadata.ErrorList:
+		return docsErrorBody(b, v)
+	case message:
+		b.DocsURL = docslink.ErrorURL(v, f.kind)
+		return b
+	}
+	return f.body
+}
+
+func docsErrorBody(list metadata.ErrorList, v string) errorListBody {
+	out := errorListBody{Errors: make([]errorEntry, len(list.Errors))}
+	for i, e := range list.Errors {
+		out.Errors[i] = errorEntry{Error: e, DocsURL: docslink.ErrorURL(v, e.Code)}
+	}
+	return out
 }
 
 func outlineFailure(err error) *failure {
