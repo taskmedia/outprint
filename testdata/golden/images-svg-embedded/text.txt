@@ -1,0 +1,21 @@
+                         Embedded pictures
+                                   Robin Sample
+
+                                    2 March 2026
+
+
+
+1 Badges
+
+An SVG may carry a small picture as a data address. The picture stays a raster inside
+the vector page.
+
+
+
+
+                         Figure 1: Badge with an embedded picture
+
+
+
+Example Garden Society                      1
+

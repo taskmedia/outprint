@@ -184,7 +184,8 @@ func looksLikeSVG(data []byte) bool {
 	if bytes.HasPrefix(lower, []byte("<!doctype html")) || bytes.HasPrefix(lower, []byte("<html")) {
 		return false
 	}
-	return bytes.Contains(lower, []byte("<svg")) || bytes.Contains(lower, []byte(":svg"))
+	return bytes.Contains(lower, []byte("<svg")) || bytes.Contains(lower, []byte(":svg")) ||
+		bytes.Contains(lower, []byte("<!doctype svg"))
 }
 
 // describeUnknown names a format that is not supported, for the message.

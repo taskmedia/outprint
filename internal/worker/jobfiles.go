@@ -74,6 +74,9 @@ func writeImages(jobDir string, images map[string][]byte) error {
 		if !imageNameRE.MatchString(name) {
 			return fmt.Errorf("image name %q is not a valid bundle name", name)
 		}
+		if isSVGName(name) {
+			continue // converted to PDF from memory, never written as SVG
+		}
 		if err := os.WriteFile(filepath.Join(jobDir, imagesDirName, name), data, 0o600); err != nil {
 			return fmt.Errorf("write image: %w", err)
 		}

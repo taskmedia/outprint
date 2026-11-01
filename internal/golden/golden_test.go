@@ -52,6 +52,9 @@ type testCase struct {
 	// maxImageInches caps the placed size (pixels over resolution) of every
 	// image of the PDF in both directions; zero means no check.
 	maxImageInches float64
+	// noRaster asserts that the PDF holds no raster image at all, which is
+	// what a vector SVG leaves behind.
+	noRaster bool
 	// uprightImages lists images (by order) that must be taller than wide.
 	uprightImages bool
 }
@@ -99,6 +102,11 @@ var cases = []testCase{
 	{name: "images-figure", template: "neutral", config: "example", imageFacts: true,
 		literal:   []string{"Figure 1: A chart: stars, under_score & 100% of $5 {braces}", "Column Picture", "Figure 2: In a list"},
 		forbidden: []string{"Figure 3", "Linked image", "In a cell"}},
+	{name: "images-svg", template: "neutral", config: "example", imageFacts: true, noRaster: true,
+		literal:   []string{"Figure 1: A diagram: seed to flower", "Figure 2: In a list", "Seed to flower"},
+		forbidden: []string{"=120", "=60x30", "diagram.svg"}},
+	{name: "images-svg-embedded", template: "neutral", config: "example", imageFacts: true,
+		literal: []string{"Figure 1: Badge with an embedded picture"}},
 }
 
 func TestGoldens(t *testing.T) {
@@ -129,6 +137,7 @@ func TestGoldens(t *testing.T) {
 			assertOwnLines(t, pdf, tc.ownLine)
 			assertPages(t, pdf, tc.minPages)
 			assertImageGeometry(t, pdf, tc)
+			assertNoRaster(t, pdf, tc.noRaster)
 			assertHeaderRepeats(t, pdf, tc.repeatHeader, tc.rowMarker)
 			if tc.title != "" {
 				if got := field(t, tool(t, "pdfinfo", pdf), "Title"); got != tc.title {
@@ -477,5 +486,17 @@ func assertImageGeometry(t *testing.T, pdf string, tc testCase) {
 				t.Errorf("image %d is placed %.1f x %.1f in, at most %.1f", i+1, w, h, tc.maxImageInches)
 			}
 		}
+	}
+}
+
+// assertNoRaster checks that the PDF has no image object: an SVG converted
+// to a vector PDF contributes only paths and text.
+func assertNoRaster(t *testing.T, pdf string, want bool) {
+	t.Helper()
+	if !want {
+		return
+	}
+	if images := listImages(t, pdf); len(images) > 0 {
+		t.Errorf("the PDF holds %d raster image(s), want none: %v", len(images), images)
 	}
 }

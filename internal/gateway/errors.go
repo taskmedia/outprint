@@ -164,6 +164,8 @@ func workerFailure(err error) *failure {
 		f = fail(http.StatusRequestEntityTooLarge, we.Phase, we.Kind, "the document has too many pages; shorten it", err)
 	case we.Kind == workerapi.KindPDFTooLarge:
 		f = fail(http.StatusRequestEntityTooLarge, we.Phase, we.Kind, "the resulting PDF is too large; remove or shrink images", err)
+	case we.Kind == workerapi.KindOutputTooLarge:
+		f = fail(http.StatusRequestEntityTooLarge, we.Phase, we.Kind, "an SVG image is too complex to convert; simplify it or export it as PNG", err)
 	case we.Kind == workerapi.KindResource:
 		f = fail(http.StatusRequestEntityTooLarge, we.Phase, we.Kind, "the document needs more memory or space than the renderer allows; simplify it", err)
 	case we.Kind == workerapi.KindTooLarge:

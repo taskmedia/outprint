@@ -162,6 +162,22 @@ func buildEnv(jobDir, texmfcnf string, lookup func(string) (string, bool)) []str
 	return env
 }
 
+// buildSVGEnv is the environment of rsvg-convert: the same rebuilt-from-
+// scratch idea as buildEnv, without any TeX variable. In particular nothing
+// like XML_CATALOG_FILES or a proxy variable is inherited.
+func buildSVGEnv(jobDir string, lookup func(string) (string, bool)) []string {
+	env := []string{
+		"PATH=" + toolPath,
+		"LC_ALL=C.UTF-8",
+		"HOME=" + filepath.Join(jobDir, homeDir),
+		"TMPDIR=" + jobDir,
+	}
+	if v, ok := lookup("SOURCE_DATE_EPOCH"); ok {
+		env = append(env, "SOURCE_DATE_EPOCH="+v)
+	}
+	return env
+}
+
 func dirExists(path string) bool {
 	info, err := os.Stat(path)
 	return err == nil && info.IsDir()

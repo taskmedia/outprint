@@ -29,6 +29,10 @@ const (
 	KindTeXError   Kind = "tex_error"
 	KindNoOutput   Kind = "no_output"
 	KindTimeout    Kind = "timeout"
+	// KindSVGConvert is an SVG that rsvg-convert could not turn into a PDF.
+	KindSVGConvert Kind = "svg_convert"
+	// KindOutputTooLarge is a conversion whose PDF passed its size limit.
+	KindOutputTooLarge Kind = "output_too_large"
 	// KindPagesExceeded and KindPDFTooLarge are limits on the result.
 	KindPagesExceeded Kind = "pages_exceeded"
 	KindPDFTooLarge   Kind = "pdf_too_large"

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="160" height="80" viewBox="0 0 160 80">
+  <rect width="160" height="80" fill="#F4F1E8"/>
+  <image x="8" y="8" width="64" height="64" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAH0lEQVR42mO4IyeHFYlUnMCKGEY10EQDLolRDXTVAAA/+0UQ9j4hKQAAAABJRU5ErkJggg=="/>
+  <circle cx="116" cy="40" r="28" fill="#2F6F5E"/>
+</svg>

@@ -49,7 +49,8 @@ const (
 	MaxSVGBytes = 2 << 20
 	// MaxSVGElements and MaxSVGDepth bound the structure of an SVG.
 	MaxSVGElements = 100_000
-	MaxSVGDepth    = 128
+	// MaxSVGDepth is the nesting librsvg renders: deeper fails the conversion.
+	MaxSVGDepth = 50
 	// MaxSVGExpansion is how many elements an SVG may instantiate once every
 	// <use> is expanded, which is what stops an exponential <use> bomb.
 	MaxSVGExpansion = 500_000

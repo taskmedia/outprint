@@ -57,6 +57,8 @@ const (
 	KindPagesExceeded = "pages_exceeded"
 	KindPDFTooLarge   = "pdf_too_large"
 	KindResource      = "resource"
+	// KindOutputTooLarge is an SVG that converts to a PDF over its limit.
+	KindOutputTooLarge = "output_too_large"
 )
 
 // ErrorBody is what the Worker answers on failure. It names the phase, the

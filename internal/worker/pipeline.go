@@ -1,4 +1,4 @@
-// Package worker turns a job into a PDF: SVG logo to PDF, Pandoc with Lua
+// Package worker turns a job into a PDF: SVG images and logo to PDF, Pandoc with Lua
 // filters, LuaLaTeX. Every job runs in a fresh job directory with an
 // environment rebuilt from scratch and an engine configuration of the
 // Worker's own. Document values reach TeX only as Pandoc metadata.
@@ -81,7 +81,8 @@ func runJob(ctx context.Context, job Job, afterTeX func(jobDir string) error, pd
 	if err != nil {
 		return &Error{Phase: PhaseSetup, Kind: KindInternal, JobID: "unknown", Err: err}
 	}
-	p := &pipeline{job: job, id: id, log: job.Logger, afterTeX: afterTeX}
+	p := &pipeline{job: job, id: id, log: job.Logger, afterTeX: afterTeX,
+		svgTimeout: limits.SVGConvertTimeout, svgMaxPDF: limits.MaxSVGPDFBytes}
 	if p.log == nil {
 		p.log = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))
 	}
@@ -111,6 +112,9 @@ type pipeline struct {
 	dir      string
 	env      []string
 	afterTeX func(jobDir string) error
+	// svgTimeout and svgMaxPDF bound one SVG conversion.
+	svgTimeout time.Duration
+	svgMaxPDF  int
 }
 
 func (p *pipeline) run() ([]byte, error) {
@@ -126,6 +130,9 @@ func (p *pipeline) run() ([]byte, error) {
 
 	if err := p.prepare(); err != nil {
 		return nil, p.fail(PhaseSetup, KindInternal, err)
+	}
+	if err := p.svgPhase(); err != nil {
+		return nil, err
 	}
 	values, err := p.prepareValues()
 	if err != nil {
@@ -209,13 +216,10 @@ func (p *pipeline) copyCache() error {
 	return copyTree(p.job.CacheDir, filepath.Join(p.dir, texmfVarDir), false)
 }
 
-// prepareValues converts the logo and formats dates.
+// prepareValues points the logo at its converted PDF and formats dates.
 func (p *pipeline) prepareValues() (map[string]any, error) {
 	values := p.job.Values
-	if logo, ok := values[logoField].(string); ok {
-		if err := p.convertLogo(logo); err != nil {
-			return nil, err
-		}
+	if _, ok := values[logoField].(string); ok {
 		values = withValue(values, logoField, logoJobFile)
 	}
 	values, err := formatDates(p.job.Template, values)
@@ -223,18 +227,6 @@ func (p *pipeline) prepareValues() (map[string]any, error) {
 		return nil, p.fail(PhaseSetup, KindInvalidJob, err)
 	}
 	return values, nil
-}
-
-func (p *pipeline) convertLogo(logo string) error {
-	src, err := p.job.Configuration.AssetPath(logo)
-	if err != nil {
-		return p.fail(PhaseSVG, KindInvalidJob, fmt.Errorf("logo: %w", err))
-	}
-	if !strings.EqualFold(filepath.Ext(src), ".svg") {
-		return p.fail(PhaseSVG, KindInvalidJob, fmt.Errorf("logo %q: only SVG is supported", logo))
-	}
-	args := []string{"-f", "pdf", "-o", filepath.Join(p.dir, logoJobFile), src}
-	return p.tool(PhaseSVG, "rsvg-convert", args)
 }
 
 func (p *pipeline) pandoc(templateFile string, values map[string]any) error {
