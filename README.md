@@ -1,11 +1,9 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo/svg/outprint-lockup-dark.svg">
-    <img alt="Outprint" src="docs/assets/logo/svg/outprint-lockup.svg" width="240">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo/social/social-preview-dark.png">
+    <img alt="Outprint: PDFs from Outline documents" src="docs/assets/logo/social/social-preview.png" width="640">
   </picture>
 </p>
-
-# Outprint for Outline
 
 Turn [Outline](https://www.getoutline.com/) documents into typeset PDFs (letters, reports, custom LaTeX templates) with a Download PDF button. Self-hosted, no Outline fork.
 
