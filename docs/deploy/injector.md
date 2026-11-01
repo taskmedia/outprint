@@ -158,6 +158,7 @@ The next example puts Traefik in front of the injector, with invented hosts. TLS
 ends at Traefik, which also compresses (the injector sends HTML uncompressed).
 This is the Traefik configuration:
 
+<!-- validate: skip Traefik dynamic configuration, a third-party format -->
 ```yaml
 # dynamic configuration
 http:

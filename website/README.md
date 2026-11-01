@@ -38,6 +38,48 @@ pages to anything outside `docs/` must be absolute
 
 Needs Node 22 (`nvm use` reads `.nvmrc`).
 
+## Quality gates
+
+All of these run on every pull request in `.github/workflows/docs.yml` (jobs
+`docs consistency` and `docs build (strict)`); run them locally from the
+repository root:
+
+| Task | Checks |
+|------|--------|
+| `task docs:build` | strict build: broken links, anchors, Markdown links |
+| `task docs:catalogue-check` | generated Template pages match the packages |
+| `task docs:errors-check` | error catalogue and error codes in the source agree |
+| `task docs:examples-check` | every YAML example is validated or consciously skipped |
+| `task docs:sanitize-site` | denylist scan over `website/build` (build first) |
+| `task docs:test-gates` | tests of the two scripts above |
+
+### YAML examples
+
+Every fenced `yaml` block in `docs/` needs a marker line directly before the
+fence, an HTML comment that is invisible on GitHub and on the site (inside a
+list item, indent it like the fence):
+
+```
+<!-- validate: metadata template=neutral configuration=example -->
+<!-- validate: skip Traefik dynamic configuration, a third-party format -->
+```
+
+| Mode | Block is | Checked by |
+|------|----------|------------|
+| `metadata template=T configuration=C` | a Metadata Block (a `yaml` block, or a `markdown` block that shows one) | the metadata resolver, as the Worker runs it |
+| `binding` | a Binding block (a `yaml` block, or a `markdown` block showing a Collection description) | the Binding resolver, against `config/service.yaml` |
+| `configuration template=T configuration=C` | the `configuration.yaml` of a Configuration package | `outprint validate` on a copy of that package |
+| `service-config` | a complete service configuration | `outprint validate --service-config` |
+| `service-fragment` | part of one (`admission`, `imageHosts`) | the same, completed with `config/service.yaml` |
+| `skip REASON` | an illustration, a fragment, a foreign format | nothing; the reason is mandatory |
+
+The check lives in `scripts/docs-validate-examples/` (Go, because the binary
+has no command for Metadata and Binding blocks; the package modes do run the
+built binary). It fails with `file:line` and the tool's message. A `yaml` block
+without a marker, an unknown mode or a marker that is not directly before a
+fence also fails. `docs/templates/catalogue/` is generated from checked data
+and is not scanned. Add a mode in `scripts/docs-validate-examples/check.go`.
+
 ## Run locally
 
 ```sh

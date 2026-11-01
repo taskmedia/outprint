@@ -90,6 +90,7 @@ with the body `{"message","phase"}`.
 In the service configuration (strict: an unknown key is an error), every key
 optional, defaults shown:
 
+<!-- validate: service-fragment -->
 ```yaml
 admission:
   slots: 1        # positive integer

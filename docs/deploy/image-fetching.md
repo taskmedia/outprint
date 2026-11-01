@@ -35,6 +35,7 @@ may lead to, for example the file storage of an Outline that keeps files in
 S3-compatible storage. It is empty by default, so such an Outline shows
 `forbidden` with the host's name until the operator adds it:
 
+<!-- validate: service-fragment -->
 ```yaml
 imageHosts:
   - files.example.invalid        # ports 80 and 443

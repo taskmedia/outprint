@@ -14,6 +14,7 @@ it is on.
 
 ## The block
 
+<!-- validate: metadata template=neutral configuration=example -->
 ````markdown
 ```yaml
 type: letter

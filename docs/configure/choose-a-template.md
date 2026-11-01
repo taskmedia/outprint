@@ -19,6 +19,7 @@ Open the Collection in Outline and edit its description. Add the block below
 anywhere in the description. In the example the description is a title, one
 sentence and the block. The part you add is the fenced `yaml` block.
 
+<!-- validate: binding -->
 ````markdown
 # Town Council
 
