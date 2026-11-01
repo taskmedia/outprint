@@ -7,15 +7,23 @@ name: docs
 # Required checks (branch protection of main, set by hand):
 #   - docs consistency
 #   - docs build (strict)
-# The deploy runs only on pushes to main that touch the docs, and after both.
+# The deploy runs only on pushes to main that touch the docs, after both, and
+# when the release workflow calls it for a new minor release. A push to a
+# branch docs-release/X.Y (the correction of an older version) deploys as well.
+#
+# The older versions of the site are exported from Git at build time
+# (website/scripts/docs-versions.mjs), so every job that builds needs the tags
+# and branches: fetch-depth 0. A push to docs-release/X.Y only triggers the
+# run; the site is always built from main (the branch holds the old site).
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, "docs-release/**"]
     paths:
       - "docs/**"
       - "website/**"
       - ".github/workflows/docs.yml"
+  workflow_call:
 
 permissions:
   contents: read
@@ -31,6 +39,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ startsWith(github.ref, 'refs/heads/docs-release/') && 'main' || '' }}
 
       - uses: go-task/setup-task@v2
         with:
@@ -62,6 +72,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ startsWith(github.ref, 'refs/heads/docs-release/') && 'main' || '' }}
 
       - uses: go-task/setup-task@v2
         with:
@@ -77,6 +90,10 @@ jobs:
       - name: install
         working-directory: website
         run: npm ci
+
+      - name: test the version export
+        working-directory: website
+        run: npm test
 
       # Broken links, anchors and markdown links fail the build.
       - name: build

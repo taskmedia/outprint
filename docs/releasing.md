@@ -23,10 +23,9 @@ For the maintainer. Repo-only: this page is not part of the published docs.
    Tags: `X.Y.Z`, `X.Y` and `latest`. A pre-release (a version with a `-`
    suffix) gets `X.Y.Z` only and never moves `X.Y` or `latest`.
 
-5. For a **new minor release** (`X.Y.0`) the `docs-snapshot` job calls
-   `.github/workflows/docs-snapshot.yml`, which opens a pull request
-   **`docs: snapshot X.Y`** (see "Docs snapshot" below). Patch releases and
-   pre-releases do not get one.
+5. For a **new minor release** (`X.Y.0`) the `docs` job calls
+   `.github/workflows/docs.yml`, which deploys the site with the new version
+   (see "Docs versions" below). Patch releases and pre-releases do not add one.
 
 Publishing lives in the same workflow on purpose: a tag or release created
 with the default `GITHUB_TOKEN` does not trigger other workflows, so a separate
@@ -57,77 +56,68 @@ before merging the setup, if the changelog should start from a later commit.
 `"release-as": "0.1.0"` line from `release-please-config.json` in a
 `chore:` pull request.
 
-## Docs snapshot
+## Docs versions
 
 The site shows one docs version per **minor** release, plus `dev` (the docs on
-`main`). Old versions are frozen copies in the repository
-(`website/versioned_docs/`, `website/versioned_sidebars/`, `website/versions.json`);
-there is no backport process. Background: `website/README.md`, "Versions".
+`main`). Older versions are not stored in the repository: the site build exports
+them from Git (`website/scripts/docs-versions.mjs`), so there is no copy to
+create, review or keep in sync. Background: `website/README.md`, "Versions".
 
 ### What happens at a minor release
 
-The `docs-snapshot` job of the release workflow runs when release-please created
-a release whose patch number is 0 and whose version has no `-` suffix (so
-`0.2.0` yes; `0.2.1` and `0.2.0-rc.1` no; the final `0.2.0` after an `-rc` does).
-It does not depend on the image jobs: a failing image build neither stops it nor
-is stopped by it. The called workflow
+Nothing you have to do. The release workflow calls `docs.yml` (job `docs`) when
+release-please created a release whose patch number is 0 and whose version has no
+`-` suffix (so `0.2.0` yes; `0.2.1` and `0.2.0-rc.1` no; the final `0.2.0` after
+an `-rc` does). It does not depend on the image jobs: a failing image build
+neither stops it nor is stopped by it. The called workflow builds the site from
+`main` with all tags, so the new tag `vX.Y.0` becomes the version `X.Y`, and
+deploys it. The push that merges the release pull request touches no docs file,
+which is why `docs.yml` does not start on its own.
 
-1. checks out the tag `vX.Y.0` and runs `scripts/docs-snapshot.sh X.Y` there, so
-   the snapshot is the docs as released (and the tag's own script and site config),
-2. checks out `main`, adds only the snapshot folder, its sidebar file and `X.Y` in
-   `versions.json` on the branch `docs/snapshot-X.Y`,
-3. opens the pull request `docs: snapshot X.Y`, using the secret `PAT` (so the
-   required checks run) or `GITHUB_TOKEN` with a warning in the run log. With
-   `GITHUB_TOKEN` the checks do not start: close and reopen the pull request.
+On the site the new minor takes the root and the previous one moves to its own
+`/X.Y/` folder. The version dropdown lists every minor with a tag `vX.Y.0`. The
+redirects follow by themselves: links the product prints (`/<minor>/...`,
+`/dev/...`) keep working.
 
-If the branch or pull request already exists, the branch is replaced with a
-fresh snapshot and the pull request is updated. If `main` already has the
-snapshot, the run does nothing.
+### A version needs a docs correction
 
-What you do: merge the pull request when the checks are green. The diff is the
-released docs; there is nothing to review in detail.
+Old docs may stay as released. To correct one anyway, create the branch
+`docs-release/X.Y` from the tag and push the fix there:
 
-### What changes on the site when the first snapshot (0.1) lands
+```sh
+git switch -c docs-release/0.1 v0.1.0
+# edit docs/..., commit
+git push -u origin docs-release/0.1
+```
 
-- The site root switches from the current docs to the 0.1 docs.
-- The current docs (`main`) move to `/dev/`, with an "unreleased" banner.
-- The version dropdown appears in the navbar.
-- The redirects follow by themselves (`docusaurus.config.js` reads
-  `versions.json`): `/0.1/...` now redirects to `/...` (the newest release lives
-  at the root), `/dev/...` serves the real current docs. Links the product
-  prints (`/<minor>/...`, `/dev/...`) keep working. Each later minor moves the
-  previous one from the root to its own `/X.Y/` folder.
+From then on the site takes the version `X.Y` from that branch instead of the
+tag, and every push to it deploys the site (built from `main`). Fix `docs/` on
+`main` as well when it has the same mistake. A pull request into the branch gets
+the usual checks. To go back to the tag, delete the branch.
 
 ### When it fails
 
-Read the failed run of the release workflow (job `docs snapshot`). Then either
-re-run the failed job, or start it by hand: Actions > **docs snapshot** > Run
-workflow > `version` = `X.Y` (or `gh workflow run docs-snapshot.yml -f version=X.Y`).
-It always builds from the tag `vX.Y.0`, so running it later gives the same
-content. Common causes: the tag has no `scripts/docs-snapshot.sh` (a release
-from before the script existed: create the snapshot locally from `main` with
-`task docs:snapshot VERSION=X.Y` on a clean tree after `npm ci` in `website/`,
-and open the pull request yourself), an expired `PAT`, or "Allow GitHub
-Actions to create and approve pull requests" switched off.
-
-### A patch release needs a docs correction
-
-Patch releases get no snapshot. Edit `website/versioned_docs/version-X.Y/` by
-hand in a normal pull request (and `docs/` as well when `main` has the same
-mistake). The snapshot is a frozen copy, not regenerated.
+The build fails (it does not skip the version) when a tag or branch has no
+`docs/` folder, or when a version no longer passes the strict build, for example
+a link check that was added after the release. Read the failed run, then
+correct that version on `docs-release/X.Y` as above. A missing version in the
+dropdown usually means the build had no tags: the checkout needs
+`fetch-depth: 0`.
 
 ### Locally
 
 ```sh
-cd website && npm ci && cd ..
-task docs:snapshot VERSION=0.1    # clean tree required
-task docs:test-snapshot           # throwaway copy: lean, strict build, site scan
+cd website && npm ci
+npm start          # or: npm run build
+npm test           # the export of the older versions
 ```
 
-What cannot be tested before the first release: the `workflow_call` chain from
-`release-please.yml`, the `PAT` push and the pull request creation. Dry run them
-with a manual **docs snapshot** run once a tag `vX.Y.0` exists; the first real
-run is the v0.1.0 release.
+`npm start` and `npm run build` export the versions of the tags that exist in
+your clone first. Without tags only the current docs are built.
+
+What cannot be tested before the first release: the call from `release-please.yml`
+to `docs.yml` and the deploy. The first real run is the v0.1.0 release; until a
+deploy from `main` has run, the live site shows the docs of `main` only.
 
 ## Audit gate
 

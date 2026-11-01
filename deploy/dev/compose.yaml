@@ -20,6 +20,10 @@ x-outline-env: &outline-env
   PGSSLMODE: disable
   REDIS_URL: redis://redis:6379
   FORCE_HTTPS: "false"
+  # The browser tests and the Gateway reach Outline from a few addresses and
+  # open many pages in a minute; Outline's limiter would answer 429 (the
+  # Gateway reports it as 500) and the tests fail. DEV ONLY.
+  RATE_LIMITER_ENABLED: "false"
   FILE_STORAGE: local
   FILE_STORAGE_UPLOAD_MAX_SIZE: "26214400"
   # Sign-in with the dev Dex. The browser is sent to localhost:5556; Outline

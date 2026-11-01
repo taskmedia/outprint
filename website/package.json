@@ -8,13 +8,14 @@
   },
   "scripts": {
     "brand": "node scripts/sync-brand.mjs",
-    "prestart": "npm run brand",
+    "versions": "node scripts/docs-versions.mjs",
+    "prestart": "npm run brand && npm run versions",
     "start": "docusaurus start",
-    "prebuild": "npm run brand",
+    "prebuild": "npm run brand && npm run versions",
     "build": "docusaurus build",
     "serve": "docusaurus serve --no-open",
     "clear": "docusaurus clear",
-    "docs:version": "docusaurus docs:version"
+    "test": "node --test scripts/*.test.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",

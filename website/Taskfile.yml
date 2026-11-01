@@ -90,24 +90,11 @@ tasks:
     cmds:
       - ./scripts/sanitize-site.sh website/build
 
-  snapshot:
-    desc: "Create the docs snapshot of a minor release: task docs:snapshot VERSION=0.1"
-    summary: |
-      Runs scripts/docs-snapshot.sh: `docusaurus docs:version`, then removes the
-      logo kit and the repo-only pages. Needs a clean tree and `npm ci` in
-      website/. In normal operation the docs snapshot workflow does this at a
-      release and opens the pull request. See docs/releasing.md.
-    dir: '{{.ROOT_DIR}}'
-    requires:
-      vars: [VERSION]
+  test-versions:
+    desc: Test the export of older docs versions from Git (website/scripts/docs-versions.mjs)
+    dir: '{{.ROOT_DIR}}/website'
     cmds:
-      - ./scripts/docs-snapshot.sh {{.VERSION}}
-
-  test-snapshot:
-    desc: Test the snapshot script on a throwaway copy, including the strict build
-    dir: '{{.ROOT_DIR}}'
-    cmds:
-      - ./scripts/docs_snapshot_test.sh
+      - npm test
 
   test-gates:
     desc: Test the docs gates themselves (examples check, site scan)

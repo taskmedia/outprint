@@ -44,24 +44,25 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # The docs snapshot of a new minor release (docs/releasing.md). It needs only
-  # release-please, not the image jobs: a failing image build neither stops it
-  # nor is stopped by it. Patch releases (X.Y.Z, Z > 0) and pre-releases
-  # (a version with a "-" suffix such as 0.2.0-rc.1) get no snapshot; the final
-  # X.Y.0 does.
-  docs-snapshot:
-    name: docs snapshot
+  # Deploys the docs site for a new minor release (docs/releasing.md): the new
+  # tag becomes a version of the site. It needs only release-please, not the
+  # image jobs: a failing image build neither stops it nor is stopped by it.
+  # Patch releases (X.Y.Z, Z > 0) and pre-releases (a version with a "-"
+  # suffix such as 0.2.0-rc.1) are no site version; the final X.Y.0 is. The
+  # push to main that merges the release pull request touches no docs file, so
+  # docs.yml would not start on its own.
+  docs:
+    name: docs
     needs: release-please
     if: >-
       needs.release-please.outputs.release_created == 'true'
       && needs.release-please.outputs.patch == '0'
       && !contains(needs.release-please.outputs.version, '-')
     permissions:
-      contents: write
-      pull-requests: write
-    uses: ./.github/workflows/docs-snapshot.yml
-    with:
-      version: ${{ needs.release-please.outputs.major }}.${{ needs.release-please.outputs.minor }}
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/docs.yml
     secrets: inherit
 
   build:
