@@ -8,7 +8,7 @@
 
 name: outprint
 
-x-renderer-image: &renderer-image
+x-outprint-image: &outprint-image
   image: outprint
   build:
     context: ../..
@@ -16,7 +16,7 @@ x-renderer-image: &renderer-image
 
 services:
   worker:
-    <<: *renderer-image
+    <<: *outprint-image
     command: ["worker"]
     user: "10001:10001"
     security_opt:
@@ -29,19 +29,19 @@ services:
       - /tmp:mode=1777,size=64m,uid=10001,gid=10001
       - /work:mode=0700,size=256m,uid=10001,gid=10001
     environment:
-      RENDERER_LISTEN: ":8081"
-      RENDERER_WORK_DIR: /work
+      OUTPRINT_LISTEN: ":8081"
+      OUTPRINT_WORK_DIR: /work
       # The one optional secret: a token shared with the gateway. Set the same
       # value in the environment of both services; empty means no token.
-      RENDERER_WORKER_TOKEN: ${RENDERER_WORKER_TOKEN:-}
+      OUTPRINT_WORKER_TOKEN: ${OUTPRINT_WORKER_TOKEN:-}
     volumes:
       - type: bind
         source: ../../templates
-        target: /opt/renderer/templates
+        target: /opt/outprint/templates
         read_only: true
       - type: bind
         source: ../../configurations
-        target: /opt/renderer/configurations
+        target: /opt/outprint/configurations
         read_only: true
     networks: [worker-net]
     mem_limit: 1g
@@ -49,14 +49,14 @@ services:
     pids_limit: 128
     restart: always
     healthcheck:
-      test: ["CMD", "renderer", "healthcheck", "http://127.0.0.1:8081/healthz"]
+      test: ["CMD", "outprint", "healthcheck", "http://127.0.0.1:8081/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 5s
 
   gateway:
-    <<: *renderer-image
+    <<: *outprint-image
     command: ["gateway"]
     user: "10001:10001"
     security_opt:
@@ -64,30 +64,30 @@ services:
     cap_drop: [ALL]
     read_only: true
     environment:
-      RENDERER_LISTEN: ":8080"
-      RENDERER_WORKER_URL: http://worker:8081
-      RENDERER_WORKER_TOKEN: ${RENDERER_WORKER_TOKEN:-}
+      OUTPRINT_LISTEN: ":8080"
+      OUTPRINT_WORKER_URL: http://worker:8081
+      OUTPRINT_WORKER_TOKEN: ${OUTPRINT_WORKER_TOKEN:-}
       # Required: the base URL of your Outline. The gateway refuses to start
       # without it.
       OUTLINE_URL: ${OUTLINE_URL:-}
       # Admission control (docs/limits.md). Empty keeps the service
       # configuration's value. Scale the slots with the Worker replicas.
-      RENDERER_ADMISSION_SLOTS: ${RENDERER_ADMISSION_SLOTS:-}
-      RENDERER_ADMISSION_QUEUE_DEPTH: ${RENDERER_ADMISSION_QUEUE_DEPTH:-}
-      RENDERER_ADMISSION_PER_USER: ${RENDERER_ADMISSION_PER_USER:-}
-      RENDERER_ADMISSION_MAX_WAIT: ${RENDERER_ADMISSION_MAX_WAIT:-}
+      OUTPRINT_ADMISSION_SLOTS: ${OUTPRINT_ADMISSION_SLOTS:-}
+      OUTPRINT_ADMISSION_QUEUE_DEPTH: ${OUTPRINT_ADMISSION_QUEUE_DEPTH:-}
+      OUTPRINT_ADMISSION_PER_USER: ${OUTPRINT_ADMISSION_PER_USER:-}
+      OUTPRINT_ADMISSION_MAX_WAIT: ${OUTPRINT_ADMISSION_MAX_WAIT:-}
     volumes:
       - type: bind
         source: ../../templates
-        target: /opt/renderer/templates
+        target: /opt/outprint/templates
         read_only: true
       - type: bind
         source: ../../configurations
-        target: /opt/renderer/configurations
+        target: /opt/outprint/configurations
         read_only: true
     networks: [worker-net, frontend]
     ports:
-      - "${RENDERER_PORT:-8080}:8080"
+      - "${OUTPRINT_PORT:-8080}:8080"
     depends_on:
       worker:
         condition: service_healthy
@@ -96,7 +96,7 @@ services:
     pids_limit: 128
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "renderer", "healthcheck", "http://127.0.0.1:8080/healthz"]
+      test: ["CMD", "outprint", "healthcheck", "http://127.0.0.1:8080/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -117,17 +117,17 @@ services:
     cap_drop: [ALL]
     read_only: true
     environment:
-      INJECTOR_LISTEN: ":8090"
+      OUTPRINT_INJECTOR_LISTEN: ":8090"
       # Required: where the injector reaches Outline (an internal address).
-      INJECTOR_UPSTREAM: ${INJECTOR_UPSTREAM:-}
+      OUTPRINT_INJECTOR_UPSTREAM: ${OUTPRINT_INJECTOR_UPSTREAM:-}
       # Requests below /pdf go to the Gateway, so the browser stays on one
       # origin and sends Outline's cookie by itself.
-      INJECTOR_GATEWAY_URL: http://gateway:8080
-      INJECTOR_GATEWAY_PREFIX: /pdf
-      INJECTOR_CSP_ALLOW_SELF: ${INJECTOR_CSP_ALLOW_SELF:-false}
+      OUTPRINT_INJECTOR_GATEWAY_URL: http://gateway:8080
+      OUTPRINT_INJECTOR_GATEWAY_PREFIX: /pdf
+      OUTPRINT_INJECTOR_CSP_ALLOW_SELF: ${OUTPRINT_INJECTOR_CSP_ALLOW_SELF:-false}
     networks: [frontend]
     ports:
-      - "${INJECTOR_PORT:-8090}:8090"
+      - "${OUTPRINT_INJECTOR_PORT:-8090}:8090"
     depends_on:
       gateway:
         condition: service_healthy
@@ -136,7 +136,7 @@ services:
     pids_limit: 64
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "/injector", "healthcheck", "http://127.0.0.1:8090/_injector/healthz"]
+      test: ["CMD", "/outprint-injector", "healthcheck", "http://127.0.0.1:8090/_injector/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3

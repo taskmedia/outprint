@@ -1,9 +1,9 @@
 //go:build golden
 
-// Tier-2 smoke test of the two roles: the real `renderer worker` process
+// Tier-2 smoke test of the two roles: the real `outprint worker` process
 // renders a posted bundle, and an in-process Gateway with a fake Outline
 // renders a Document through it. Like the other tier-2 tests it runs in the
-// renderer image and never skips.
+// outprint image and never skips.
 package golden
 
 import (
@@ -33,13 +33,13 @@ const smokeMarkdown = "Thank you for your enquiry about the spring plant sale.\n
 
 func startWorker(t *testing.T) string {
 	t.Helper()
-	bin := os.Getenv("RENDERER_BIN")
+	bin := os.Getenv("OUTPRINT_BIN")
 	if bin == "" {
-		bin = "renderer"
+		bin = "outprint"
 	}
 	addr := freeAddr(t)
 	cmd := exec.Command(bin, "worker")
-	cmd.Env = append(os.Environ(), "RENDERER_LISTEN="+addr, "RENDERER_WORK_DIR="+t.TempDir())
+	cmd.Env = append(os.Environ(), "OUTPRINT_LISTEN="+addr, "OUTPRINT_WORK_DIR="+t.TempDir())
 	var logs bytes.Buffer
 	cmd.Stderr = &logs
 	if err := cmd.Start(); err != nil {

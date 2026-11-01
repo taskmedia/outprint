@@ -1,7 +1,7 @@
 //go:build golden
 
 // Tier-2 tests of the Worker itself. They need Pandoc, LuaLaTeX and the
-// shipped packages, so they run inside the renderer image (make test-golden).
+// shipped packages, so they run inside the outprint image (make test-golden).
 // None of them skips: a missing tool is a failure.
 package worker
 
@@ -26,7 +26,7 @@ import (
 
 func repoRoot(t *testing.T) string {
 	t.Helper()
-	if root := os.Getenv("RENDERER_REPO_ROOT"); root != "" {
+	if root := os.Getenv("OUTPRINT_REPO_ROOT"); root != "" {
 		return root
 	}
 	dir, err := os.Getwd()
@@ -49,7 +49,7 @@ func repoRoot(t *testing.T) string {
 // repository's when run from a checkout.
 func templatesRoot(t *testing.T) string {
 	t.Helper()
-	if root := os.Getenv("RENDERER_TEMPLATES_ROOT"); root != "" {
+	if root := os.Getenv("OUTPRINT_TEMPLATES_ROOT"); root != "" {
 		return root
 	}
 	return filepath.Join(repoRoot(t), "templates")

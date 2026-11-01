@@ -93,18 +93,18 @@ const (
 // Environment variables that tighten (or, for pages and time, change) the
 // per-job limits. Tests use them to keep resource bombs short.
 const (
-	EnvTimeout     = "RENDERER_TIMEOUT"
-	EnvMaxPages    = "RENDERER_MAX_PAGES"
-	EnvMaxPDFBytes = "RENDERER_MAX_PDF_BYTES"
+	EnvTimeout     = "OUTPRINT_TIMEOUT"
+	EnvMaxPages    = "OUTPRINT_MAX_PAGES"
+	EnvMaxPDFBytes = "OUTPRINT_MAX_PDF_BYTES"
 )
 
 // Environment variables that override the admission keys of the service
 // configuration (slots, queueDepth, perUser, maxWait).
 const (
-	EnvAdmissionSlots      = "RENDERER_ADMISSION_SLOTS"
-	EnvAdmissionQueueDepth = "RENDERER_ADMISSION_QUEUE_DEPTH"
-	EnvAdmissionPerUser    = "RENDERER_ADMISSION_PER_USER"
-	EnvAdmissionMaxWait    = "RENDERER_ADMISSION_MAX_WAIT"
+	EnvAdmissionSlots      = "OUTPRINT_ADMISSION_SLOTS"
+	EnvAdmissionQueueDepth = "OUTPRINT_ADMISSION_QUEUE_DEPTH"
+	EnvAdmissionPerUser    = "OUTPRINT_ADMISSION_PER_USER"
+	EnvAdmissionMaxWait    = "OUTPRINT_ADMISSION_MAX_WAIT"
 )
 
 // Job is the effective per-job limits.

@@ -14,9 +14,9 @@ truncated: a Document that does not fit fails, it is not cut short.
 | All canonical images | 50 MiB | Gateway | 422 error list | no |
 | Image pixels | 40 million | Gateway, on the header | 422 error list | no |
 | SVG source / conversion | 2 MiB / 20 s | Gateway pre-check, Worker | 422 / 413 | no |
-| Render time | 60 s | Worker | 504 `rendering took too long; shorten the document` | `RENDERER_TIMEOUT` (Worker and Gateway) |
-| Pages | 500 | Worker | 413 `the document has too many pages; shorten it` | `RENDERER_MAX_PAGES` (Worker, lower only in practice) |
-| PDF size | 50 MiB | Worker, Gateway | 413 `the resulting PDF is too large; remove or shrink images` | `RENDERER_MAX_PDF_BYTES` (Worker, up to 50 MiB) |
+| Render time | 60 s | Worker | 504 `rendering took too long; shorten the document` | `OUTPRINT_TIMEOUT` (Worker and Gateway) |
+| Pages | 500 | Worker | 413 `the document has too many pages; shorten it` | `OUTPRINT_MAX_PAGES` (Worker, lower only in practice) |
+| PDF size | 50 MiB | Worker, Gateway | 413 `the resulting PDF is too large; remove or shrink images` | `OUTPRINT_MAX_PDF_BYTES` (Worker, up to 50 MiB) |
 | TeX runs | 2 | Worker | | no |
 | Worker memory, CPUs, PIDs, scratch space | 1 GiB, 1, 128, 256 MiB | container runtime ([deploy-compose.md](deploy-compose.md)) | 413 `resource` | Compose file |
 | Concurrent renders | 1 | Gateway admission control | 429 | see below |
@@ -99,10 +99,10 @@ typo stops the Gateway at startup instead of silently keeping the default:
 
 | Variable | Key |
 |----------|-----|
-| `RENDERER_ADMISSION_SLOTS` | `slots` |
-| `RENDERER_ADMISSION_QUEUE_DEPTH` | `queueDepth` |
-| `RENDERER_ADMISSION_PER_USER` | `perUser` |
-| `RENDERER_ADMISSION_MAX_WAIT` | `maxWait` |
+| `OUTPRINT_ADMISSION_SLOTS` | `slots` |
+| `OUTPRINT_ADMISSION_QUEUE_DEPTH` | `queueDepth` |
+| `OUTPRINT_ADMISSION_PER_USER` | `perUser` |
+| `OUTPRINT_ADMISSION_MAX_WAIT` | `maxWait` |
 
 The shipped Compose file passes them through to the Gateway. The defaults
 match one Worker replica. To scale, add Worker replicas and raise `slots` by

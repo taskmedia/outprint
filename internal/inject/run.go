@@ -43,7 +43,7 @@ func Run(ctx context.Context, cfg Config) error {
 	}
 	serveErr := make(chan error, 1)
 	go func() { serveErr <- srv.Serve(ln) }()
-	slog.Info("injector listening", "addr", ln.Addr().String(), "gateway_route", cfg.Gateway != "")
+	slog.Info("outprint-injector listening", "addr", ln.Addr().String(), "gateway_route", cfg.Gateway != "")
 
 	select {
 	case err := <-serveErr:
@@ -82,22 +82,22 @@ func Healthcheck(ctx context.Context, target string) error {
 	return nil
 }
 
-// Main is the entry point of the injector binary: "injector" serves,
-// "injector healthcheck URL" probes.
+// Main is the entry point of the injector binary: "outprint-injector" serves,
+// "outprint-injector healthcheck URL" probes.
 func Main(args []string, getenv func(string) string, stdout, stderr io.Writer) int {
 	if len(args) > 0 {
 		return mainSubcommand(args, stderr)
 	}
 	cfg, err := ConfigFromEnv(getenv)
 	if err != nil {
-		fmt.Fprintf(stderr, "injector: %v\n", err)
+		fmt.Fprintf(stderr, "outprint-injector: %v\n", err)
 		return 2
 	}
 	configureLogging(cfg.LogLevel, stderr)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	if err := Run(ctx, cfg); err != nil {
-		fmt.Fprintf(stderr, "injector: %v\n", err)
+		fmt.Fprintf(stderr, "outprint-injector: %v\n", err)
 		return 1
 	}
 	return 0
@@ -105,11 +105,11 @@ func Main(args []string, getenv func(string) string, stdout, stderr io.Writer) i
 
 func mainSubcommand(args []string, stderr io.Writer) int {
 	if args[0] != "healthcheck" || len(args) != 2 {
-		fmt.Fprintln(stderr, "usage: injector            (configured by INJECTOR_* variables)\n       injector healthcheck URL")
+		fmt.Fprintln(stderr, "usage: outprint-injector            (configured by OUTPRINT_INJECTOR_* variables)\n       outprint-injector healthcheck URL")
 		return 2
 	}
 	if err := Healthcheck(context.Background(), args[1]); err != nil {
-		fmt.Fprintf(stderr, "injector: %v\n", err)
+		fmt.Fprintf(stderr, "outprint-injector: %v\n", err)
 		return 1
 	}
 	return 0

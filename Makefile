@@ -2,7 +2,7 @@ SHELL := /bin/bash
 .SHELLFLAGS := -o pipefail -ec
 
 IMAGE         ?= outprint
-INJECTOR_IMAGE ?= outprint-injector
+IMAGE_INJECTOR ?= outprint-injector
 GOLDEN_IMAGE  ?= $(IMAGE)-golden
 SANDBOX_IMAGE ?= $(IMAGE)-sandbox
 # Where the security targets keep their test output for the skip guard.
@@ -16,8 +16,8 @@ SOURCE_DATE_EPOCH ?= 1700000000
 .PHONY: dev dev-up dev-secrets seed dev-down dev-down-volumes dev-logs dev-clean e2e e2e-install build test test-web image image-injector test-golden test-security test-security-layer1 test-sandbox test-guard update-goldens sanitize test-sanitize audit test-audit
 
 build:
-	go build -o bin/renderer ./cmd/renderer
-	go build -o bin/injector ./cmd/injector
+	go build -o bin/outprint ./cmd/outprint
+	go build -o bin/outprint-injector ./cmd/outprint-injector
 
 # Tier 1: unit tests, no external tools besides Go. The button script tests
 # need Node and are skipped, with a note, where it is not installed; CI
@@ -38,9 +38,9 @@ image:
 
 # The slim injector image: no TeX toolchain.
 image-injector:
-	docker build --target injector -t $(INJECTOR_IMAGE) .
+	docker build --target injector -t $(IMAGE_INJECTOR) .
 
-# Tier 2: goldens, run inside the pinned renderer image.
+# Tier 2: goldens, run inside the pinned outprint image.
 test-golden:
 	docker build --target golden -t $(GOLDEN_IMAGE) .
 	docker run --rm $(GOLDEN_IMAGE)

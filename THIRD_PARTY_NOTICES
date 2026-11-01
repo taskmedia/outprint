@@ -27,12 +27,12 @@ docs/publishing.md ("Refreshing the notices").
 
 The project publishes source code. It may also publish container images:
 
-  * the RENDERER image (default target of the Dockerfile): the Go binary
-    `renderer`, the Templates and Configurations of this repository, and the
+  * the OUTPRINT image (default target of the Dockerfile): the Go binary
+    `outprint`, the Templates and Configurations of this repository, and the
     Debian packages pandoc, librsvg2-bin, texlive-luatex, texlive-latex-base,
     texlive-latex-recommended and fonts-texgyre with their dependencies
     (about 175 Debian packages in total);
-  * the INJECTOR image: the Go binary `injector` on gcr.io/distroless/static-debian13
+  * the INJECTOR image: the Go binary `outprint-injector` on gcr.io/distroless/static-debian13
     (no TeX toolchain, no shell, no package manager). The licences of the
     distroless base are in the image under /usr/share/doc; not verified in
     this run.
@@ -84,7 +84,7 @@ with. You can get it in either of these ways, at no cost:
        apt-get source pandoc=3.1.11.1+ds-2
      The `.dsc` file lists the build dependencies (the Haskell libraries).
      Their source packages are retrieved the same way.
-  2. From us. If you received a copy of the renderer image from this project
+  2. From us. If you received a copy of the outprint image from this project
      and cannot obtain the source as described, open an issue at
      https://github.com/taskmedia/outprint/issues naming the image
      tag, or write to the maintainer address on the repository profile, and
@@ -204,7 +204,7 @@ and similar licences; each is listed with its licence in the image.
   you modify a font you must rename it (the same rule as the LPPL).
   Documents embed font subsets in PDFs; the GFL does not restrict documents.
 
-5.2 Fonts installed in the renderer image
+5.2 Fonts installed in the outprint image
 
   fonts-texgyre 20180621-6 (GUST Font License; Debian's copyright file also
   lists GPL-2+ and the DejaVu licence for some parts of the package) and fonts-lmodern / lmodern 2.005-1 (Latin Modern, GUST Font
@@ -214,7 +214,7 @@ and similar licences; each is listed with its licence in the image.
 
 5.3 Fonts used for text inside SVG images
 
-  The renderer image has no other font packages. In the image used for this
+  The outprint image has no other font packages. In the image used for this
   file, fontconfig resolved the generic families `sans-serif`, `serif`,
   `monospace` to TeX Gyre Adventor and `Helvetica` to TeX Gyre Heros, so SVG
   text is drawn with TeX Gyre fonts of section 5.2, unless the SVG's font name
@@ -226,8 +226,8 @@ and similar licences; each is listed with its licence in the image.
 6. Go dependencies
 ------------------
 
-Direct dependencies of the Go module (go.mod), compiled into the renderer and
-injector binaries. Licences were read from the LICENSE files in the module
+Direct dependencies of the Go module (go.mod), compiled into the outprint and
+outprint-injector binaries. Licences were read from the LICENSE files in the module
 cache of the pinned versions.
 
   github.com/yuin/goldmark v1.7.17

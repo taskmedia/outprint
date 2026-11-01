@@ -24,7 +24,7 @@ type validateOptions struct {
 func runValidate(args []string, getenv func(string) string, stdout, stderr io.Writer) int {
 	opts, err := parseValidate(args, getenv)
 	if err != nil {
-		fmt.Fprintf(stderr, "renderer: %v\n%s\n", err, usage)
+		fmt.Fprintf(stderr, "outprint: %v\n%s\n", err, usage)
 		return 2
 	}
 	findings := validateFindings(opts, getenv)

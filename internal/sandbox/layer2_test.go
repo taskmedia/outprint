@@ -148,7 +148,7 @@ func (a adversary) expectedChecks() []string {
 	names := []string{
 		"read_host_canary", "read_other_job_dir", "env_secret_of_other_container", "dns:example.org",
 		"write:/probe-write", "write:/etc/probe-write", "write:/usr/local/bin/probe-write",
-		"write:/opt/renderer/templates/probe-write", "write:/opt/renderer/configurations/probe-write",
+		"write:/opt/outprint/templates/probe-write", "write:/opt/outprint/configurations/probe-write",
 		"setuid_root", "mount", "mknod", "chown_root", "user_namespace", "exec_from_work", "exec_from_tmp", "ptrace",
 		"capabilities:CapInh", "capabilities:CapPrm", "capabilities:CapEff", "capabilities:CapBnd", "capabilities:CapAmb",
 		"no_new_privileges", "seccomp_filter", "not_root", "fork_bomb",
@@ -252,9 +252,9 @@ func assertInfo(t *testing.T, r probeReport, key, want string) {
 // file's, the image's and the ones Docker adds.
 var allowedEnvNames = map[string]bool{
 	"PATH": true, "HOSTNAME": true, "HOME": true, "TERM": true,
-	"RENDERER_LISTEN": true, "RENDERER_WORK_DIR": true, "RENDERER_WORKER_TOKEN": true,
-	"RENDERER_TEMPLATES_ROOT": true, "RENDERER_CONFIGURATIONS_ROOT": true,
-	"RENDERER_SERVICE_CONFIG": true, "RENDERER_TEXCACHE_DIR": true,
+	"OUTPRINT_LISTEN": true, "OUTPRINT_WORK_DIR": true, "OUTPRINT_WORKER_TOKEN": true,
+	"OUTPRINT_TEMPLATES_ROOT": true, "OUTPRINT_CONFIGURATIONS_ROOT": true,
+	"OUTPRINT_SERVICE_CONFIG": true, "OUTPRINT_TEXCACHE_DIR": true,
 }
 
 func assertEnvNames(t *testing.T, joined string) {
@@ -316,7 +316,7 @@ func TestReleaseImageHasNoProbe(t *testing.T) {
 	script := `set -e
 test ! -e /usr/local/bin/sandbox-probe
 test ! -e /usr/local/bin/lualatex
-test "$(ls /usr/local/bin)" = renderer
+test "$(ls /usr/local/bin)" = outprint
 test "$(command -v lualatex)" = /usr/bin/lualatex
 test -z "$(find / -xdev -name 'sandbox-probe*' 2>/dev/null)"
 echo clean`
@@ -329,7 +329,7 @@ echo clean`
 	}
 	out, _ = docker(t, "run", "--rm", releaseImage(), "sandbox-probe")
 	if !strings.Contains(out, "unknown") && !strings.Contains(out, "usage") {
-		t.Errorf("renderer sandbox-probe should be an unknown command, got %q", out)
+		t.Errorf("outprint sandbox-probe should be an unknown command, got %q", out)
 	}
 }
 

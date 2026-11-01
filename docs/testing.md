@@ -5,7 +5,7 @@
 | Tier | Command | Needs | Covers |
 |------|---------|-------|--------|
 | 1 | `make test` | Go | Unit tests, the Gateway HTTP API with fakes, the Compose baseline check, the Gateway half of the SVG attack corpus |
-| 2 | `make test-golden` | Docker | PDF goldens, the Worker tests and security layer 1 inside the pinned renderer image |
+| 2 | `make test-golden` | Docker | PDF goldens, the Worker tests and security layer 1 inside the pinned outprint image |
 | 2 | `make test-sandbox` | Docker | Security layers 2 and 3: the Worker under the shipped container flags (see [security.md](security.md)) |
 | 3 | `make e2e` | Docker, Go, Node | Browser end-to-end tests (Playwright) against the seeded dev stack, see [development.md](development.md) |
 

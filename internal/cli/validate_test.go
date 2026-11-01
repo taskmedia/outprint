@@ -88,7 +88,7 @@ func TestValidateOneFindingPerLine(t *testing.T) {
 func TestValidateRootsFromEnvironment(t *testing.T) {
 	tpl, cfg := installation(t)
 	code, _, _ := validate(t, map[string]string{
-		"RENDERER_TEMPLATES_ROOT": tpl, "RENDERER_CONFIGURATIONS_ROOT": cfg,
+		"OUTPRINT_TEMPLATES_ROOT": tpl, "OUTPRINT_CONFIGURATIONS_ROOT": cfg,
 	})
 	if code != 0 {
 		t.Fatalf("code %d", code)
@@ -117,7 +117,7 @@ func TestValidateServiceConfig(t *testing.T) {
 	write(t, svc, "templatesRoot: "+tpl+"\nconfigurationsRoot: "+cfg+"\nbindings:\n  - {template: plain, configuration: sample}\n")
 	write(t, filepath.Join(tpl, "extra/manifest.yaml"), testManifest)
 	write(t, filepath.Join(tpl, "extra/letter.latex"), "$name$ $orphan$\n")
-	code, out, _ = validate(t, map[string]string{"RENDERER_SERVICE_CONFIG": svc})
+	code, out, _ = validate(t, map[string]string{"OUTPRINT_SERVICE_CONFIG": svc})
 	if code != 0 || !strings.Contains(out, "not on the allow-list") {
 		t.Fatalf("code %d\n%s", code, out)
 	}
@@ -151,7 +151,7 @@ func TestValidateUsageErrors(t *testing.T) {
 
 func TestExplicitSelectionBeatsServiceConfigFromEnvironment(t *testing.T) {
 	tpl, cfg := installation(t)
-	env := map[string]string{"RENDERER_SERVICE_CONFIG": filepath.Join(t.TempDir(), "absent.yaml")}
+	env := map[string]string{"OUTPRINT_SERVICE_CONFIG": filepath.Join(t.TempDir(), "absent.yaml")}
 	if code, out, _ := validate(t, env); code != 1 {
 		t.Fatalf("the environment service configuration should be used (and is absent): code %d\n%s", code, out)
 	}

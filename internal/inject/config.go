@@ -24,13 +24,13 @@ const (
 
 // Environment variables of the injector binary.
 const (
-	envUpstream     = "INJECTOR_UPSTREAM"
-	envListen       = "INJECTOR_LISTEN"
-	envScriptURL    = "INJECTOR_SCRIPT_URL"
-	envGatewayURL   = "INJECTOR_GATEWAY_URL"
-	envGatewayPref  = "INJECTOR_GATEWAY_PREFIX"
-	envCSPAllowSelf = "INJECTOR_CSP_ALLOW_SELF"
-	envLogLevel     = "INJECTOR_LOG_LEVEL"
+	envUpstream     = "OUTPRINT_INJECTOR_UPSTREAM"
+	envListen       = "OUTPRINT_INJECTOR_LISTEN"
+	envScriptURL    = "OUTPRINT_INJECTOR_SCRIPT_URL"
+	envGatewayURL   = "OUTPRINT_INJECTOR_GATEWAY_URL"
+	envGatewayPref  = "OUTPRINT_INJECTOR_GATEWAY_PREFIX"
+	envCSPAllowSelf = "OUTPRINT_INJECTOR_CSP_ALLOW_SELF"
+	envLogLevel     = "OUTPRINT_INJECTOR_LOG_LEVEL"
 )
 
 // Config wires the injector.
@@ -59,7 +59,7 @@ type Config struct {
 	LogLevel string
 }
 
-// ConfigFromEnv reads the INJECTOR_* variables. It does not validate the
+// ConfigFromEnv reads the OUTPRINT_INJECTOR_* variables. It does not validate the
 // URLs; New does.
 func ConfigFromEnv(getenv func(string) string) (Config, error) {
 	cfg := Config{

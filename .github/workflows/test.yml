@@ -61,7 +61,7 @@ jobs:
           if docker run --rm --entrypoint /usr/bin/lualatex outprint-injector 2>/dev/null; then
             echo "injector image contains a TeX toolchain" >&2; exit 1
           fi
-          id=$(docker run -d -p 8090:8090 -e INJECTOR_UPSTREAM=http://outline.example.invalid:3000 outprint-injector)
+          id=$(docker run -d -p 8090:8090 -e OUTPRINT_INJECTOR_UPSTREAM=http://outline.example.invalid:3000 outprint-injector)
           trap 'docker rm -f "$id" >/dev/null' EXIT
           for _ in $(seq 1 20); do
             curl -fsS http://127.0.0.1:8090/_injector/healthz && exit 0

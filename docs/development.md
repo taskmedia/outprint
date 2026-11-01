@@ -196,9 +196,9 @@ migrates its database on start, so test a bump on an empty volume.
 
 - **`make dev` waits at Outline.** The first start runs migrations and takes up
   to a minute. `make dev-logs` shows why if it fails.
-- **Port 8090 or 5556 is taken.** Set `INJECTOR_PORT` for the first, and stop
+- **Port 8090 or 5556 is taken.** Set `OUTPRINT_INJECTOR_PORT` for the first, and stop
   the other program for Dex: its port is part of the issuer address.
-  `INJECTOR_PORT` also needs a matching `DEV_URL` and Outline `URL`, so
+  `OUTPRINT_INJECTOR_PORT` also needs a matching `DEV_URL` and Outline `URL`, so
   changing it is not supported yet.
 - **"sign-in did not produce a session".** The seed could not log in as the dev
   user: the stack was started with other secrets or another Dex. Run

@@ -2,10 +2,10 @@
 -- raw HTML is reduced to line breaks, links are limited to safe targets, and
 -- anything that could carry TeX into the output makes the job fail.
 --
--- Failures are raised as "renderer-filter:<kind>: <fixed text>". The text
+-- Failures are raised as "outprint-filter:<kind>: <fixed text>". The text
 -- never contains document content. The worker maps the kind to an error.
 
-local FAIL_PREFIX = "renderer-filter:"
+local FAIL_PREFIX = "outprint-filter:"
 local BUNDLE_IMAGE_DIR = "images/"
 local SAFE_LINK_SCHEMES = { http = true, https = true, mailto = true }
 

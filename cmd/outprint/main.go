@@ -1,4 +1,4 @@
-// Command renderer turns Markdown into typeset PDFs.
+// Command outprint turns Markdown into typeset PDFs.
 package main
 
 import (

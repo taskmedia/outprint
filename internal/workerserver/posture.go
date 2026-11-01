@@ -16,7 +16,7 @@ const unknown = "unknown"
 
 // TokenEnv names the optional shared bearer token. It is the one secret the
 // Worker may hold.
-const TokenEnv = "RENDERER_WORKER_TOKEN"
+const TokenEnv = "OUTPRINT_WORKER_TOKEN"
 
 var secretNameRE = regexp.MustCompile(`(?i)(token|secret|password|passwd|cookie|credential|api_?key|private_?key)`)
 

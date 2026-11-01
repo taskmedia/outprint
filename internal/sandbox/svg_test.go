@@ -71,7 +71,7 @@ type svgWorld struct {
 func newSVGWorld(t *testing.T, c Compose) *svgWorld {
 	t.Helper()
 	listener := newRequestListener(t)
-	w := startWorker(t, c, workerNetwork(t, c), map[string]string{"RENDERER_TIMEOUT": svgAttackTimeout.String()}, hostAlias...)
+	w := startWorker(t, c, workerNetwork(t, c), map[string]string{"OUTPRINT_TIMEOUT": svgAttackTimeout.String()}, hostAlias...)
 	content := "svg-canary-" + randomHex(16)
 	if out, err := execIn(t, nil, w.name, "sh", "-c", "printf %s '"+content+"' > "+svgCanaryInTheWork); err != nil {
 		t.Fatalf("plant the canary: %v\n%s", err, out)

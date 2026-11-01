@@ -5,7 +5,7 @@ encouraged to reuse them, with the type listed here, so that Template
 Configurations stay portable across Templates. They are a convention, not a
 requirement: a Template may declare any fields it likes.
 
-`renderer validate` warns when a Template declares a Standard Field name with
+`outprint validate` warns when a Template declares a Standard Field name with
 a different type. The warning never fails validation.
 
 The machine-readable table is

@@ -28,7 +28,7 @@ type bomb struct {
 }
 
 func (b bomb) timeout() time.Duration {
-	if v := b.env["RENDERER_TIMEOUT"]; v != "" {
+	if v := b.env["OUTPRINT_TIMEOUT"]; v != "" {
 		d, _ := time.ParseDuration(v)
 		return d
 	}
@@ -71,35 +71,35 @@ func runBomb(t *testing.T, b bomb) {
 
 func TestTeXInfiniteLoopEndsAtTheWallClockLimit(t *testing.T) {
 	runBomb(t, bomb{
-		env: map[string]string{"RENDERER_TIMEOUT": "25s"}, markdown: "probeaction-loop\n",
+		env: map[string]string{"OUTPRINT_TIMEOUT": "25s"}, markdown: "probeaction-loop\n",
 		status: 504, kinds: []string{"timeout"}, restarts: true,
 	})
 }
 
 func TestMemoryBombIsReportedAsAResourceError(t *testing.T) {
 	runBomb(t, bomb{
-		env: map[string]string{"RENDERER_TIMEOUT": "40s"}, markdown: "probeaction-memory\n",
+		env: map[string]string{"OUTPRINT_TIMEOUT": "40s"}, markdown: "probeaction-memory\n",
 		status: 500, kinds: []string{"resource"}, restarts: true,
 	})
 }
 
 func TestTmpfsFillIsReportedAsAResourceError(t *testing.T) {
 	runBomb(t, bomb{
-		env: map[string]string{"RENDERER_TIMEOUT": "40s"}, markdown: "probeaction-fill\n",
+		env: map[string]string{"OUTPRINT_TIMEOUT": "40s"}, markdown: "probeaction-fill\n",
 		status: 500, kinds: []string{"resource"}, restarts: true,
 	})
 }
 
 func TestForkBombEndsAndTheWorkerRecovers(t *testing.T) {
 	runBomb(t, bomb{
-		env: map[string]string{"RENDERER_TIMEOUT": "25s"}, markdown: "probeaction-forkbomb\n",
+		env: map[string]string{"OUTPRINT_TIMEOUT": "25s"}, markdown: "probeaction-forkbomb\n",
 		status: 504, kinds: []string{"timeout", "resource"}, restarts: true, allowDropped: true,
 	})
 }
 
 func TestPageBombIsRefusedWithoutRestart(t *testing.T) {
 	runBomb(t, bomb{
-		env: map[string]string{"RENDERER_MAX_PAGES": "10", "RENDERER_TIMEOUT": "40s"}, markdown: pageBomb(120),
+		env: map[string]string{"OUTPRINT_MAX_PAGES": "10", "OUTPRINT_TIMEOUT": "40s"}, markdown: pageBomb(120),
 		status: 413, kinds: []string{"pages_exceeded"},
 	})
 }
@@ -116,7 +116,7 @@ func pageBomb(paragraphs int) string {
 
 func TestOversizePDFIsRefusedWithoutRestart(t *testing.T) {
 	runBomb(t, bomb{
-		env: map[string]string{"RENDERER_MAX_PDF_BYTES": "20000"}, markdown: pageBomb(100),
+		env: map[string]string{"OUTPRINT_MAX_PDF_BYTES": "20000"}, markdown: pageBomb(100),
 		status: 413, kinds: []string{"pdf_too_large"},
 	})
 }
@@ -180,7 +180,7 @@ func TestDocumentBombsEndInTimeWithAStructuredOutcome(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			w := startWorker(t, c, workerNetwork(t, c), map[string]string{
-				"RENDERER_TIMEOUT": "20s", "RENDERER_MAX_PAGES": "60",
+				"OUTPRINT_TIMEOUT": "20s", "OUTPRINT_MAX_PAGES": "60",
 			})
 			o := w.render(simpleLetter(markdown), 20*time.Second+requestSlack)
 			t.Logf("%s: status %d, error %s, transport %q, %dms", name, o.Status, o.Error, o.TransportError, o.ElapsedMS)

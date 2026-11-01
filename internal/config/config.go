@@ -22,9 +22,9 @@ import (
 // Environment variables. The roots override the file so that an image can
 // ship one configuration and a deployment relocates the packages.
 const (
-	EnvTemplatesRoot      = "RENDERER_TEMPLATES_ROOT"
-	EnvConfigurationsRoot = "RENDERER_CONFIGURATIONS_ROOT"
-	EnvServiceConfig      = "RENDERER_SERVICE_CONFIG"
+	EnvTemplatesRoot      = "OUTPRINT_TEMPLATES_ROOT"
+	EnvConfigurationsRoot = "OUTPRINT_CONFIGURATIONS_ROOT"
+	EnvServiceConfig      = "OUTPRINT_SERVICE_CONFIG"
 )
 
 // imageHostPattern is a lower-case host name or IPv4 address, with an

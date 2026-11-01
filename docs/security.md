@@ -36,8 +36,8 @@ CI fails if any test of the security suite reports a skip.
 - tmpfs for the job directory (`/work`, mode 0700, 256 MiB) and `/tmp` (64 MiB);
   Docker mounts them `noexec,nosuid,nodev`
 - an `internal` network: no route out, no published port
-- environment: only `RENDERER_LISTEN`, `RENDERER_WORK_DIR` and the optional
-  `RENDERER_WORKER_TOKEN`
+- environment: only `OUTPRINT_LISTEN`, `OUTPRINT_WORK_DIR` and the optional
+  `OUTPRINT_WORKER_TOKEN`
 - read-only package mounts and nothing else
 - `mem_limit: 1g`, `cpus: 1`, `pids_limit: 128`, `restart: always`
 
@@ -150,10 +150,10 @@ the specification and are measured before release.
 
 | Limit | Value | Enforced by | Test knob |
 |-------|-------|-------------|-----------|
-| wall clock per job | 60 s | Worker pipeline: the process group is killed, the Worker exits | `RENDERER_TIMEOUT` |
+| wall clock per job | 60 s | Worker pipeline: the process group is killed, the Worker exits | `OUTPRINT_TIMEOUT` |
 | Markdown | 1 MiB | bundle validation (413 `too_large`) | |
-| pages | 500 | Worker pipeline after LuaLaTeX (413 `pages_exceeded`) | `RENDERER_MAX_PAGES` |
-| PDF size | 50 MiB | Worker pipeline (413 `pdf_too_large`) | `RENDERER_MAX_PDF_BYTES` (lower only) |
+| pages | 500 | Worker pipeline after LuaLaTeX (413 `pages_exceeded`) | `OUTPRINT_MAX_PAGES` |
+| PDF size | 50 MiB | Worker pipeline (413 `pdf_too_large`) | `OUTPRINT_MAX_PDF_BYTES` (lower only) |
 | LuaLaTeX runs | 2 | Worker pipeline | |
 | SVG source | 2 MiB | Gateway pre-check (`too_large`); Worker (`invalid_job`) | |
 | SVG conversion time | 20 s each | Worker pipeline (`timeout` in phase `svg`; the Worker restarts) | |
@@ -182,7 +182,7 @@ what bounds a document that makes pages endlessly.
   not a structured error, and the restart policy recovers. The layer 3 fork
   bomb test accepts both outcomes and requires the recovery.
 - **The shared token is not secret from a compromised job.** The optional
-  `RENDERER_WORKER_TOKEN` is in the Worker process's environment, which a
+  `OUTPRINT_WORKER_TOKEN` is in the Worker process's environment, which a
   process of the same user can read through `/proc`. The tools get a rebuilt
   environment without it and TeX's paranoid reads keep it away from `/proc`,
   but the container sandbox itself does not protect it. It guards the hop from the Gateway on

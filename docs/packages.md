@@ -19,8 +19,8 @@ The service configuration names the roots and the allow-list of Bindings, the
 only Template and Configuration pairings a Collection may select.
 
 ```yaml
-templatesRoot: /opt/renderer/templates
-configurationsRoot: /opt/renderer/configurations
+templatesRoot: /opt/outprint/templates
+configurationsRoot: /opt/outprint/configurations
 bindings:
   - template: neutral
     configuration: example
@@ -29,10 +29,10 @@ defaultBinding:          # optional, must be one of the bindings
   configuration: example
 ```
 
-Unknown keys are errors. `RENDERER_TEMPLATES_ROOT` and
-`RENDERER_CONFIGURATIONS_ROOT` override the roots from the file. The file is
-located by `RENDERER_SERVICE_CONFIG` (or a path argument where a command takes
-one). The shipped image sets it to `/opt/renderer/service.yaml`.
+Unknown keys are errors. `OUTPRINT_TEMPLATES_ROOT` and
+`OUTPRINT_CONFIGURATIONS_ROOT` override the roots from the file. The file is
+located by `OUTPRINT_SERVICE_CONFIG` (or a path argument where a command takes
+one). The shipped image sets it to `/opt/outprint/service.yaml`.
 
 Packages on disk but not on the allow-list are loaded and checked, and
 produce a warning; their problems are warnings too, since nothing can use
@@ -262,16 +262,16 @@ when a Template declares a Standard Field name with a different type.
 ## validate
 
 ```sh
-renderer validate                       # as the service would: image service config
-renderer validate --service-config renderer.yaml
-renderer validate --templates-root ./templates --configs-root ./configurations
-renderer validate --templates-root ./templates --configs-root ./configurations \
+outprint validate                       # as the service would: image service config
+outprint validate --service-config outprint.yaml
+outprint validate --templates-root ./templates --configs-root ./configurations
+outprint validate --templates-root ./templates --configs-root ./configurations \
   --template mine --config example      # one pair, including the pair checks
 ```
 
 `validate` uses the same loader and checks as service startup:
 
-- with a service configuration (`--service-config`, or `RENDERER_SERVICE_CONFIG`
+- with a service configuration (`--service-config`, or `OUTPRINT_SERVICE_CONFIG`
   when no root or name flags are given) it checks the allow-list and every
   package on it, and warns about packages that are not listed;
 - without one it checks every package found in the roots on its own; with

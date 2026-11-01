@@ -17,7 +17,7 @@ func TestParseServeDefaultsAndOverrides(t *testing.T) {
 	if err != nil || o.Listen != ":8080" {
 		t.Errorf("defaults = %+v, %v", o, err)
 	}
-	o, err = parseServe("worker", ":8081", []string{"--service-config", "x.yaml"}, envMap(map[string]string{"RENDERER_LISTEN": ":9"}))
+	o, err = parseServe("worker", ":8081", []string{"--service-config", "x.yaml"}, envMap(map[string]string{"OUTPRINT_LISTEN": ":9"}))
 	if err != nil || o.Listen != ":9" || o.ServiceConfig != "x.yaml" {
 		t.Errorf("overrides = %+v, %v", o, err)
 	}
@@ -28,7 +28,7 @@ func TestParseServeDefaultsAndOverrides(t *testing.T) {
 
 func TestGatewayNeedsOutlineAndWorkerURL(t *testing.T) {
 	var stderr bytes.Buffer
-	code := runGateway(nil, envMap(map[string]string{"RENDERER_WORKER_URL": "http://w.example.test"}), &stderr)
+	code := runGateway(nil, envMap(map[string]string{"OUTPRINT_WORKER_URL": "http://w.example.test"}), &stderr)
 	if code != 2 || !strings.Contains(stderr.String(), "OUTLINE_URL") {
 		t.Errorf("code %d, stderr %q", code, stderr.String())
 	}
@@ -41,7 +41,7 @@ func TestServicesRefuseToStartOnBrokenPackages(t *testing.T) {
 		t.Fatal(err)
 	}
 	env := envMap(map[string]string{
-		"RENDERER_SERVICE_CONFIG": cfg, "OUTLINE_URL": "https://o.example.test", "RENDERER_WORKER_URL": "http://w.example.test",
+		"OUTPRINT_SERVICE_CONFIG": cfg, "OUTLINE_URL": "https://o.example.test", "OUTPRINT_WORKER_URL": "http://w.example.test",
 	})
 	for name, run := range map[string]func() (int, string){
 		"worker": func() (int, string) {
@@ -87,21 +87,21 @@ func TestServiceLoggerLevel(t *testing.T) {
 		t.Error("info is not logged by default")
 	}
 	b.Reset()
-	serviceLogger(&b, envMap(map[string]string{"RENDERER_LOG_LEVEL": "error"})).Info("hello")
+	serviceLogger(&b, envMap(map[string]string{"OUTPRINT_LOG_LEVEL": "error"})).Info("hello")
 	if b.Len() != 0 {
-		t.Error("RENDERER_LOG_LEVEL=error still logs info")
+		t.Error("OUTPRINT_LOG_LEVEL=error still logs info")
 	}
 }
 
 func TestWorkerRefusesAMalformedLimit(t *testing.T) {
 	var b strings.Builder
 	env := func(k string) string {
-		if k == "RENDERER_MAX_PAGES" {
+		if k == "OUTPRINT_MAX_PAGES" {
 			return "lots"
 		}
 		return ""
 	}
-	if code := runWorker(nil, env, &b); code != 2 || !strings.Contains(b.String(), "RENDERER_MAX_PAGES") {
+	if code := runWorker(nil, env, &b); code != 2 || !strings.Contains(b.String(), "OUTPRINT_MAX_PAGES") {
 		t.Errorf("code %d, output %q", code, b.String())
 	}
 }

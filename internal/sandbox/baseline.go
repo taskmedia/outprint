@@ -13,7 +13,7 @@ const (
 	// WorkerUID is the fixed non-root user the Worker image runs as.
 	WorkerUID = 10001
 	// TokenEnv is the one optional secret of the Worker.
-	TokenEnv = "RENDERER_WORKER_TOKEN"
+	TokenEnv = "OUTPRINT_WORKER_TOKEN"
 
 	workDir    = "/work"
 	tmpDir     = "/tmp"
@@ -21,8 +21,8 @@ const (
 )
 
 var (
-	allowedEnv        = []string{"RENDERER_LISTEN", "RENDERER_WORK_DIR", TokenEnv}
-	requiredMounts    = []string{"/opt/renderer/templates", "/opt/renderer/configurations"}
+	allowedEnv        = []string{"OUTPRINT_LISTEN", "OUTPRINT_WORK_DIR", TokenEnv}
+	requiredMounts    = []string{"/opt/outprint/templates", "/opt/outprint/configurations"}
 	allowedSecurity   = []string{"no-new-privileges:true"}
 	forbiddenTmpfsOpt = []string{"exec", "suid", "dev"}
 )
@@ -187,8 +187,8 @@ func checkEnvironment(v *violations, svc Service) {
 			v.add("environment", "%s is missing", key)
 		}
 	}
-	if svc.Environment["RENDERER_WORK_DIR"] != workDir {
-		v.add("environment", "RENDERER_WORK_DIR must be %s, got %q", workDir, svc.Environment["RENDERER_WORK_DIR"])
+	if svc.Environment["OUTPRINT_WORK_DIR"] != workDir {
+		v.add("environment", "OUTPRINT_WORK_DIR must be %s, got %q", workDir, svc.Environment["OUTPRINT_WORK_DIR"])
 	}
 	expanded := Interpolate(svc.Environment[TokenEnv], func(string) (string, bool) { return "", false })
 	if expanded != "" {

@@ -1,7 +1,7 @@
 //go:build golden
 
 // Security layer 1: a corpus of hostile Documents rendered through the real
-// renderer binary. Whatever the payload, the render must not read a file the
+// outprint binary. Whatever the payload, the render must not read a file the
 // Document names, must not run Lua or a shell, and must not hand raw TeX to
 // the engine. Each payload class has one deterministic outcome:
 //
@@ -182,7 +182,7 @@ func TestSecurityHostileDocuments(t *testing.T) {
 	root := repoRoot(t)
 	for _, tool := range []string{"pdftotext", "pdftohtml"} {
 		if _, err := exec.LookPath(tool); err != nil {
-			t.Fatalf("%s not found: the security suite must run in the renderer image (make test-golden)", tool)
+			t.Fatalf("%s not found: the security suite must run in the outprint image (make test-golden)", tool)
 		}
 	}
 	for _, tc := range hostileCases() {
@@ -240,9 +240,9 @@ func renderHostile(t *testing.T, root string, tc hostileCase) hostileRun {
 		t.Fatal(err)
 	}
 	run.pdf = filepath.Join(dir, "out.pdf")
-	bin := os.Getenv("RENDERER_BIN")
+	bin := os.Getenv("OUTPRINT_BIN")
 	if bin == "" {
-		bin = "renderer"
+		bin = "outprint"
 	}
 	cmd := exec.Command(bin, "render", "--template", "neutral", "--config", "example", "--date", fixedDate, "-o", run.pdf, input)
 	var stdout, stderr strings.Builder

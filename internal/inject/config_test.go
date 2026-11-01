@@ -8,7 +8,7 @@ import (
 func envOf(m map[string]string) func(string) string { return func(k string) string { return m[k] } }
 
 func TestConfigFromEnvDefaults(t *testing.T) {
-	cfg, err := ConfigFromEnv(envOf(map[string]string{"INJECTOR_UPSTREAM": "http://outline.example.invalid:3000"}))
+	cfg, err := ConfigFromEnv(envOf(map[string]string{"OUTPRINT_INJECTOR_UPSTREAM": "http://outline.example.invalid:3000"}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -19,12 +19,12 @@ func TestConfigFromEnvDefaults(t *testing.T) {
 
 func TestConfigFromEnvReadsEverything(t *testing.T) {
 	cfg, err := ConfigFromEnv(envOf(map[string]string{
-		"INJECTOR_UPSTREAM":       "http://outline.example.invalid:3000",
-		"INJECTOR_LISTEN":         "127.0.0.1:9000",
-		"INJECTOR_GATEWAY_URL":    "http://gateway.example.invalid:8080",
-		"INJECTOR_GATEWAY_PREFIX": "/_pdf",
-		"INJECTOR_SCRIPT_URL":     "/x.js",
-		"INJECTOR_CSP_ALLOW_SELF": "true",
+		"OUTPRINT_INJECTOR_UPSTREAM":       "http://outline.example.invalid:3000",
+		"OUTPRINT_INJECTOR_LISTEN":         "127.0.0.1:9000",
+		"OUTPRINT_INJECTOR_GATEWAY_URL":    "http://gateway.example.invalid:8080",
+		"OUTPRINT_INJECTOR_GATEWAY_PREFIX": "/_pdf",
+		"OUTPRINT_INJECTOR_SCRIPT_URL":     "/x.js",
+		"OUTPRINT_INJECTOR_CSP_ALLOW_SELF": "true",
 	}))
 	if err != nil {
 		t.Fatal(err)
@@ -41,8 +41,8 @@ func TestConfigFromEnvErrors(t *testing.T) {
 		env  map[string]string
 		want string
 	}{
-		{"missing upstream", map[string]string{}, "INJECTOR_UPSTREAM"},
-		{"bad bool", map[string]string{"INJECTOR_UPSTREAM": "http://a.invalid", "INJECTOR_CSP_ALLOW_SELF": "maybe"}, "INJECTOR_CSP_ALLOW_SELF"},
+		{"missing upstream", map[string]string{}, "OUTPRINT_INJECTOR_UPSTREAM"},
+		{"bad bool", map[string]string{"OUTPRINT_INJECTOR_UPSTREAM": "http://a.invalid", "OUTPRINT_INJECTOR_CSP_ALLOW_SELF": "maybe"}, "OUTPRINT_INJECTOR_CSP_ALLOW_SELF"},
 	}
 	for _, tc := range tests {
 		_, err := ConfigFromEnv(envOf(tc.env))

@@ -1,9 +1,9 @@
 # Service configuration shipped in the image. The roots can be overridden
-# with RENDERER_TEMPLATES_ROOT and RENDERER_CONFIGURATIONS_ROOT; the
+# with OUTPRINT_TEMPLATES_ROOT and OUTPRINT_CONFIGURATIONS_ROOT; the
 # allow-list names the only Template and Configuration pairings that may be
 # bound to a Collection.
-templatesRoot: /opt/renderer/templates
-configurationsRoot: /opt/renderer/configurations
+templatesRoot: /opt/outprint/templates
+configurationsRoot: /opt/outprint/configurations
 
 bindings:
   - template: neutral
@@ -23,7 +23,7 @@ defaultBinding:
 # Admission control of the Gateway (docs/limits.md). One Worker runs one job,
 # so keep slots equal to the number of Worker replicas. Every key is optional;
 # the values below are the defaults. Environment variables override the file:
-# RENDERER_ADMISSION_SLOTS, _QUEUE_DEPTH, _PER_USER and _MAX_WAIT.
+# OUTPRINT_ADMISSION_SLOTS, _QUEUE_DEPTH, _PER_USER and _MAX_WAIT.
 # admission:
 #   slots: 1        # renders at the same time
 #   queueDepth: 4   # requests that may wait for a slot; 0 = none wait
