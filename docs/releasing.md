@@ -129,6 +129,15 @@ What cannot be tested before the first release: the `workflow_call` chain from
 with a manual **docs snapshot** run once a tag `vX.Y.0` exists; the first real
 run is the v0.1.0 release.
 
+## Audit gate
+
+The release PR runs the audit (`.github/workflows/audit.yml`, check `audit`,
+see [Sanitisation gate](sanitize.md)). With `audit` in the required checks of
+`main`, a release cannot be merged while the audit has a finding. Fix findings
+by hand (issue and pull request text on GitHub, files in the repository); the
+audit only reads. The check needs the Actions secret `SANITIZE_DENYLIST`; without
+it the check fails on purpose.
+
 ## Immutable releases
 
 Turn on **Settings > General > Releases > Enable release immutability**. From

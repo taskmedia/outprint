@@ -1,0 +1,88 @@
+name: audit
+
+# The pre-publish audit (docs/sanitize.md) as a gate in the release flow:
+#   - on the release PR (branch release-please--branches--main) it runs the
+#     full audit: sanitize, plus every issue, pull request, comment, review,
+#     commit message and release note on GitHub;
+#   - on every other pull request the job reports success at once, so `audit`
+#     can be a required check of main without blocking anything else;
+#   - weekly and on demand it runs the full audit as well, to catch text added
+#     after the last release PR.
+# The audit never edits anything. It needs the Actions secret SANITIZE_DENYLIST
+# (the private denylist) and fails without it: an audit that cannot see the
+# private list must not look clean.
+
+on:
+  pull_request:
+  schedule:
+    - cron: '23 5 1 * *'
+  workflow_dispatch:
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  audit:
+    name: audit
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Decide whether this run audits
+        id: scope
+        env:
+          EVENT: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            if [ "$HEAD_REF" != "release-please--branches--main" ] || [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ]; then
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              echo "Not the release pull request: nothing to audit here."
+              exit 0
+            fi
+          fi
+          echo "run=true" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: steps.scope.outputs.run == 'true'
+        with:
+          fetch-depth: 0
+
+      - uses: go-task/setup-task@v2
+        if: steps.scope.outputs.run == 'true'
+        with:
+          version: 3.54.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-go@v5
+        if: steps.scope.outputs.run == 'true'
+        with:
+          go-version: stable
+
+      - name: Install gitleaks
+        if: steps.scope.outputs.run == 'true'
+        run: go install github.com/zricethezav/gitleaks/v8@v8.21.2
+
+      - name: Audit (generic and private denylist)
+        if: steps.scope.outputs.run == 'true'
+        env:
+          PRIVATE_DENYLIST: ${{ secrets.SANITIZE_DENYLIST }}
+        run: |
+          gopath="$(go env GOPATH)"
+          export PATH="$PATH:$gopath/bin"
+          if [ -z "$PRIVATE_DENYLIST" ]; then
+            echo "::error::The Actions secret SANITIZE_DENYLIST is not set. The audit refuses to run without the private denylist."
+            exit 1
+          fi
+          install -m 600 /dev/null "$RUNNER_TEMP/denylist.txt"
+          printf '%s\n' "$PRIVATE_DENYLIST" > "$RUNNER_TEMP/denylist.txt"
+          export SANITIZE_DENYLIST="$RUNNER_TEMP/denylist.txt"
+          task audit
