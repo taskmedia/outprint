@@ -24,11 +24,15 @@ func TestButtonEnvIsRead(t *testing.T) {
 		"OUTPRINT_BUTTON_FALLBACK":       "off",
 		"OUTPRINT_BUTTON_FALLBACK_DELAY": "5s",
 		"OUTPRINT_BUTTON_LABELS":         `{"menu":{"de":"PDF mit Briefkopf"}}`,
+		"OUTPRINT_BUTTON_METADATA_BLOCK": "show",
 	}))
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := ButtonConfig{Placement: "button", Style: "icon", Fallback: "off", FallbackDelay: 5 * time.Second, Labels: `{"menu":{"de":"PDF mit Briefkopf"}}`}
+	want := ButtonConfig{
+		Placement: "button", Style: "icon", Fallback: "off", FallbackDelay: 5 * time.Second,
+		Labels: `{"menu":{"de":"PDF mit Briefkopf"}}`, MetadataBlock: "show",
+	}
 	if cfg.Button != want {
 		t.Errorf("Button = %+v, want %+v", cfg.Button, want)
 	}
@@ -39,6 +43,8 @@ func TestButtonEnvRejectsBadValues(t *testing.T) {
 		{"placement", "OUTPRINT_BUTTON_PLACEMENT", "floating"},
 		{"style", "OUTPRINT_BUTTON_STYLE", "label"},
 		{"fallback", "OUTPRINT_BUTTON_FALLBACK", "maybe"},
+		{"metadata block", "OUTPRINT_BUTTON_METADATA_BLOCK", "off"},
+		{"metadata block folded", "OUTPRINT_BUTTON_METADATA_BLOCK", "fold"},
 		{"delay not a duration", "OUTPRINT_BUTTON_FALLBACK_DELAY", "soon"},
 		{"delay negative", "OUTPRINT_BUTTON_FALLBACK_DELAY", "-1s"},
 		{"labels not json", "OUTPRINT_BUTTON_LABELS", "menu=PDF"},
@@ -67,12 +73,12 @@ func TestTagCarriesOnlyNonDefaultOptions(t *testing.T) {
 	srv := newProxy(t, serveHTML("text/html", "<body></body>"), func(c *Config) {
 		c.Button = ButtonConfig{
 			Placement: "button", Style: "icon", Fallback: "off", FallbackDelay: 1500 * time.Millisecond,
-			Labels: `{"menu":{"de":"A \"B\""},"button":{"en":"Doc PDF"}}`,
+			Labels: `{"menu":{"de":"A \"B\""},"button":{"en":"Doc PDF"}}`, MetadataBlock: "hide",
 		}
 	})
 	_, body := get(t, srv.URL+"/", nil)
 	want := `<body><script src="/pdf/button.js" defer data-outline-pdf-injector` +
-		` data-placement="button" data-style="icon" data-fallback="off" data-fallback-delay="1500"` +
+		` data-placement="button" data-style="icon" data-fallback="off" data-fallback-delay="1500" data-metadata-block="hide"` +
 		` data-labels="{&#34;button&#34;:{&#34;en&#34;:&#34;Doc PDF&#34;},&#34;menu&#34;:{&#34;de&#34;:&#34;A \&#34;B\&#34;&#34;}}"></script></body>`
 	if string(body) != want {
 		t.Errorf("body = %s\nwant   %s", body, want)
@@ -81,7 +87,7 @@ func TestTagCarriesOnlyNonDefaultOptions(t *testing.T) {
 
 func TestDefaultOptionsLeaveTheTagUnchanged(t *testing.T) {
 	srv := newProxy(t, serveHTML("text/html", "<body></body>"), func(c *Config) {
-		c.Button = ButtonConfig{Placement: "menu", Style: "icon-label", Fallback: "on"}
+		c.Button = ButtonConfig{Placement: "menu", Style: "icon-label", Fallback: "on", MetadataBlock: "collapse"}
 	})
 	_, body := get(t, srv.URL+"/", nil)
 	if want := "<body>" + scriptTag + "</body>"; string(body) != want {

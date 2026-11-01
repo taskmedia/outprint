@@ -417,14 +417,17 @@ test('parseOptions defaults to the menu, icon and label, fallback on', () => {
   assert.equal(o.style, 'icon-label');
   assert.equal(o.fallback, true);
   assert.equal(o.fallbackDelay, 3000);
+  assert.equal(o.metadataBlock, 'collapse');
   assert.deepEqual(o.labels, {});
 });
 
 test('parseOptions reads the data attributes of the tag', () => {
   const o = b.parseOptions(attrs({
     'data-placement': 'button', 'data-style': 'icon', 'data-fallback': 'off', 'data-fallback-delay': '1500',
-    'data-labels': '{"menu":{"de":"PDF mit Briefkopf"}}',
+    'data-labels': '{"menu":{"de":"PDF mit Briefkopf"}}', 'data-metadata-block': 'show',
   }));
+  assert.equal(o.metadataBlock, 'show');
+  assert.equal(b.parseOptions(attrs({ 'data-metadata-block': 'hide' })).metadataBlock, 'hide');
   assert.equal(o.placement, 'button');
   assert.equal(o.style, 'icon');
   assert.equal(o.fallback, false);
@@ -435,7 +438,9 @@ test('parseOptions reads the data attributes of the tag', () => {
 test('parseOptions ignores unusable values', () => {
   const o = b.parseOptions(attrs({
     'data-placement': 'floating', 'data-style': 'big', 'data-fallback-delay': '-5', 'data-labels': '{not json',
+    'data-metadata-block': 'maybe',
   }));
+  assert.equal(o.metadataBlock, 'collapse');
   assert.equal(o.placement, 'menu');
   assert.equal(o.style, 'icon-label');
   assert.equal(o.fallbackDelay, 3000);
@@ -499,6 +504,39 @@ test('fallback off shows nothing when the anchor is missing', async () => {
   await tick();
   assert.equal(env.body.find('olp-pdf-button'), null);
   assert.equal(env.warnings.length, 0);
+});
+
+test('isMetadataLanguage accepts yaml in any case', () => {
+  assert.equal(b.isMetadataLanguage('yaml'), true);
+  assert.equal(b.isMetadataLanguage(' YAML '), true);
+});
+
+test('isMetadataLanguage rejects other and missing languages', () => {
+  for (const language of ['js', 'yml', '', null, undefined]) {
+    assert.equal(b.isMetadataLanguage(language), false, String(language));
+  }
+});
+
+test('metadataBlockMode: collapse hides it for readers and folds it for authors', () => {
+  assert.equal(b.metadataBlockMode('collapse', { found: true, editable: false }), 'hidden');
+  assert.equal(b.metadataBlockMode('collapse', { found: true, editable: true }), 'collapsed');
+});
+
+test('metadataBlockMode: hide leaves it to authors', () => {
+  assert.equal(b.metadataBlockMode('hide', { found: true, editable: false }), 'hidden');
+  assert.equal(b.metadataBlockMode('hide', { found: true, editable: true }), 'visible');
+});
+
+test('metadataBlockMode: show and a missing block change nothing', () => {
+  assert.equal(b.metadataBlockMode('show', { found: true, editable: false }), 'visible');
+  assert.equal(b.metadataBlockMode('show', { found: true, editable: true }), 'visible');
+  assert.equal(b.metadataBlockMode('collapse', { found: false, editable: false }), 'visible');
+  assert.equal(b.metadataBlockMode('hide', { found: false, editable: true }), 'visible');
+});
+
+test('textsFor has the label of the metadata toggle', () => {
+  assert.equal(b.textsFor('en', {}).metadata, 'PDF details');
+  assert.equal(b.textsFor('de', {}).metadata, 'PDF-Details');
 });
 
 // A list of fake elements chained through nextElementSibling, enough for

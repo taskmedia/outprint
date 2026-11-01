@@ -25,7 +25,7 @@ The field values a Template Configuration supplies when a Document does not set 
 _Avoid_: Presets
 
 **Metadata Block**:
-The fenced block at the very start of a Document in which its author sets field values (recipient, subject, …). It is not part of the rendered content.
+The fenced block at the very start of a Document in which its author sets field values (recipient, subject, …). It is not part of the rendered content. In Outline's interface the injector script keeps it out of the way: readers do not see it, and authors see it folded behind a toggle called "PDF details" (an operator setting can change this).
 _Avoid_: Frontmatter, Header
 
 **Standard Fields**:
