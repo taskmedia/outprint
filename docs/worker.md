@@ -14,8 +14,8 @@ the job id; see [Errors](#errors).
 
 | Phase | What happens |
 |-------|--------------|
-| `setup` | Create the job directory, find the TeX installation, write the engine configuration, copy the Template's shared files and fonts, write the bundled images and copy the pre-built font cache. |
-| `svg` | Convert the Configuration's SVG logo to PDF with `rsvg-convert`. |
+| `setup` | Create the job directory, find the TeX installation, write the engine configuration, copy the Template's shared files and fonts, write the bundled raster images and copy the pre-built font cache. |
+| `svg` | The first phase of the job proper: convert every SVG of the bundle and the Configuration's SVG logo to a vector PDF with `rsvg-convert`; see [SVG phase](#svg-phase). |
 | `pandoc` | Read Markdown with the hardened reader, run the Lua filters, write LaTeX using the Document Type's template. |
 | `filter` | Not a separate step: the failure phase when one of the filters rejects the document. |
 | `tex` | Run LuaLaTeX, at most twice. |
@@ -86,6 +86,46 @@ bold line.
 A filter failure is raised as `renderer-filter:<kind>: <fixed text>`. The
 Worker reads only the kind; the text never contains Document content.
 
+## SVG phase
+
+Every bundle image whose name ends in `.svg` (the Gateway names them
+`img-<n>.svg`) and the Configuration's logo are converted before Pandoc runs:
+
+```
+rsvg-convert -f pdf -     (SVG on standard input, PDF on standard output)
+```
+
+- **Input and output are streams.** The SVG is not written to the job
+  directory. Without a file, librsvg has no base location, so it resolves no
+  relative reference and loads nothing but `data:` URIs, whatever the SVG
+  asks for. The PDF is read from standard output into memory and written to
+  `images/<name>.pdf` (the logo: `logo.pdf`) only when it is complete.
+- **`--unlimited` is never passed**, so librsvg keeps its own limits (XML
+  size, 50 nested layers, 500 000 referenced elements). Only `-f pdf` and `-`
+  are passed.
+- **Own environment**: `PATH`, `LC_ALL`, `HOME=<job>/home`, `TMPDIR=<job>`
+  and `SOURCE_DATE_EPOCH` if set. Nothing is inherited, in particular no
+  `XML_CATALOG_FILES` and no proxy variable.
+- **Limits per file**: 20 s (`limits.SVGConvertTimeout`, bounded by what is
+  left of the job's time), a source of at most 2 MiB, a PDF of at most 10 MiB
+  (`limits.MaxSVGPDFBytes`). The output limit is enforced while the PDF is
+  read: the write that would pass it fails and the process group is killed, so
+  a runaway conversion costs at most 10 MiB of memory in the Worker.
+  Memory in the converter itself is bounded by the container (1 GiB; a kill
+  is reported as `resource`).
+- **Process group**: like every tool, `rsvg-convert` runs in its own process
+  group, which is killed on timeout, on the output limit and after exit.
+- **Logging**: on failure, the job id, the kind, the exit code and the first
+  line of the converter's error, reduced to printable ASCII and cut at 120
+  characters. That line can name an XML element or a position; the error
+  returned to the caller never holds tool output.
+
+Afterwards the Lua filter maps each `images/<name>.svg` reference to
+`images/<name>.pdf` and checks that this file exists in the job; every other
+check on image paths is unchanged. The Template's `\includegraphics` places
+the PDF, scaled to the size the Gateway wrote. A PDF page is a vector
+picture, so it stays sharp; embedded pictures inside the SVG stay raster.
+
 ## Engine lockdown
 
 LuaLaTeX runs with a `texmf.cnf` the Worker writes into the job directory and
@@ -146,7 +186,8 @@ The tools get exactly this environment and nothing from the parent:
 | `TEXMFCNF` | `<job>/texmf-cnf:` and the installation's own path |
 | `SOURCE_DATE_EPOCH`, `FORCE_SOURCE_DATE` | passed through only when set |
 
-No secret, token or cookie can reach a child process through the environment.
+`rsvg-convert` gets only the first four and `SOURCE_DATE_EPOCH`. No secret,
+token or cookie can reach a child process through the environment.
 
 ### Font cache
 
@@ -183,6 +224,7 @@ job-<id>/
   shared/ fonts/       copied from the Template
   images/              the job's images by bundle name
   meta.yaml input.md   what Pandoc reads
+  images/*.pdf         the converted SVGs, next to the raster images
   logo.pdf             the converted logo
   doc.tex doc.pdf doc.log
 ```
@@ -196,7 +238,7 @@ Document.
 | Phase | Kind | Meaning |
 |-------|------|---------|
 | `setup` | `invalid_job`, `internal` | The job is malformed, or the Worker could not prepare the directory. |
-| `svg` | `tool_failed`, `invalid_job` | The logo could not be converted. |
+| `svg` | `svg_convert`, `timeout`, `output_too_large`, `resource`, `invalid_job` | An SVG or the logo could not be converted: `rsvg-convert` failed or produced no PDF; took more than 20 s (the Worker restarts, as for any `timeout`); produced more than 10 MiB; ran out of memory; or the logo or an SVG name is invalid or the SVG is over 2 MiB. The Gateway answers 504 for `timeout` and 413 for `output_too_large`. |
 | `pandoc` | `tool_failed` | Pandoc failed for a reason other than a filter. |
 | `filter` | `raw_tex`, `raw_format`, `math`, `image_path` | A filter rejected the document. `raw_tex`, `raw_format` and `math` are internal errors. |
 | `tex` | `tex_error`, `no_output` | LuaLaTeX failed or produced no PDF. |
@@ -250,10 +292,13 @@ a deployment.
   Worker must still run with no network, no secrets and a read-only root.
 - Lua can still read the whole TeX installation and the environment above.
   Neither holds anything secret.
-- SVG images in the Document are not converted yet; the job bundle accepts
-  PNG, JPEG and PDF files.
-- Text inside SVG logos uses the fonts of the image; a missing font is
-  substituted silently. Export text as paths.
+- Text inside SVGs, Document images and logos alike, uses the fonts of the
+  image; a missing font is substituted silently (`sans-serif` and unknown
+  names become a TeX Gyre font). Export text as paths. See
+  [images.md](images.md#svg).
+- The Worker does not repeat the Gateway's SVG pre-check. It relies on
+  librsvg's own limits, the limits above and the container; the attack corpus
+  is run against exactly this (see [security.md](security.md)).
 - Glyphs missing from a Template's fonts are dropped by LuaLaTeX with only a
   log warning, which the Worker does not turn into an error.
 

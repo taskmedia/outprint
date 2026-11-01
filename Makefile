@@ -38,7 +38,7 @@ test-security: test-security-layer1 test-sandbox
 test-security-layer1:
 	mkdir -p $(SECURITY_LOG_DIR)
 	docker build --target golden -t $(GOLDEN_IMAGE) .
-	docker run --rm -e GOLDEN_RUN='Security|TestEngine|TestFilters|TestRender' $(GOLDEN_IMAGE) -test.v 2>&1 | tee $(SECURITY_LOG_DIR)/layer1.log
+	docker run --rm -e GOLDEN_RUN='Security|TestEngine|TestFilters|TestRender|TestSVG' $(GOLDEN_IMAGE) -test.v 2>&1 | tee $(SECURITY_LOG_DIR)/layer1.log
 	./scripts/security-guard.sh $(SECURITY_LOG_DIR)/layer1.log
 
 # Layers 2 and 3: the Worker image run with the flags of the shipped Compose

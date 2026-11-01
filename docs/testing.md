@@ -4,7 +4,7 @@
 
 | Tier | Command | Needs | Covers |
 |------|---------|-------|--------|
-| 1 | `make test` | Go | Unit tests, the Gateway HTTP API with fakes, the Compose baseline check |
+| 1 | `make test` | Go | Unit tests, the Gateway HTTP API with fakes, the Compose baseline check, the Gateway half of the SVG attack corpus |
 | 2 | `make test-golden` | Docker | PDF goldens, the Worker tests and security layer 1 inside the pinned renderer image |
 | 2 | `make test-sandbox` | Docker | Security layers 2 and 3: the Worker under the shipped container flags (see [security.md](security.md)) |
 | 3 | not yet | Docker, browser | Browser end-to-end tests against the Compose stack |
@@ -44,12 +44,15 @@ Measured on a developer machine with a warm Docker layer cache (Docker Desktop,
 
 | Step | Time |
 |------|------|
-| layers 2 and 3 (`go test -tags sandbox -parallel 4`) | about 50 s |
-| whole `make test-security` (layer 1, release and sandbox images, layers 2 and 3) | about 1 min 32 s |
+| layers 2 and 3 (`go test -tags sandbox -parallel 4`), before the SVG corpus | about 50 s |
+| layers 2 and 3 with the SVG attack corpus | about 2 min 20 s (the corpus is about 90 s of it: 37 light attacks over 4 Workers, about 4 s each because a converted SVG goes on through LuaLaTeX, and 3 heavy ones of 12 to 26 s in parallel) |
+| whole `make test-security` (layer 1, release and sandbox images, layers 2 and 3) | about 3 min 45 s with warm Docker layers, before: about 1 min 32 s |
 
 On the GitHub runner the job took about 6 to 7 minutes, almost all of it the
 cold image builds (the `goldens` job takes as long for the same reason); the
-tests themselves are the 50 to 90 seconds above. The job runs in parallel with
+tests themselves were the 50 to 90 seconds above, and the SVG corpus added about
+90 seconds. That puts the suite over the three-minute mark; the triggers are
+left as they were so that the decision stays with the maintainer. The job runs in parallel with
 the others and is kept on every push and pull request for now; the maintainer
 should decide whether the wall clock justifies the filter below. The cost that grows with the repository is the image build on a
 cold runner: the job builds the same images as the `goldens` job and runs in

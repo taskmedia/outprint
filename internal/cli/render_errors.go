@@ -54,6 +54,8 @@ func workerHint(e *worker.Error, opts renderOptions) string {
 		return "LaTeX could not typeset the document; --debug-tex-log prints the full log (it may contain document content)"
 	case worker.KindRawTeX, worker.KindRawFormat, worker.KindMath:
 		return "this is an internal error: content that must never reach LaTeX got past the reader; please report it"
+	case worker.KindSVGConvert, worker.KindOutputTooLarge:
+		return "an SVG image could not be converted to a PDF; simplify it, or export it as PNG"
 	case worker.KindImagePath:
 		return "an image does not refer to a file of the job; images must be uploaded to Outline"
 	}

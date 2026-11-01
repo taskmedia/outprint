@@ -1,0 +1,46 @@
+                                             Vector figures
+                                                   Robin Sample
+
+                                                   2 March 2026
+
+
+
+1 Diagrams
+
+An SVG alone in its paragraph with alt text becomes a captioned figure and stays a
+vector.
+The same file at the width an author asked for, without a caption.
+
+
+
+       Seed to flower
+
+
+
+
+An inline SVG           Seed to flower
+                                         sits in a line of text, with both sides given.
+
+   •
+
+
+
+
+                                                      Seed to flower
+
+                                           Figure 1: A diagram: seed to flower
+
+
+
+Example Garden Society                                      1
+                               Seed to flower
+
+
+
+                         Figure 2: In a list
+
+
+
+
+Example Garden Society              2
+

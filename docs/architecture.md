@@ -98,7 +98,7 @@ to the Worker. It is JSON, `Content-Type: application/json`:
 | `values` | the merged, typed field values of the Document Type: string, list of strings or bool |
 | `template`, `configuration` | package names; the Worker also checks the pairing against its allow-list |
 | `documentType` | one of the Template's Document Types |
-| `images` | image files by bundle name (`images/<name>` in the Markdown). Fetched and canonicalised by the Gateway, see [images.md](images.md) |
+| `images` | image files by bundle name (`images/<name>` in the Markdown). Fetched and canonicalised by the Gateway (an SVG is checked and passed on as `.svg`; the Worker converts it to a vector PDF), see [images.md](images.md) |
 
 There is no field for a cookie, a URL or a secret, and unknown fields are
 rejected, so none can be added by accident. A test serialises a bundle built

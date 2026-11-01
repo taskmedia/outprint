@@ -29,13 +29,15 @@ const (
 	formatUnknown = "unknown"
 )
 
-const uploadHint = "use PNG, JPEG, WebP or a static GIF"
+const uploadHint = "use PNG, JPEG, WebP, a static GIF or an SVG"
 
 // Canonical is an image ready for the bundle.
 type Canonical struct {
-	Data          []byte
-	Ext           string
-	Width, Height int
+	Data []byte
+	Ext  string
+	// Width and Height are the natural size in CSS pixels: the pixels of a
+	// raster image, the declared or viewBox size of an SVG.
+	Width, Height float64
 }
 
 // Canonicalise detects the format by magic bytes, checks the pixel count on
@@ -51,12 +53,6 @@ func Canonicalise(data []byte) (Canonical, *Rejection) {
 	default:
 		return Canonical{}, reject(KindFormat, "this is not a supported image (detected: %s); %s", describeUnknown(data), uploadHint)
 	}
-}
-
-// canonicaliseSVG is the seam for SVG support. Until it exists an SVG is
-// reported as a format problem.
-func canonicaliseSVG(_ []byte) (Canonical, *Rejection) {
-	return Canonical{}, reject(KindFormat, "svg is not supported yet; %s", uploadHint)
 }
 
 func canonicaliseRaster(format string, data []byte) (c Canonical, rej *Rejection) {
@@ -95,7 +91,7 @@ func encode(format string, img image.Image) (Canonical, *Rejection) {
 		return Canonical{}, reject(KindTooLarge, "the image is %s after conversion, at most %s", mib(buf.Len()), mib(limits.MaxImageBytes))
 	}
 	b := img.Bounds()
-	return Canonical{Data: buf.Bytes(), Ext: ext, Width: b.Dx(), Height: b.Dy()}, nil
+	return Canonical{Data: buf.Bytes(), Ext: ext, Width: float64(b.Dx()), Height: float64(b.Dy())}, nil
 }
 
 func mib(n int) string { return fmt.Sprintf("%.1f MiB", float64(n)/(1<<20)) }
@@ -172,12 +168,24 @@ func detectFormat(data []byte) string {
 	return formatUnknown
 }
 
+// looksLikeSVG says whether data is an SVG candidate: markup that is not an
+// HTML page and names an svg element near its start, or UTF-16 text, which
+// the pre-check then refuses with a clear message. Whether the XML root is
+// really svg is decided by the pre-check, not here.
 func looksLikeSVG(data []byte) bool {
-	head := bytes.TrimLeft(bytes.TrimPrefix(data[:min(len(data), 2048)], []byte("\xef\xbb\xbf")), " \t\r\n")
-	if bytes.HasPrefix(head, []byte("<svg")) {
+	if isUTF16(data) {
 		return true
 	}
-	return bytes.HasPrefix(head, []byte("<?xml")) && bytes.Contains(head, []byte("<svg"))
+	head := bytes.TrimLeft(bytes.TrimPrefix(data[:min(len(data), 2048)], []byte(utf8BOM)), " \t\r\n")
+	if len(head) == 0 || head[0] != '<' {
+		return false
+	}
+	lower := bytes.ToLower(head)
+	if bytes.HasPrefix(lower, []byte("<!doctype html")) || bytes.HasPrefix(lower, []byte("<html")) {
+		return false
+	}
+	return bytes.Contains(lower, []byte("<svg")) || bytes.Contains(lower, []byte(":svg")) ||
+		bytes.Contains(lower, []byte("<!doctype svg"))
 }
 
 // describeUnknown names a format that is not supported, for the message.

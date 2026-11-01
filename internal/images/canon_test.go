@@ -55,8 +55,8 @@ func TestCanonicaliseFormats(t *testing.T) {
 				t.Errorf("ext = %s, data starts %q", c.Ext, c.Data[:4])
 			}
 			b := decodeBack(t, c).Bounds()
-			if b.Dx() != c.Width || b.Dy() != c.Height || c.Width == 0 {
-				t.Errorf("reported %dx%d, decoded %dx%d", c.Width, c.Height, b.Dx(), b.Dy())
+			if float64(b.Dx()) != c.Width || float64(b.Dy()) != c.Height || c.Width == 0 {
+				t.Errorf("reported %vx%v, decoded %dx%d", c.Width, c.Height, b.Dx(), b.Dy())
 			}
 		})
 	}
@@ -74,8 +74,8 @@ func TestCanonicaliseOrientation(t *testing.T) {
 			if orientation >= 5 {
 				wantW, wantH = 40, 80
 			}
-			if c.Width != wantW || c.Height != wantH {
-				t.Errorf("orientation %d: size %dx%d, want %dx%d", orientation, c.Width, c.Height, wantW, wantH)
+			if c.Width != float64(wantW) || c.Height != float64(wantH) {
+				t.Errorf("orientation %d: size %vx%v, want %dx%d", orientation, c.Width, c.Height, wantW, wantH)
 			}
 			if bytes.Contains(c.Data, []byte("Exif")) {
 				t.Errorf("orientation %d: EXIF survived", orientation)
@@ -129,8 +129,7 @@ func TestCanonicaliseRejections(t *testing.T) {
 		data                 []byte
 	}{
 		{"animated gif", KindFormat, "animated GIF", gifBytes(t, 20, 20, 3)},
-		{"svg", KindFormat, "svg is not supported yet", []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>`)},
-		{"svg with prolog", KindFormat, "svg", []byte("<?xml version=\"1.0\"?>\n<svg/>")},
+		{"svg without a namespace", KindSVGRejected, "namespace", []byte("<?xml version=\"1.0\"?>\n<svg/>")},
 		{"html sign-in page", KindFormat, "HTML", []byte("<!DOCTYPE html><html></html>")},
 		{"pdf", KindFormat, "PDF", []byte("%PDF-1.7 ...")},
 		{"bmp", KindFormat, "BMP", []byte("BM......")},

@@ -55,14 +55,15 @@ local function has_scheme(target)
   return target:match("^[%a][%w+.-]*:") ~= nil
 end
 
-local function is_bundle_image(src)
+local function is_bundle_path(src)
   if not src:find("^" .. BUNDLE_IMAGE_DIR .. "[%w._-]+$") then
     return false
   end
-  if src:find("%.%.") or src:sub(#BUNDLE_IMAGE_DIR + 1, #BUNDLE_IMAGE_DIR + 1) == "." then
-    return false
-  end
-  local file = io.open(src, "rb")
+  return not (src:find("%.%.") or src:sub(#BUNDLE_IMAGE_DIR + 1, #BUNDLE_IMAGE_DIR + 1) == ".")
+end
+
+local function file_exists(path)
+  local file = io.open(path, "rb")
   if not file then
     return false
   end
@@ -70,10 +71,26 @@ local function is_bundle_image(src)
   return true
 end
 
+-- The Worker converts every SVG of the bundle to a PDF before Pandoc runs
+-- (images/a.svg becomes images/a.pdf). The SVG itself is not in the job
+-- directory, so the reference is mapped to the PDF and that file is checked.
+local function converted_name(src)
+  if src:lower():match("%.svg$") then
+    return src:sub(1, -5) .. ".pdf"
+  end
+  return src
+end
+
 function Image(el)
-  if has_scheme(el.src) or not is_bundle_image(el.src) then
+  if has_scheme(el.src) or not is_bundle_path(el.src) then
     fail("image_path", "image does not refer to a file of the job bundle")
   end
+  local src = converted_name(el.src)
+  if not file_exists(src) then
+    fail("image_path", "image does not refer to a file of the job bundle")
+  end
+  el.src = src
+  return el
 end
 
 -- Links keep their text; only web, mail and in-document targets stay links.

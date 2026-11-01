@@ -3,6 +3,7 @@ package worker
 import (
 	"bytes"
 	"context"
+	"io"
 	"os"
 	"os/exec"
 	"syscall"
@@ -44,22 +45,32 @@ func (c *cappedBuffer) Write(p []byte) (int, error) {
 // environment. When the context ends the whole group is killed; the group is
 // also killed after a normal exit so no stray child outlives the tool.
 func runTool(ctx context.Context, dir string, env []string, name string, args []string) (toolResult, error) {
+	var out cappedBuffer
+	res, err := runToolIO(ctx, dir, env, name, args, nil, &out, &out)
+	res.Output = out.buf.String()
+	return res, err
+}
+
+// runToolIO is runTool with its own standard input and output streams. The
+// caller owns the limits of stdout; stderr should be capped. Output of the
+// result is left empty.
+func runToolIO(ctx context.Context, dir string, env []string, name string, args []string,
+	stdin io.Reader, stdout, stderr io.Writer) (toolResult, error) {
 	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Dir = dir
 	cmd.Env = env
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Cancel = func() error { return killGroup(cmd) }
 	cmd.WaitDelay = killWaitDelay
-	var out cappedBuffer
-	cmd.Stdout = &out
-	cmd.Stderr = &out
+	cmd.Stdin = stdin
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 
 	start := time.Now()
 	err := cmd.Run()
 	killGroup(cmd)
 
 	res := toolResult{
-		Output:   out.buf.String(),
 		ExitCode: exitCodeUnknown,
 		Duration: time.Since(start),
 		TimedOut: ctx.Err() != nil,

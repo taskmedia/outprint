@@ -11,6 +11,9 @@ const (
 	KindFormat    = "format"
 	KindDecode    = "decode"
 	KindPixels    = "pixels"
+	// KindSVGRejected is an SVG that the pre-check refuses, for its content
+	// or its structure. An SVG over the size limit is too_large instead.
+	KindSVGRejected = "svg_rejected"
 	// KindSyntax is an image whose Markdown the rewrite cannot place
 	// reliably, for example one that spans lines.
 	KindSyntax = "syntax"

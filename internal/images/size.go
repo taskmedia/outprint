@@ -44,20 +44,20 @@ func atoi(s string) int {
 }
 
 // Points returns the width and height in points for an image of w by h
-// pixels: the requested size at 96 dpi, a missing side derived from the
+// CSS pixels: the requested size at 96 dpi, a missing side derived from the
 // aspect ratio, the natural size when nothing was requested. The result is
 // held inside TeX's range with the aspect kept. Clamping to the page is the
 // Template's job, because only the Template knows the text area.
-func Points(w, h int, req Size) (float64, float64) {
+func Points(w, h float64, req Size) (float64, float64) {
 	pw, ph := float64(req.Width), float64(req.Height)
 	switch {
 	case pw > 0 && ph > 0:
 	case pw > 0:
-		ph = pw * float64(h) / float64(w)
+		ph = pw * h / w
 	case ph > 0:
-		pw = ph * float64(w) / float64(h)
+		pw = ph * w / h
 	default:
-		pw, ph = float64(w), float64(h)
+		pw, ph = w, h
 	}
 	pw, ph = pw*pointsPerPixel, ph*pointsPerPixel
 	if big := max(pw, ph); big > maxPoints {

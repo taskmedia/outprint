@@ -110,7 +110,7 @@ func TestProcessCollectsAllProblems(t *testing.T) {
 	}
 	want := []string{
 		`13:1 missing "missing one"`, `15:1 forbidden "ext"`, `17:1 forbidden "denied pic"`, `19:1 too_large "huge pic"`,
-		`21:1 format "svg pic"`, `23:1 format "gif pic"`, `25:1 decode "bad pic"`, `27:10 missing "no address"`,
+		`21:1 svg_rejected "svg pic"`, `23:1 format "gif pic"`, `25:1 decode "bad pic"`, `27:10 missing "no address"`,
 	}
 	if strings.Join(got, "\n") != strings.Join(want, "\n") {
 		t.Errorf("problems:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
@@ -294,5 +294,25 @@ func TestRewriteReferenceStyle(t *testing.T) {
 	}
 	if !strings.HasPrefix(string(res.Markdown), "Look ![pic](images/img-1.png){width=30.00pt height=15.00pt}.") {
 		t.Errorf("got %q", res.Markdown)
+	}
+}
+
+func TestProcessRewritesSVGWithItsNaturalSize(t *testing.T) {
+	src := newFakeSource()
+	src.files["d"] = []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20"/>`)
+	src.files["bad"] = []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><script/></svg>`)
+	res, problems := process(t, src, "![Diagram](d)\n\n![Wide](d \"=80\") and ![](d)\n")
+	if len(problems) > 0 {
+		t.Fatalf("problems: %v", problems)
+	}
+	want := "![Diagram](images/img-1.svg){width=30.00pt height=15.00pt}\n\n" +
+		"![Wide](images/img-1.svg){width=60.00pt height=30.00pt} and ![](images/img-1.svg){width=30.00pt height=15.00pt}\n"
+	if string(res.Markdown) != want || len(res.Images) != 1 || len(res.Images["img-1.svg"]) == 0 {
+		t.Errorf("markdown:\n%s\nimages %v", res.Markdown, keys(res.Images))
+	}
+
+	_, problems = process(t, src, "x\n\n![Bad diagram](bad)\n")
+	if len(problems) != 1 || problems[0].Kind != KindSVGRejected || problems[0].Line != 3 || problems[0].Alt != "Bad diagram" {
+		t.Errorf("problems = %v", problems)
 	}
 }

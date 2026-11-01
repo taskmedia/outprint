@@ -356,6 +356,40 @@ func TestImagesRenderFromOutline(t *testing.T) {
 	w.noCookieElsewhere()
 }
 
+func TestImagesSVGTravelsAsAnSVGWithItsNaturalSize(t *testing.T) {
+	w := newWorld(t)
+	svg := []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="80" height="40"><rect width="80" height="40"/></svg>`)
+	w.attach[uuidA] = serve(svg)
+	w.docText = "![Diagram](" + attachmentURL(uuidA) + ")\n\n![](" + attachmentURL(uuidA) + " \"=160x\")\n"
+	code, body := w.render()
+	if code != 200 {
+		t.Fatalf("status %d: %s", code, body)
+	}
+	b := w.bundleSent()
+	want := "![Diagram](images/img-1.svg){width=60.00pt height=30.00pt}\n\n![](images/img-1.svg){width=120.00pt height=60.00pt}\n"
+	if string(b.Markdown) != want {
+		t.Errorf("markdown = %q, want %q", b.Markdown, want)
+	}
+	if string(b.Images["img-1.svg"]) != string(svg) || len(b.Images) != 1 {
+		t.Errorf("the SVG was not passed on unchanged: %v", len(b.Images))
+	}
+}
+
+func TestImagesHostileSVGIsRejectedBeforeTheWorker(t *testing.T) {
+	w := newWorld(t)
+	w.attach[uuidA] = serve([]byte(`<?xml version="1.0"?><!DOCTYPE svg [<!ENTITY x SYSTEM "file:///etc/passwd">]><svg xmlns="http://www.w3.org/2000/svg" width="1" height="1">&x;</svg>`))
+	w.docText = "![Evil diagram](" + attachmentURL(uuidA) + ")\n"
+	code, body := w.render()
+	errs := errorsOf(t, code, body)
+	if len(errs) != 1 || errs[0].Code != "svg_rejected" || errs[0].Field != "Evil diagram" {
+		t.Fatalf("errors = %+v\n%s", errs, body)
+	}
+	if strings.Contains(string(body), "passwd") {
+		t.Errorf("the answer quotes the SVG: %s", body)
+	}
+	w.assertWorkerUntouched()
+}
+
 func TestImagesAbsoluteAndDuplicateReferencesFetchOnce(t *testing.T) {
 	w := newWorld(t)
 	w.attach[uuidA] = serve(testPNG(t, 8, 8))
@@ -648,7 +682,7 @@ func TestImagesAllProblemsInOneList(t *testing.T) {
 			"https://cdn.example.invalid/x.png", "/api/attachments.redirect")
 	code, body := w.render()
 	errs := errorsOf(t, code, body)
-	want := []string{"unknown", "format", "missing", "forbidden", "format", "decode", "forbidden", "missing"}
+	want := []string{"unknown", "format", "missing", "forbidden", "svg_rejected", "decode", "forbidden", "missing"}
 	if got := codes(errs); strings.Join(got, ",") != strings.Join(want, ",") {
 		t.Fatalf("codes = %v, want %v\n%s", got, want, body)
 	}

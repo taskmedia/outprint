@@ -42,6 +42,28 @@ const (
 	MaxImageRedirects = 5
 )
 
+// SVG limits. The Gateway pre-checks the source; the Worker bounds the
+// conversion.
+const (
+	// MaxSVGBytes is the size of one SVG source.
+	MaxSVGBytes = 2 << 20
+	// MaxSVGElements and MaxSVGDepth bound the structure of an SVG.
+	MaxSVGElements = 100_000
+	// MaxSVGDepth is the nesting librsvg renders: deeper fails the conversion.
+	MaxSVGDepth = 50
+	// MaxSVGExpansion is how many elements an SVG may instantiate once every
+	// <use> is expanded, which is what stops an exponential <use> bomb.
+	MaxSVGExpansion = 500_000
+	// MaxSVGSizePx is the largest natural width or height in CSS pixels;
+	// MaxSVGViewBox is the largest viewBox side in user units.
+	MaxSVGSizePx  = 100_000
+	MaxSVGViewBox = 1_000_000
+	// SVGConvertTimeout is how long one SVG may take to convert, and
+	// MaxSVGPDFBytes is the largest PDF one conversion may produce.
+	SVGConvertTimeout = 20 * time.Second
+	MaxSVGPDFBytes    = 10 << 20
+)
+
 // Worker container limits. The shipped Compose file sets them; the sandbox
 // tests fail if it stops doing so.
 const (

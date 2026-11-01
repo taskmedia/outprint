@@ -5,15 +5,15 @@ The Gateway fetches and checks them; the Worker only sees clean files.
 
 ## For authors
 
-**Supported formats**: PNG, JPEG, WebP and static GIF, detected by content,
-not by name. SVG is not supported yet. Animated GIF and animated WebP are
-rejected. Upload the image to Outline; images linked from other sites,
+**Supported formats**: PNG, JPEG, WebP, static GIF and SVG, detected by
+content, not by name. Animated GIF and animated WebP are rejected. Upload the image to Outline; images linked from other sites,
 `data:` and `file:` addresses are rejected.
 
-**What happens to a file**: it is decoded and written again. PNG stays
-lossless, JPEG is saved at quality 95, WebP and GIF become PNG. A JPEG's EXIF
-orientation is applied, so a photo taken sideways is upright. All other
-metadata (camera, location, colour profile) is dropped.
+**What happens to a file**: a raster image is decoded and written again. PNG
+stays lossless, JPEG is saved at quality 95, WebP and GIF become PNG. A JPEG's
+EXIF orientation is applied, so a photo taken sideways is upright. All other
+metadata (camera, location, colour profile) is dropped. An SVG is checked and
+then kept as it is; see [SVG](#svg).
 
 **Size**: Outline's size syntax is respected. Pixels are converted at 96 dpi
 (a pixel is 0.75 pt).
@@ -43,14 +43,75 @@ kind:
 |------|---------|
 | `missing` | no address or attachment id, or the attachment was not found |
 | `forbidden` | not an Outline attachment (other site, `data:`, `file:`, a relative path), not readable by you, or stored on a host the service may not fetch from |
-| `too_large` | over 10 MiB, over 50 images, or over 50 MiB in total |
-| `format` | not PNG, JPEG, WebP or a static GIF; the message names what was found |
+| `too_large` | over 10 MiB (an SVG: over 2 MiB), over 50 images, or over 50 MiB in total |
+| `format` | not PNG, JPEG, WebP, a static GIF or an SVG; the message names what was found |
+| `svg_rejected` | an SVG that is not allowed or cannot be used; the message says why |
 | `decode` | the file is damaged |
 | `pixels` | more than 40 megapixels |
 | `syntax` | the image Markdown spans lines; put it on one line |
 
 Do not use Pandoc attribute blocks (`{width=...}`) after an image: they are
 ignored.
+
+## SVG
+
+An SVG is rendered as a vector: it stays sharp at any zoom and its text
+stays text. Sizing, captions and the limits above work as for any image; the
+natural size is the one in the file (see below).
+
+**What is accepted**: a plain SVG 1.1 or 1.2 file in UTF-8 whose root element
+is `svg` in the namespace `http://www.w3.org/2000/svg`. Shapes, paths, text,
+gradients, patterns, clip paths, masks, filters, `<use>` and `<style>` work.
+Pictures are embedded as `data:image/png`, `jpeg`, `gif` or `webp` with
+`;base64,` in an `<image>`.
+
+**Size**: the natural size comes from `width` and `height` on the root
+element (units `px`, `pt`, `pc`, `mm`, `cm`, `in`; a bare number is a pixel),
+and where one is missing or relative (`100%`, `em`) from the `viewBox`. At
+96 dpi, like Outline's sizes. An SVG with neither is rejected. Sides beyond
+100 000 pixels and viewBox sides beyond 1 000 000 units are rejected as
+absurd.
+
+**What is rejected, and why**, all as `svg_rejected` unless noted. The message
+names the reason and, at most, a short part of the offending name; it never
+quotes the file.
+
+| Rejected | Why |
+|----------|-----|
+| a `DOCTYPE` or `ENTITY` declaration, anywhere | external entities read files and fetch URLs; nested entities expand a few bytes into gigabytes (XXE, "billion laughs"). Export without a DOCTYPE. |
+| `<script>`, `<foreignObject>` | active content and embedded HTML; PDF output cannot use them anyway |
+| attributes starting with `on` (`onload`, `onclick`) | event handlers |
+| any `href` or `xlink:href` that is not a `#fragment` of the same file, or, on `<image>`, an embedded raster | `file:`, `http(s):`, relative paths, `javascript:` and `data:image/svg+xml` all load something from outside. Links to web pages (`<a href="https://...">`) are rejected too: a PDF made from a diagram does not need them. |
+| `url()` that is not `url(#fragment)`, in any attribute, `style` attribute or `<style>`; `@import`; `image-set()`; a backslash (CSS escape) in styles | same reason; an escape could spell a keyword in a form a scan does not see |
+| a processing instruction other than the XML declaration | `xml-stylesheet` loads a style sheet |
+| a declared encoding other than UTF-8, and UTF-16 files | the checker and the converter must read the same bytes. A UTF-8 byte order mark is accepted and dropped. Save the file as UTF-8. |
+| a file that is not well-formed XML; text or a second element after the root; a root outside the SVG namespace | the converter would refuse it or read it differently |
+| more than 100 000 elements, nesting deeper than 50, `<use>` loops, and `<use>` that expands to more than 500 000 elements | the converter's own limits, and exponential `<use>` bombs (a few lines that name groups of groups of groups) |
+| an embedded picture that is not valid, or has more than 40 megapixels | a decompression bomb inside the SVG |
+| no usable size, or an absurd one (above) | |
+| more than 2 MiB (`too_large`) | |
+
+The logo of a Template Configuration is an SVG too. The Configuration comes
+from the operator, so its logo is not pre-checked, but it goes through the
+same sandboxed conversion as a Document's SVG.
+
+**Text in an SVG uses the fonts of the Worker image, and a font that is
+missing is replaced without any warning.** The Document's fonts are the
+Template's; an SVG is typeset by the converter, which asks the system for
+the font names written in the file. The image has the TeX Gyre fonts. A
+`font-family="Helvetica"` or `"sans-serif"` is drawn with a TeX Gyre font
+(`sans-serif` is TeX Gyre Adventor), and any other name falls back the same
+way, so the picture can look different from the one on screen and no check
+catches it. **Export text as paths** (Inkscape: Path, Object to Path;
+Figma and most chart tools: "outline text") for a faithful result. The same
+holds for the text of an SVG logo. Text drawn as paths is also not searchable
+or selectable in the PDF.
+
+An SVG that passes these checks can still be too complex to convert. The
+Worker stops a conversion after 20 seconds and refuses one that produces
+more than 10 MiB of PDF; the render fails with an error that names the SVG
+phase (see [worker.md](worker.md)). Embedded pictures are not recompressed,
+so a large photo inside an SVG counts fully against the limits.
 
 ## How the Gateway works
 
@@ -63,7 +124,7 @@ ignored.
    origin) and `/api/files.get?...`. A path prefix of the Outline URL is
    honoured. Everything else is `forbidden`.
 3. Each distinct attachment is fetched once per render, canonicalised, and
-   gets a name `img-<n>.png` or `img-<n>.jpg`.
+   gets a name `img-<n>.png`, `img-<n>.jpg` or `img-<n>.svg`.
 4. Each image is rewritten in place to
    `![alt](images/<name>){width=Wpt height=Hpt}`. The alt text is plain text
    with every markup character escaped; the destination and the numbers are
@@ -142,7 +203,7 @@ must do the same.
 - A redirect to the Outline origin carries no cookie, like every redirect.
   If an Outline with local file storage needs the cookie there, the end-to-end
   check will show it.
-- SVG: the format check reports "svg is not supported yet" in
-  `internal/images/canon.go` (`canonicaliseSVG`). The SVG issue replaces that
-  function; the rewrite and the bundle already take any file name the
-  function returns.
+- SVG: the Gateway pre-check is in `internal/images/svg*.go`; the conversion is
+  the first phase of the Worker (`internal/worker/svg.go`). The attack corpus
+  that backs the table above is `internal/svgcorpus` (see
+  [security.md](security.md)).
