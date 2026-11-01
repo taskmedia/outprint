@@ -87,3 +87,11 @@ Search is version-aware once versions exist: the index is built per version
 and the search box on a versioned page searches that version.
 
 Both states (no snapshot, one snapshot) have been built strictly.
+
+## Logo
+
+The logo kit lives in `docs/assets/logo/` (the single source, with its own
+README and rebuild script). `npm start` and `npm run build` first run
+`npm run brand`, which copies only the files the site uses (lockup in light and
+dark, favicons, social preview) into `static/brand/`. That folder is generated
+and git-ignored; the kit is excluded from the docs pages.

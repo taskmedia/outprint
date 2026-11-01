@@ -74,19 +74,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Wordmark placeholder: the name, with a green mark. Replaced by the logo
-   once it is commissioned. */
-.navbar__title {
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-.navbar__brand::before {
-  content: '';
-  width: 0.7rem;
-  height: 0.7rem;
-  margin-right: 0.5rem;
-  border-radius: 2px;
-  background: var(--op-accent);
+/* The logo lockup is an SVG with a 4.9:1 aspect ratio. */
+.navbar__logo {
+  height: 1.75rem;
 }
 
 .navbar {

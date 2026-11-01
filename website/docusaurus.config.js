@@ -1,14 +1,16 @@
 // @ts-check
 
+const baseUrl = '/outprint/';
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Outprint',
   tagline:
     'Outprint for Outline: turn Outline documents into typeset PDFs (letters, reports, custom LaTeX templates) with a Download PDF button. Self-hosted, no Outline fork.',
-  favicon: 'img/favicon.svg',
+  favicon: 'brand/favicon.ico',
 
   url: 'https://taskmedia.github.io',
-  baseUrl: '/outprint/',
+  baseUrl,
   organizationName: 'taskmedia',
   projectName: 'outprint',
 
@@ -30,6 +32,11 @@ const config = {
       onBrokenMarkdownLinks: 'throw',
     },
   },
+
+  headTags: [
+    {tagName: 'link', attributes: {rel: 'icon', href: `${baseUrl}brand/favicon.svg`, type: 'image/svg+xml'}},
+    {tagName: 'link', attributes: {rel: 'apple-touch-icon', href: `${baseUrl}brand/apple-touch-icon.png`}},
+  ],
 
   // One locale. To add German: see website/README.md ("Add a locale").
   // Do not add the locale dropdown navbar item before a second locale exists.
@@ -59,6 +66,8 @@ const config = {
             'releasing.md',
             'testing.md',
             'research/**',
+            // The logo kit (build script, lock files, its own README).
+            'assets/**',
           ],
           // Until the first release snapshot exists, the current docs are the
           // only version and stay at the site root. At the first snapshot:
@@ -97,8 +106,14 @@ const config = {
         defaultMode: 'light',
         respectPrefersColorScheme: true,
       },
+      image: 'brand/social-preview.png',
       navbar: {
-        title: 'Outprint',
+        // The lockup already carries the name.
+        logo: {
+          alt: 'Outprint',
+          src: 'brand/outprint-lockup.svg',
+          srcDark: 'brand/outprint-lockup-dark.svg',
+        },
         items: [
           // At the first snapshot add: {type: 'docsVersionDropdown', position: 'right'}
           {

@@ -7,7 +7,10 @@
     "node": ">=22"
   },
   "scripts": {
+    "brand": "node scripts/sync-brand.mjs",
+    "prestart": "npm run brand",
     "start": "docusaurus start",
+    "prebuild": "npm run brand",
     "build": "docusaurus build",
     "serve": "docusaurus serve --no-open",
     "clear": "docusaurus clear",
