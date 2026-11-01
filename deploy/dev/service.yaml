@@ -1,0 +1,10 @@
+# Service configuration of the DEV stack. Like config/service.yaml but with no
+# defaultBinding, so a Collection without a `yaml binding` block has no button.
+templatesRoot: /opt/renderer/templates
+configurationsRoot: /opt/renderer/configurations
+
+bindings:
+  - template: neutral
+    configuration: example
+
+# No defaultBinding on purpose: the E2E suite relies on it.

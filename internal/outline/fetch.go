@@ -2,6 +2,7 @@ package outline
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -45,6 +46,12 @@ type ImageOptions struct {
 	// lead to, for example the file storage. An entry is a host name, which
 	// matches the default ports of http and https, or host:port.
 	Hosts []string
+	// PublicURL is the URL under which Outline names itself (its URL
+	// setting), when the configured Outline URL is an internal address. A
+	// redirect to this origin, as Outline's local file storage sends, is
+	// fetched from the configured origin instead, still without the cookie.
+	// It does not allow any other host. Empty means none.
+	PublicURL string
 	// Timeout bounds one fetch with its redirects; zero means
 	// DefaultImageTimeout.
 	Timeout time.Duration
@@ -67,14 +74,30 @@ func (c *Client) WithImages(opts ImageOptions) (*Client, error) {
 	if opts.Resolver == nil {
 		opts.Resolver = net.DefaultResolver
 	}
+	public, err := parsePublicURL(opts.PublicURL)
+	if err != nil {
+		return nil, err
+	}
 	out := *c
-	out.images = &imageFetch{origin: c.base, allowed: allowed, opts: opts}
+	out.images = &imageFetch{origin: c.base, public: public, allowed: allowed, opts: opts}
 	return &out, nil
+}
+
+func parsePublicURL(raw string) (*url.URL, error) {
+	if strings.TrimSpace(raw) == "" {
+		return nil, nil
+	}
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.User != nil {
+		return nil, errors.New("outline public url must be an http or https URL with a host and no credentials")
+	}
+	return u, nil
 }
 
 // imageFetch is the SSRF-safe fetcher of one client.
 type imageFetch struct {
 	origin  *url.URL
+	public  *url.URL // nil unless ImageOptions.PublicURL is set
 	allowed map[string]bool
 	opts    ImageOptions
 }
@@ -185,11 +208,23 @@ func (f *imageFetch) afterResponse(resp *http.Response, from *url.URL, hop int) 
 		if err != nil || resp.Header.Get("Location") == "" {
 			return nil, false, fmt.Errorf("%w: redirect without a usable location", ErrUnavailable)
 		}
-		return loc, false, nil
+		return f.fromInternalOrigin(loc), false, nil
 	case http.StatusOK:
 		return nil, true, nil
 	}
 	return nil, false, statusError("image fetch", resp.StatusCode)
+}
+
+// fromInternalOrigin maps a redirect to Outline's public origin onto the
+// configured one; every other target is returned as it is and judged by the
+// usual rules.
+func (f *imageFetch) fromInternalOrigin(loc *url.URL) *url.URL {
+	if f.public == nil || hostPort(loc) != hostPort(f.public) || loc.Scheme != f.public.Scheme {
+		return loc
+	}
+	out := *loc
+	out.Scheme, out.Host = f.origin.Scheme, f.origin.Host
+	return &out
 }
 
 // get sends one request to u without following a redirect.

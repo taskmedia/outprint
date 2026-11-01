@@ -51,6 +51,7 @@ Configuration (environment):
 | Variable | Meaning | Default |
 |----------|---------|---------|
 | `OUTLINE_URL` | base URL of Outline; the only origin the cookie is sent to | required |
+| `OUTLINE_PUBLIC_URL` | Outline's own `URL` setting, when `OUTLINE_URL` is an internal address; a redirect to this origin is fetched from `OUTLINE_URL` ([images.md](images.md#outline-behind-an-internal-address)) | none |
 | `RENDERER_WORKER_URL` | base URL of the Worker | required |
 | `RENDERER_WORKER_TOKEN` | optional shared bearer token | none |
 | `RENDERER_LISTEN` | listen address | `:8080` |

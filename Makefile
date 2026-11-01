@@ -13,7 +13,7 @@ SANDBOX_PARALLEL ?= 4
 # Fixed so that PDFs are reproducible across runs.
 SOURCE_DATE_EPOCH ?= 1700000000
 
-.PHONY: build test test-web image image-injector test-golden test-security test-security-layer1 test-sandbox test-guard update-goldens sanitize test-sanitize
+.PHONY: dev dev-up dev-secrets seed dev-down dev-down-volumes dev-logs dev-clean e2e e2e-install build test test-web image image-injector test-golden test-security test-security-layer1 test-sandbox test-guard update-goldens sanitize test-sanitize
 
 build:
 	go build -o bin/renderer ./cmd/renderer
@@ -87,3 +87,44 @@ sanitize:
 
 test-sanitize:
 	./scripts/sanitize_test.sh
+
+# Development stack (docs/development.md): Outline with login, the injector,
+# Gateway and Worker, seeded with a fictional user, a bound and an unbound
+# Collection. DEV ONLY.
+DEV_COMPOSE ?= docker compose --env-file deploy/dev/versions.env -f deploy/compose/compose.yaml -f deploy/dev/compose.yaml
+DEV_URL     ?= http://localhost:8090
+
+dev-secrets:
+	./deploy/dev/gen-secrets.sh
+
+dev-up: dev-secrets
+	$(DEV_COMPOSE) up -d --build --wait
+
+# The one seeding implementation, shared with the browser tests. Safe to rerun.
+seed:
+	go run ./cmd/seed -url $(DEV_URL)
+
+dev: dev-up seed
+
+dev-down:
+	$(DEV_COMPOSE) down --remove-orphans
+
+# Also removes the database and the files: the next `make dev` starts empty.
+dev-down-volumes:
+	$(DEV_COMPOSE) down --remove-orphans --volumes
+
+dev-logs:
+	$(DEV_COMPOSE) logs -f --tail=100
+
+# Forget the generated dev secrets and the seed output (stop the stack with
+# volumes first, or Outline will not accept the new keys).
+dev-clean:
+	rm -rf deploy/dev/.generated
+
+# Tier 3: browser end-to-end tests against the dev stack. Needs Docker, Go and
+# Node. Starts the stack when it is not running.
+e2e-install:
+	cd e2e && npm ci && npx playwright install chromium
+
+e2e: dev-up seed
+	cd e2e && npx playwright test

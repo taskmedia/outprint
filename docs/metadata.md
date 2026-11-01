@@ -33,6 +33,12 @@ Thank you for your enquiry ...
   example) is ordinary text.
 - No block at all is valid when every required field has a default.
 
+> **Known limitation (Outline 1.12, issue #42).** Outline keeps only the first
+> word of a code fence's info string, so a block typed or imported as
+> `yaml metadata` is stored and exported as a plain `yaml` block, and the
+> Gateway does not see it. The marker needs a decision before authors can use
+> this feature with a real Outline.
+
 ## Document Type
 
 `type` is the only reserved key. The Document Type comes from the Document's

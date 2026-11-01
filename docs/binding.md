@@ -28,6 +28,13 @@ configuration: example
 - The pair must be on the installation's allow-list (the `bindings` of the
   service configuration).
 
+> **Known limitation (Outline 1.12, issue #42).** Outline keeps only the first
+> word of a code fence's info string. A block written as `yaml binding` in the
+> Collection overview is read correctly only when it is stored verbatim through
+> the API (`collections.update` with `description`, as the dev seed does); an edit
+> in Outline's editor turns it into a plain `yaml` block. The same holds for the
+> `yaml metadata` block of a Document.
+
 ## Which Binding applies
 
 1. The overview has a block: that block. Any problem with it is an error.

@@ -21,6 +21,7 @@ import (
 const (
 	envListen      = "RENDERER_LISTEN"
 	envOutlineURL  = "OUTLINE_URL"
+	envOutlinePub  = "OUTLINE_PUBLIC_URL"
 	envWorkerURL   = "RENDERER_WORKER_URL"
 	envWorkerToken = workerserver.TokenEnv
 
@@ -31,7 +32,7 @@ const (
 )
 
 const serveUsage = `       renderer gateway [--listen ADDR] [--service-config FILE]
-                        (env: OUTLINE_URL, RENDERER_WORKER_URL, RENDERER_WORKER_TOKEN,
+                        (env: OUTLINE_URL, OUTLINE_PUBLIC_URL, RENDERER_WORKER_URL, RENDERER_WORKER_TOKEN,
                          RENDERER_ADMISSION_SLOTS, RENDERER_ADMISSION_QUEUE_DEPTH,
                          RENDERER_ADMISSION_PER_USER, RENDERER_ADMISSION_MAX_WAIT)
        renderer worker  [--listen ADDR] [--service-config FILE]
@@ -106,7 +107,7 @@ func runGateway(args []string, getenv func(string) string, stderr io.Writer) int
 	defer stop()
 	err = gateway.Run(ctx, gateway.RunConfig{
 		Listen: o.Listen, Registry: started.Registry, ImageHosts: started.Service.ImageHosts,
-		OutlineURL: getenv(envOutlineURL), WorkerURL: getenv(envWorkerURL), WorkerToken: getenv(envWorkerToken),
+		OutlineURL: getenv(envOutlineURL), OutlinePublicURL: getenv(envOutlinePub), WorkerURL: getenv(envWorkerURL), WorkerToken: getenv(envWorkerToken),
 		RenderLimit: timeoutFromEnv(getenv), Admission: started.Service.Admission, Logger: log,
 	})
 	if err != nil {

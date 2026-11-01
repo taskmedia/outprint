@@ -33,6 +33,9 @@ type RunConfig struct {
 	Registry *packages.Registry
 	// OutlineURL is the only origin the user's cookie is ever sent to.
 	OutlineURL string
+	// OutlinePublicURL is Outline's own URL setting when OutlineURL is an
+	// internal address (optional; see docs/images.md).
+	OutlinePublicURL string
 	// ImageHosts are the hosts besides OutlineURL that an image redirect may
 	// lead to (service configuration imageHosts).
 	ImageHosts   []string
@@ -66,7 +69,7 @@ func Run(ctx context.Context, cfg RunConfig) error {
 	if err != nil {
 		return err
 	}
-	if outlineClient, err = outlineClient.WithImages(outline.ImageOptions{Hosts: cfg.ImageHosts}); err != nil {
+	if outlineClient, err = outlineClient.WithImages(outline.ImageOptions{Hosts: cfg.ImageHosts, PublicURL: cfg.OutlinePublicURL}); err != nil {
 		return err
 	}
 	workerClient, err := workerapi.NewClient(cfg.WorkerURL, cfg.WorkerToken, renderLimit+workerMargin)
