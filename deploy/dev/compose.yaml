@@ -1,0 +1,131 @@
+# Development and E2E stack: Outline with login, the injector in front of it,
+# the Gateway and the Worker. It builds on the shipped Compose file, whose
+# Worker baseline is left untouched. Use it through the Makefile:
+#
+#   make dev        # up, seed, print the URL and the login
+#   make dev-down
+#
+# which runs, in essence:
+#
+#   docker compose --env-file deploy/dev/versions.env \
+#     -f deploy/compose/compose.yaml -f deploy/dev/compose.yaml up -d --build --wait
+#
+# DEV ONLY: nothing here is meant for production. Paths are relative to
+# deploy/compose/ (the directory of the first file).
+
+x-outline-env: &outline-env
+  URL: http://localhost:8090
+  PORT: "3000"
+  DATABASE_URL: postgres://outline:outline@postgres:5432/outline
+  PGSSLMODE: disable
+  REDIS_URL: redis://redis:6379
+  FORCE_HTTPS: "false"
+  FILE_STORAGE: local
+  FILE_STORAGE_UPLOAD_MAX_SIZE: "26214400"
+  # Sign-in with the dev Dex. The browser is sent to localhost:5556; Outline
+  # itself reaches Dex by its compose name. See docs/development.md.
+  OIDC_CLIENT_ID: outline
+  OIDC_AUTH_URI: http://localhost:5556/dex/auth
+  OIDC_TOKEN_URI: http://dex:5556/dex/token
+  OIDC_USERINFO_URI: http://dex:5556/dex/userinfo
+  OIDC_SCOPES: openid profile email
+  OIDC_DISPLAY_NAME: Dex (dev)
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:?set in deploy/dev/versions.env}
+    environment:
+      POSTGRES_USER: outline
+      POSTGRES_PASSWORD: outline   # DEV ONLY; the network is internal
+      POSTGRES_DB: outline
+    volumes:
+      - dev-postgres:/var/lib/postgresql/data
+    networks: [dev-backend]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U outline -d outline"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: ${REDIS_IMAGE:?set in deploy/dev/versions.env}
+    networks: [dev-backend]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  dex:
+    image: ${DEX_IMAGE:?set in deploy/dev/versions.env}
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    env_file: ../dev/.generated/dex.env
+    volumes:
+      - type: bind
+        source: ../dev/dex/config.yaml
+        target: /etc/dex/config.yaml
+        read_only: true
+    ports:
+      # The browser signs in here; see docs/development.md.
+      - "127.0.0.1:5556:5556"
+    networks: [frontend]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5558/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  outline:
+    image: ${OUTLINE_IMAGE:?set in deploy/dev/versions.env}
+    environment:
+      <<: *outline-env
+    env_file: ../dev/.generated/outline.env
+    volumes:
+      - dev-outline-data:/var/lib/outline/data
+    networks: [dev-backend, frontend]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      dex:
+        condition: service_healthy
+    # No published port: the injector is the only way in.
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/_health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 20s
+
+  gateway:
+    environment:
+      OUTLINE_URL: http://outline:3000
+      # Outline names itself http://localhost:8090 in the redirect to a
+      # stored file; the Gateway fetches that from OUTLINE_URL (docs/images.md).
+      OUTLINE_PUBLIC_URL: http://localhost:8090
+      RENDERER_SERVICE_CONFIG: /opt/renderer/service-dev.yaml
+    volumes:
+      - type: bind
+        source: ../dev/service.yaml
+        target: /opt/renderer/service-dev.yaml
+        read_only: true
+    # Only the injector is public.
+    ports: !reset []
+
+  injector:
+    environment:
+      INJECTOR_UPSTREAM: http://outline:3000
+    ports: !override
+      - "127.0.0.1:${INJECTOR_PORT:-8090}:8090"
+    depends_on:
+      outline:
+        condition: service_healthy
+
+networks:
+  dev-backend:
+    internal: true
+
+volumes:
+  dev-postgres: {}
+  dev-outline-data: {}
