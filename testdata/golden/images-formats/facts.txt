@@ -1,0 +1,12 @@
+pages: 2
+page size: 595.276 x 841.89 pts (A4)
+fonts:
+  TeXGyreHeros-Bold | CID Type 0C | embedded=yes
+  TeXGyreHeros-Italic | CID Type 0C | embedded=yes
+  TeXGyrePagella-Bold | CID Type 0C | embedded=yes
+  TeXGyrePagella-Regular | CID Type 0C | embedded=yes
+images:
+  page 1 | image | 240 x 160 px | rgb | image | 96 x 96 ppi
+  page 2 | image | 240 x 160 px | rgb | jpeg | 96 x 96 ppi
+  page 2 | image | 240 x 160 px | rgb | image | 96 x 96 ppi
+  page 2 | image | 240 x 160 px | index | image | 96 x 96 ppi

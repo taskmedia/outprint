@@ -51,6 +51,11 @@ type hostileCase struct {
 	absent []string
 	// phase and kind are expected for rejected outcomes.
 	phase, kind string
+	// imageKind, for a rejected outcome, is the image problem the render
+	// command reports before the Worker runs: the pipeline stops these
+	// payloads ahead of the Worker's own filter, which the Worker tests
+	// cover with the same payloads.
+	imageKind string
 	// noLinkTo lists link targets that must not exist in the PDF.
 	noLinkTo []string
 }
@@ -110,17 +115,17 @@ func hostileCases() []hostileCase {
 		{name: "link data and vbscript", template: "letter", want: literal,
 			markdown: "[one](data:text/html;base64,PHNjcmlwdD4=) and [two](VBScript:x) and [three](/doc/internal-path)\n",
 			visible:  []string{"one and two and three"}, noLinkTo: []string{"data:", "vbscript:", "internal-path"}},
-		{name: "image parent path", template: "letter", want: rejected, phase: "filter", kind: "image_path",
+		{name: "image parent path", template: "letter", want: rejected, imageKind: "forbidden",
 			markdown: "![](../../etc/passwd)\n"},
-		{name: "image absolute canary path", template: "letter", want: rejected, phase: "filter", kind: "image_path",
+		{name: "image absolute canary path", template: "letter", want: rejected, imageKind: "forbidden",
 			markdown: "![alt]({{CANARY}})\n"},
-		{name: "image file url", template: "letter", want: rejected, phase: "filter", kind: "image_path",
+		{name: "image file url", template: "letter", want: rejected, imageKind: "forbidden",
 			markdown: "![alt](file://{{CANARY}})\n"},
-		{name: "image remote url", template: "letter", want: rejected, phase: "filter", kind: "image_path",
+		{name: "image remote url", template: "letter", want: rejected, imageKind: "forbidden",
 			markdown: "![alt](https://example.org/x.png)\n"},
-		{name: "image not in the bundle", template: "letter", want: rejected, phase: "filter", kind: "image_path",
+		{name: "image not in the bundle", template: "letter", want: rejected, imageKind: "missing",
 			markdown: "![alt](images/never-uploaded.png)\n"},
-		{name: "image reference style", template: "letter", want: rejected, phase: "filter", kind: "image_path",
+		{name: "image reference style", template: "letter", want: rejected, imageKind: "forbidden",
 			markdown: "![alt][r]\n\n[r]: ../../../../etc/hostname\n"},
 	}
 	return append(cases, metadataCases()...)
@@ -253,6 +258,9 @@ func assertRejected(t *testing.T, run hostileRun, tc hostileCase) {
 		t.Fatalf("the render succeeded; want a structured rejection (phase %s, kind %s)", tc.phase, tc.kind)
 	}
 	want := fmt.Sprintf("render failed in phase %s (%s), job ", tc.phase, tc.kind)
+	if tc.imageKind != "" {
+		want = "(" + tc.imageKind + ")"
+	}
 	if !strings.Contains(run.stderr, want) {
 		t.Errorf("stderr lacks %q:\n%s", want, run.stderr)
 	}

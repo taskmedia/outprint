@@ -37,3 +37,27 @@
 \makeatother
 \setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
 \providecommand{\pandocbounded}[1]{#1}
+
+% Images. The Gateway gives every image an explicit size in points (the size
+% the author chose, or the natural size at 96 dpi). Any image that does not
+% fit is scaled down, aspect kept, to the line width and to 0.9 of the text
+% height; this is the one place that knows the page. A Template that shows
+% Document images must do the same.
+\newcommand{\neutralmaximageheight}{0.9\textheight}
+\makeatletter
+\newsavebox{\neutral@imagebox}
+\let\neutral@includegraphics\includegraphics
+\DeclareRobustCommand{\includegraphics}[2][]{%
+  \sbox{\neutral@imagebox}{\neutral@includegraphics[#1]{#2}}%
+  \Gscale@div\@tempa{\linewidth}{\wd\neutral@imagebox}%
+  \Gscale@div\@tempb{\neutralmaximageheight}{\dimexpr\ht\neutral@imagebox+\dp\neutral@imagebox\relax}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi
+  \ifdim\@tempa\p@<\p@
+    \scalebox{\@tempa}{\usebox{\neutral@imagebox}}%
+  \else
+    \usebox{\neutral@imagebox}%
+  \fi}
+\makeatother
+
+% Captions of figures: small, with a bold label.
+\usepackage[font=small,labelfont=bf,labelsep=colon,skip=6pt]{caption}

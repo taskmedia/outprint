@@ -61,8 +61,9 @@ type Collection struct {
 
 // Client talks to one Outline installation.
 type Client struct {
-	base *url.URL
-	http *http.Client
+	base   *url.URL
+	http   *http.Client
+	images *imageFetch
 }
 
 // NewClient returns a client for the Outline at rawURL, which must be an
@@ -90,6 +91,10 @@ func NewClient(rawURL string, timeout time.Duration) (*Client, error) {
 		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 	}}, nil
 }
+
+// BaseURL is the configured URL without a trailing slash, with its path
+// prefix if the Outline lives under one.
+func (c *Client) BaseURL() string { return c.base.String() }
 
 // Origin is the configured origin, for logs and for callers that must
 // compare against it.

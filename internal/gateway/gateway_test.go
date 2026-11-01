@@ -517,3 +517,9 @@ func (panicOutline) Collection(_ context.Context, _ string, _ outline.Session) (
 func (panicOutline) Document(_ context.Context, _ string, _ outline.Session) (outline.Document, error) {
 	panic(contentCanary)
 }
+
+func (panicOutline) Image(_ context.Context, _ string, _ outline.Session) ([]byte, error) {
+	panic(contentCanary)
+}
+
+func (panicOutline) BaseURL() string { return "https://outline.example.invalid" }

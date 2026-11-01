@@ -92,3 +92,21 @@ func TestParseCollectsAllProblems(t *testing.T) {
 		t.Fatalf("want roots and name problems collected, got %v", errs)
 	}
 }
+
+func TestImageHosts(t *testing.T) {
+	base := "templatesRoot: /t\nconfigurationsRoot: /c\nbindings:\n  - {template: a, configuration: b}\n"
+	s, errs := Parse([]byte(base+"imageHosts: [files.example.invalid, storage.example.invalid:9000, 10.0.0.5]\n"), env(nil))
+	if len(errs) != 0 || len(s.ImageHosts) != 3 {
+		t.Fatalf("hosts %v, errors %v", s.ImageHosts, errs)
+	}
+	for _, bad := range []string{"https://files.example.invalid", "files.example.invalid/path", "*.example.invalid",
+		"User@files.example.invalid", "Files.Example.Invalid", "files.example.invalid:", "[::1]", "-x", ""} {
+		_, errs := Parse([]byte(base+"imageHosts: ['"+bad+"']\n"), env(nil))
+		if len(errs) == 0 {
+			t.Errorf("%q accepted", bad)
+		}
+	}
+	if _, errs := Parse([]byte(base+"imageHost: [x]\n"), env(nil)); len(errs) == 0 {
+		t.Error("a misspelled key must be rejected")
+	}
+}

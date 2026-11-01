@@ -10,6 +10,7 @@ import (
 	"os"
 	"slices"
 
+	"github.com/taskmedia/outline-latex-pdf/internal/images"
 	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
 	"github.com/taskmedia/outline-latex-pdf/internal/packages"
 	"github.com/taskmedia/outline-latex-pdf/internal/worker"
@@ -76,7 +77,7 @@ func warmCache(ctx context.Context, o warmOptions, stderr io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("document type %s: %w", docType, err)
 		}
-		job := workerJob(renderOptions{Timeout: worker.DefaultTimeout}, resolved, tpl, cfg, stderr)
+		job := workerJob(renderOptions{Timeout: worker.DefaultTimeout}, resolved, images.Result{}, tpl, cfg, stderr)
 		if err := worker.WarmCache(ctx, job, o.Out); err != nil {
 			return fmt.Errorf("document type %s: %w", docType, err)
 		}

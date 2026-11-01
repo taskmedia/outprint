@@ -1,0 +1,23 @@
+                         Image orientation
+                                 Robin Sample
+
+                                 2 March 2026
+
+
+
+1 Orientation
+
+The photo below is stored sideways and carries an orientation tag. It must appear up-
+right, taller than wide.
+
+
+
+
+Example Garden Society                    1
+                         Figure 1: Upright photo
+
+
+
+
+Example Garden Society              2
+

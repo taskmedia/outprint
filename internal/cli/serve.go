@@ -103,7 +103,7 @@ func runGateway(args []string, getenv func(string) string, stderr io.Writer) int
 	ctx, stop := signalContext()
 	defer stop()
 	err = gateway.Run(ctx, gateway.RunConfig{
-		Listen: o.Listen, Registry: started.Registry,
+		Listen: o.Listen, Registry: started.Registry, ImageHosts: started.Service.ImageHosts,
 		OutlineURL: getenv(envOutlineURL), WorkerURL: getenv(envWorkerURL), WorkerToken: getenv(envWorkerToken),
 		RenderLimit: timeoutFromEnv(getenv), Logger: log,
 	})

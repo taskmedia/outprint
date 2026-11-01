@@ -1,0 +1,29 @@
+                           Oversize images
+                                    Robin Sample
+
+                                    2 March 2026
+
+
+
+1 Oversize
+
+This image is far larger than the page at its natural size and is scaled down to fit.
+This one asks for an absurd width and is scaled down as well.
+
+
+
+
+Example Garden Society                       1
+                         Figure 1: Natural size, tall
+
+
+
+
+Example Garden Society                2
+                         Figure 2: Requested width
+
+
+
+
+Example Garden Society               3
+
