@@ -417,14 +417,16 @@ test('parseOptions defaults to the menu, icon and label, fallback on', () => {
   assert.equal(o.style, 'icon-label');
   assert.equal(o.fallback, true);
   assert.equal(o.fallbackDelay, 3000);
+  assert.equal(o.metadataBlock, 'hide');
   assert.deepEqual(o.labels, {});
 });
 
 test('parseOptions reads the data attributes of the tag', () => {
   const o = b.parseOptions(attrs({
     'data-placement': 'button', 'data-style': 'icon', 'data-fallback': 'off', 'data-fallback-delay': '1500',
-    'data-labels': '{"menu":{"de":"PDF mit Briefkopf"}}',
+    'data-labels': '{"menu":{"de":"PDF mit Briefkopf"}}', 'data-metadata-block': 'show',
   }));
+  assert.equal(o.metadataBlock, 'show');
   assert.equal(o.placement, 'button');
   assert.equal(o.style, 'icon');
   assert.equal(o.fallback, false);
@@ -435,7 +437,9 @@ test('parseOptions reads the data attributes of the tag', () => {
 test('parseOptions ignores unusable values', () => {
   const o = b.parseOptions(attrs({
     'data-placement': 'floating', 'data-style': 'big', 'data-fallback-delay': '-5', 'data-labels': '{not json',
+    'data-metadata-block': 'maybe',
   }));
+  assert.equal(o.metadataBlock, 'hide');
   assert.equal(o.placement, 'menu');
   assert.equal(o.style, 'icon-label');
   assert.equal(o.fallbackDelay, 3000);

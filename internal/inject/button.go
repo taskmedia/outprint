@@ -18,6 +18,7 @@ const (
 	envButtonFallback      = "OUTPRINT_BUTTON_FALLBACK"
 	envButtonFallbackDelay = "OUTPRINT_BUTTON_FALLBACK_DELAY"
 	envButtonLabels        = "OUTPRINT_BUTTON_LABELS"
+	envButtonMetadataBlock = "OUTPRINT_BUTTON_METADATA_BLOCK"
 )
 
 const (
@@ -27,6 +28,8 @@ const (
 	styleIcon       = "icon"
 	fallbackOn      = "on"
 	fallbackOff     = "off"
+	metadataHide    = "hide"
+	metadataShow    = "show"
 
 	maxLabelRunes = 80
 )
@@ -38,7 +41,7 @@ var (
 
 // ButtonConfig is how the script places the PDF action. The zero value means
 // the defaults: placement menu, style icon-label, fallback on, the script's
-// own wait, the built-in texts.
+// own wait, the built-in texts, the Metadata Block hidden in the reading view.
 type ButtonConfig struct {
 	// Placement is "menu" (Export submenu of the document menu) or "button"
 	// (header button before Share).
@@ -54,6 +57,9 @@ type ButtonConfig struct {
 	// Labels overrides the texts: a JSON object with the keys "menu",
 	// "button" and "tooltip", each a map from language ("en", "de") to text.
 	Labels string
+	// MetadataBlock is "hide" or "show": whether the script hides the
+	// Metadata Block of a Document in Outline's reading view.
+	MetadataBlock string
 }
 
 func (c *ButtonConfig) readEnv(getenv func(string) string) error {
@@ -61,6 +67,7 @@ func (c *ButtonConfig) readEnv(getenv func(string) string) error {
 	c.Style = strings.TrimSpace(getenv(envButtonStyle))
 	c.Fallback = strings.TrimSpace(getenv(envButtonFallback))
 	c.Labels = strings.TrimSpace(getenv(envButtonLabels))
+	c.MetadataBlock = strings.TrimSpace(getenv(envButtonMetadataBlock))
 	if v := strings.TrimSpace(getenv(envButtonFallbackDelay)); v != "" {
 		d, err := time.ParseDuration(v)
 		if err != nil {
@@ -87,6 +94,9 @@ func (c ButtonConfig) attributes() (string, error) {
 	if err := oneOf(envButtonFallback, c.Fallback, fallbackOn, fallbackOff); err != nil {
 		return "", err
 	}
+	if err := oneOf(envButtonMetadataBlock, c.MetadataBlock, metadataHide, metadataShow); err != nil {
+		return "", err
+	}
 	if c.FallbackDelay < 0 {
 		return "", fmt.Errorf("%s must not be negative", envButtonFallbackDelay)
 	}
@@ -101,6 +111,9 @@ func (c ButtonConfig) attributes() (string, error) {
 	}
 	if c.FallbackDelay > 0 {
 		add("fallback-delay", strconv.FormatInt(c.FallbackDelay.Milliseconds(), 10))
+	}
+	if c.MetadataBlock == metadataShow {
+		add("metadata-block", c.MetadataBlock)
 	}
 	if c.Labels != "" {
 		labels, err := normalizeLabels(c.Labels)

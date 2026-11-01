@@ -49,6 +49,15 @@ shows a small floating button at the bottom right of the page, and writes a
 warning to the browser console. Set `OUTPRINT_BUTTON_FALLBACK=off` to show
 nothing instead.
 
+## The metadata block in the reading view
+
+By default the script hides the [metadata block](../write/fill-in-the-document.md)
+of a document while readers look at it, and shows it again when the document is
+editable. Set `OUTPRINT_BUTTON_METADATA_BLOCK=show` to keep it visible for
+everyone. The limits of hiding (Outline's markup, share links, exports, search)
+are listed under [Hiding the metadata
+block](../deploy/injector.md#hiding-the-metadata-block).
+
 ## Not the same as Outline's own PDF
 
 Outline can export a plain PDF itself when its operator sets

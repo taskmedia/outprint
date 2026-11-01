@@ -8,7 +8,7 @@
  * anchor cannot be found it falls back to a small floating button. The
  * operator chooses through data attributes the injector writes on the script
  * tag. On those documents it also hides the Metadata Block while the editor
- * is read-only. Plain ES2019, no dependencies. All server text reaches the
+ * is read-only, unless the operator turned that off. Plain ES2019, no dependencies. All server text reaches the
  * page through textContent.
  */
 (function (root) {
@@ -45,6 +45,7 @@
   var HEADER_RIGHT_EDGE = 120;
   var PLACEMENTS = ['menu', 'button'];
   var STYLES = ['icon-label', 'icon'];
+  var METADATA_BLOCK_MODES = ['hide', 'show'];
   // The items of Outline's Export submenu carry the file type as text that is
   // not translated (Markdown.md, HTML.html, ...); the labels are.
   var EXPORT_ITEM_PATTERN = /\.(md|html|textpack|pdf)$/i;
@@ -259,6 +260,7 @@
       placement: oneOf(get('data-placement'), PLACEMENTS, 'menu'),
       style: oneOf(get('data-style'), STYLES, 'icon-label'),
       fallback: get('data-fallback') !== 'off',
+      metadataBlock: oneOf(get('data-metadata-block'), METADATA_BLOCK_MODES, 'hide'),
       fallbackDelay: delay >= 0 ? Math.min(delay, MAX_FALLBACK_DELAY_MS) : DEFAULT_FALLBACK_DELAY_MS,
       labels: labels
     };
@@ -671,7 +673,7 @@
     var editor = document.querySelector('.ProseMirror');
     var block = findMetadataBlock(editor);
     var editable = !!editor && editor.getAttribute('contenteditable') === 'true';
-    if (!shouldHideMetadataBlock({ found: !!block, editable: editable })) {
+    if (state.options.metadataBlock !== 'hide' || !shouldHideMetadataBlock({ found: !!block, editable: editable })) {
       restoreMetadataBlock();
       return;
     }
