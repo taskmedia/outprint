@@ -3,6 +3,7 @@
 package sandbox
 
 import (
+	"fmt"
 	"net"
 	"slices"
 	"strings"
@@ -27,7 +28,9 @@ const (
 )
 
 // svgErrorKinds are the structured errors an attack may end in.
-var svgErrorKinds = []string{"svg_convert", "timeout", "output_too_large", "resource", "invalid_job"}
+// A size the converter accepts can still be one TeX cannot place, which is
+// a tex_error with no tool output.
+var svgErrorKinds = []string{"svg_convert", "timeout", "output_too_large", "resource", "invalid_job", "tex_error"}
 
 // requestListener counts the connections it accepts.
 type requestListener struct {
@@ -117,25 +120,32 @@ func (s *svgWorld) finish(t *testing.T) {
 	s.w.assertNextJobRenders()
 }
 
+// lightChunks is how many Workers share the light attacks. Each attack that
+// converts goes on through Pandoc and LuaLaTeX, a few seconds on the
+// Worker's one CPU, so the corpus is spread over Workers that run in parallel.
+const lightChunks = 4
+
 // TestSVGAttackCorpusEndsInsideTheSandbox runs the corpus. The light attacks
-// share one Worker, one after the other; each heavy one (memory, time) gets
-// its own Worker and runs in parallel.
+// are dealt to lightChunks Workers, each running its share one after the
+// other; each heavy one (memory, time) gets its own Worker. All of them run
+// in parallel.
 func TestSVGAttackCorpusEndsInsideTheSandbox(t *testing.T) {
 	requireDocker(t, sandboxImage())
 	c := loadCheckedCompose(t)
 
-	t.Run("light attacks", func(t *testing.T) {
-		t.Parallel()
-		s := newSVGWorld(t, c)
-		for _, a := range svgcorpus.Attacks(s.target) {
-			if !a.Heavy {
-				s.attack(t, a, false)
+	for chunk := range lightChunks {
+		t.Run(fmt.Sprintf("light attacks %d", chunk+1), func(t *testing.T) {
+			t.Parallel()
+			s := newSVGWorld(t, c)
+			for i, a := range lightAttacks(s.target) {
+				if i%lightChunks == chunk {
+					s.attack(t, a, false)
+				}
 			}
-		}
-		s.finish(t)
-	})
-	names := heavyAttackNames(t)
-	for _, name := range names {
+			s.finish(t)
+		})
+	}
+	for _, name := range heavyAttackNames(t) {
 		t.Run("heavy "+name, func(t *testing.T) {
 			t.Parallel()
 			s := newSVGWorld(t, c)
@@ -147,6 +157,10 @@ func TestSVGAttackCorpusEndsInsideTheSandbox(t *testing.T) {
 			s.finish(t)
 		})
 	}
+}
+
+func lightAttacks(target svgcorpus.Target) []svgcorpus.Attack {
+	return slices.DeleteFunc(svgcorpus.Attacks(target), func(a svgcorpus.Attack) bool { return a.Heavy })
 }
 
 func heavyAttackNames(t *testing.T) []string {

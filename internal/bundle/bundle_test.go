@@ -134,3 +134,19 @@ func TestStringHasNoContent(t *testing.T) {
 		t.Errorf("String() leaks content: %s", s)
 	}
 }
+
+func TestBundleCarriesSVGImages(t *testing.T) {
+	b := valid()
+	b.Images = map[string][]byte{"img-1.svg": []byte("<svg/>"), "img-2.png": {1}}
+	data, err := b.Encode()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := Decode(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("a bundle with an SVG image is refused: %v", err)
+	}
+	if string(got.Images["img-1.svg"]) != "<svg/>" {
+		t.Errorf("images = %v", got.Images)
+	}
+}

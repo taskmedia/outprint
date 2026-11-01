@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -24,7 +25,7 @@ import (
 
 const squareSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="#2F6F5E"/></svg>`
 
-func TestBundledSVGRendersAsVector(t *testing.T) {
+func TestSVGBundledRendersAsVector(t *testing.T) {
 	job := letterJob(t, copiedTemplateRoot(t), "Before ![A square](images/img-1.svg) and ![](images/img-1.svg){width=20pt height=20pt} after.\n")
 	job.Images = map[string][]byte{"img-1.svg": []byte(squareSVG)}
 
@@ -45,7 +46,7 @@ func TestBundledSVGRendersAsVector(t *testing.T) {
 	}
 }
 
-func TestFilterMapsSVGToItsConvertedPDFOnly(t *testing.T) {
+func TestSVGFilterMapsToItsConvertedPDFOnly(t *testing.T) {
 	image := func(src string) map[string]any {
 		return jsonDoc(map[string]any{}, para(map[string]any{"t": "Image", "c": []any{
 			[]any{"", []string{}, [][]string{}}, []any{}, []string{src, ""}}}))
@@ -58,7 +59,7 @@ func TestFilterMapsSVGToItsConvertedPDFOnly(t *testing.T) {
 	}
 }
 
-func TestGarbageSVGIsAConversionErrorWithoutToolOutput(t *testing.T) {
+func TestSVGGarbageIsAConversionErrorWithoutToolOutput(t *testing.T) {
 	job := letterJob(t, copiedTemplateRoot(t), "![x](images/img-1.svg)\n")
 	job.Images = map[string][]byte{"img-1.svg": []byte("this is SECRET-WORDS and not an svg")}
 
@@ -86,6 +87,51 @@ func TestSVGWithAnOversizePDFIsRefused(t *testing.T) {
 	if we.Phase != PhaseSVG || we.Kind != KindOutputTooLarge {
 		t.Fatalf("error = %v, want phase svg output_too_large", we)
 	}
+}
+
+// TestSVGConversionLoadsNoLocalFile shows why the SVG goes in through
+// standard input: librsvg loads a local picture an SVG names, absolute or
+// relative, when it reads the SVG from a file (the control), and none when it
+// reads it from a stream (the pipeline).
+func TestSVGConversionLoadsNoLocalFile(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "real.png"), tinyPNG(t), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	for _, href := range []string{"real.png", "file://" + filepath.Join(dir, "real.png"), filepath.Join(dir, "real.png")} {
+		svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="50" height="50"><image width="50" height="50" xlink:href="%s"/></svg>`, href)
+		file := filepath.Join(dir, "t.svg")
+		if err := os.WriteFile(file, []byte(svg), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		control, err := exec.Command("rsvg-convert", "-f", "pdf", file).Output()
+		if err != nil || rasterImages(t, control) == 0 {
+			t.Fatalf("control: reading %q from a file did not load the picture (%v), the check below proves nothing", href, err)
+		}
+
+		dst := filepath.Join(dir, "out.pdf")
+		p := svgPipeline(dir, 20*time.Second, 1<<20)
+		if err := p.convertSVG([]byte(svg), dst); err != nil {
+			t.Fatalf("%q: %v", href, err)
+		}
+		pdf, _ := os.ReadFile(dst)
+		if n := rasterImages(t, pdf); n != 0 {
+			t.Errorf("%q: the pipeline loaded the local picture (%d raster images)", href, n)
+		}
+	}
+}
+
+func rasterImages(t *testing.T, pdf []byte) int {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "x.pdf")
+	if err := os.WriteFile(path, pdf, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out, err := exec.Command("pdfimages", "-list", path).Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return max(0, len(strings.Split(strings.TrimSpace(string(out)), "\n"))-2)
 }
 
 // requestCounter is an HTTP listener that counts every request it sees.
