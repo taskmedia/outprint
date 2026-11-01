@@ -178,6 +178,27 @@ def social(bg, ink, muted, name):
 social(PAPER, INK, "#4a4a4a", "")
 social(NIGHT, INK_DARK, "#a8a8a8", "-dark")
 
+# ---------- README banner: lockup + tagline, transparent, tight viewBox ----------
+def banner(ink, muted, name):
+    sym, fs, gap, tag_size, tag_gap, pad = 128, 128, 32, 40, 40, 16
+    _, (_, _, word_w, _) = med.outline("Outprint", fs, 0, 0, tracking=-0.01)
+    _, (tx0, _, tx1, _) = reg.outline("PDFs from Outline documents.", tag_size, 0, 0)
+    row_w = sym + gap + word_w
+    W = max(row_w, tx1 - tx0) + 2 * pad
+    tag_cap = CAP * tag_size
+    H = sym + tag_gap + tag_cap + 2 * pad
+    x, y = (W - row_w) / 2, pad
+    sym_svg = f'<g transform="translate({x} {y}) scale({sym / 32})">{symbol_paths(ink, ACCENT)}</g>'
+    d_w, _ = med.outline("Outprint", fs, x + sym + gap, y + sym / 2 + CAP * fs / 2, tracking=-0.01)
+    d_t, _ = reg.outline("PDFs from Outline documents.", tag_size, (W - (tx1 - tx0)) / 2 - tx0, y + sym + tag_gap + tag_cap)
+    body = f'{sym_svg}<path d="{d_w}" fill="{ink}"/><path d="{d_t}" fill="{muted}"/>'
+    write(f"svg/outprint-banner{name}.svg",
+          f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {fmt(W)} {fmt(H)}" width="{fmt(W)}" height="{fmt(H)}">{TITLE}{body}</svg>\n')
+
+banner(INK, "#4a4a4a", "")
+banner(INK_DARK, "#a8a8a8", "-dark")
+
+
 # clean temp
 for f in os.listdir(tmp):
     os.remove(os.path.join(tmp, f))

@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo/social/social-preview-dark.png">
-    <img alt="Outprint: PDFs from Outline documents" src="docs/assets/logo/social/social-preview.png" width="640">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo/svg/outprint-banner-dark.svg">
+    <img alt="Outprint: PDFs from Outline documents" src="docs/assets/logo/svg/outprint-banner.svg" width="440">
   </picture>
 </p>
 
