@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
+	"github.com/taskmedia/outprint/internal/packages"
 )
 
 func repoRoot(t *testing.T) string {

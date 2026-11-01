@@ -5,11 +5,11 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
-	"github.com/taskmedia/outline-latex-pdf/internal/worker"
+	"github.com/taskmedia/outprint/internal/bundle"
+	"github.com/taskmedia/outprint/internal/config"
+	"github.com/taskmedia/outprint/internal/limits"
+	"github.com/taskmedia/outprint/internal/packages"
+	"github.com/taskmedia/outprint/internal/worker"
 )
 
 // PackageRenderer runs the real pipeline. It resolves the bundle's names

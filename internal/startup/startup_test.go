@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
+	"github.com/taskmedia/outprint/internal/config"
 )
 
 func write(t *testing.T, path, content string) {

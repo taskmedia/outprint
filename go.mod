@@ -1,4 +1,4 @@
-module github.com/taskmedia/outline-latex-pdf
+module github.com/taskmedia/outprint
 
 go 1.27
 

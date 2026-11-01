@@ -1,6 +1,6 @@
 package images
 
-import "github.com/taskmedia/outline-latex-pdf/internal/limits"
+import "github.com/taskmedia/outprint/internal/limits"
 
 const (
 	expansionUnvisited = iota

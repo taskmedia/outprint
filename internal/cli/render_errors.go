@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
-	"github.com/taskmedia/outline-latex-pdf/internal/worker"
+	"github.com/taskmedia/outprint/internal/metadata"
+	"github.com/taskmedia/outprint/internal/worker"
 )
 
 // reportRenderError prints metadata problems readably, or as the JSON error

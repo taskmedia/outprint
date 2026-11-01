@@ -12,9 +12,9 @@ package binding
 import (
 	"fmt"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
-	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
+	"github.com/taskmedia/outprint/internal/config"
+	"github.com/taskmedia/outprint/internal/metadata"
+	"github.com/taskmedia/outprint/internal/packages"
 )
 
 // Codes of a Binding error. Their source is always "collection".

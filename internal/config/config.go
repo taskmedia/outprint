@@ -15,8 +15,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/admission"
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
+	"github.com/taskmedia/outprint/internal/admission"
+	"github.com/taskmedia/outprint/internal/limits"
 )
 
 // Environment variables. The roots override the file so that an image can

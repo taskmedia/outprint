@@ -6,10 +6,10 @@
 # The worker service block is the shipped Worker baseline. Security tests
 # read it (see docs/deploy-compose.md): weaken it and the build breaks.
 
-name: outline-latex-pdf
+name: outprint
 
 x-renderer-image: &renderer-image
-  image: outline-latex-pdf-renderer
+  image: outprint
   build:
     context: ../..
     dockerfile: Dockerfile
@@ -106,7 +106,7 @@ services:
   # separate, slim image without the TeX toolchain and is not part of the
   # Worker baseline.
   injector:
-    image: outline-latex-pdf-injector
+    image: outprint-injector
     build:
       context: ../..
       dockerfile: Dockerfile

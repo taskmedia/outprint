@@ -8,10 +8,10 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
-	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
-	"github.com/taskmedia/outline-latex-pdf/internal/outline"
-	"github.com/taskmedia/outline-latex-pdf/internal/workerapi"
+	"github.com/taskmedia/outprint/internal/bundle"
+	"github.com/taskmedia/outprint/internal/metadata"
+	"github.com/taskmedia/outprint/internal/outline"
+	"github.com/taskmedia/outprint/internal/workerapi"
 )
 
 // Phases of the Gateway's own work, as they appear in logs and in a 500

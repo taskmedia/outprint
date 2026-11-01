@@ -1,8 +1,8 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -o pipefail -ec
 
-IMAGE         ?= outline-latex-pdf-renderer
-INJECTOR_IMAGE ?= outline-latex-pdf-injector
+IMAGE         ?= outprint
+INJECTOR_IMAGE ?= outprint-injector
 GOLDEN_IMAGE  ?= $(IMAGE)-golden
 SANDBOX_IMAGE ?= $(IMAGE)-sandbox
 # Where the security targets keep their test output for the skip guard.

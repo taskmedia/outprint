@@ -5,7 +5,7 @@ package main
 import (
 	"os"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/inject"
+	"github.com/taskmedia/outprint/internal/inject"
 )
 
 func main() {

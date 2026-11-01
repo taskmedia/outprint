@@ -1,7 +1,7 @@
 THIRD-PARTY NOTICES
 ===================
 
-outline-latex-pdf is licensed under the MIT License (see LICENSE). This file
+Outprint is licensed under the MIT License (see LICENSE). This file
 lists the third-party software that is shipped in, or used with, the project,
 under which licences, and how to obtain the source of the GPL-licensed
 programs.
@@ -86,7 +86,7 @@ with. You can get it in either of these ways, at no cost:
      Their source packages are retrieved the same way.
   2. From us. If you received a copy of the renderer image from this project
      and cannot obtain the source as described, open an issue at
-     https://github.com/taskmedia/outline-latex-pdf/issues naming the image
+     https://github.com/taskmedia/outprint/issues naming the image
      tag, or write to the maintainer address on the repository profile, and
      we will send you the source on a physical medium or by download. We may
      charge no more than the cost of physically performing the distribution.

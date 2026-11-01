@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
+	"github.com/taskmedia/outprint/internal/packages"
 )
 
 const (

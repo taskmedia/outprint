@@ -16,13 +16,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/admission"
-	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
-	"github.com/taskmedia/outline-latex-pdf/internal/images"
-	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
-	"github.com/taskmedia/outline-latex-pdf/internal/outline"
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
+	"github.com/taskmedia/outprint/internal/admission"
+	"github.com/taskmedia/outprint/internal/bundle"
+	"github.com/taskmedia/outprint/internal/config"
+	"github.com/taskmedia/outprint/internal/images"
+	"github.com/taskmedia/outprint/internal/metadata"
+	"github.com/taskmedia/outprint/internal/outline"
+	"github.com/taskmedia/outprint/internal/packages"
 )
 
 const (

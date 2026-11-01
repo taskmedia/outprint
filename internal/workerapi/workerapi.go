@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
+	"github.com/taskmedia/outprint/internal/bundle"
+	"github.com/taskmedia/outprint/internal/limits"
 )
 
 const (

@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/svgcorpus"
+	"github.com/taskmedia/outprint/internal/svgcorpus"
 )
 
 const squareSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="#2F6F5E"/></svg>`

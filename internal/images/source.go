@@ -11,8 +11,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
-	"github.com/taskmedia/outline-latex-pdf/internal/outline"
+	"github.com/taskmedia/outprint/internal/limits"
+	"github.com/taskmedia/outprint/internal/outline"
 )
 
 // Errors a Source returns from Fetch for the problems that belong to the

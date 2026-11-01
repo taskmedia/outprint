@@ -14,7 +14,7 @@ import (
 	"hash/crc32"
 	"strings"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/images"
+	"github.com/taskmedia/outprint/internal/images"
 )
 
 const (

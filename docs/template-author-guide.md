@@ -236,8 +236,8 @@ It needs the toolchain, so use the image, which is also what the golden tests
 use:
 
 ```sh
-docker build -t renderer .
-docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" renderer render \
+docker build -t outprint .
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" outprint render \
   --templates-root /data/templates --configs-root /data/configurations \
   --template mine --config example --date 2026-03-02 \
   -o /data/out.pdf /data/input.md
@@ -349,7 +349,7 @@ with `validate` and `render` against the image of this repository.
    ````
 
    ```sh
-   docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" renderer render \
+   docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" outprint render \
      --templates-root /data/templates --configs-root /data/configurations \
      --template mine --config example --date 2026-03-02 \
      -o /data/out.pdf /data/input.md

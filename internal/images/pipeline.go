@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
-	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
+	"github.com/taskmedia/outprint/internal/limits"
+	"github.com/taskmedia/outprint/internal/metadata"
 )
 
 const (

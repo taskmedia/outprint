@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
-	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
-	"github.com/taskmedia/outline-latex-pdf/internal/startup"
+	"github.com/taskmedia/outprint/internal/config"
+	"github.com/taskmedia/outprint/internal/metadata"
+	"github.com/taskmedia/outprint/internal/startup"
 )
 
 var neutralExample = config.Binding{Template: "neutral", Configuration: "example"}

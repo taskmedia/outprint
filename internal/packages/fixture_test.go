@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
+	"github.com/taskmedia/outprint/internal/config"
 )
 
 const fixtureManifest = `manifest_version: 1

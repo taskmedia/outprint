@@ -37,8 +37,8 @@ settings. Work through this list in order.
 When the base image tag, the apt packages or a Go module changes:
 
 ```sh
-docker build -t renderer .
-docker run --rm --entrypoint dpkg-query renderer -W -f '${Package}\t${Version}\t${source:Package}\n'
+docker build -t outprint .
+docker run --rm --entrypoint dpkg-query outprint -W -f '${Package}\t${Version}\t${source:Package}\n'
 go list -m all
 ```
 

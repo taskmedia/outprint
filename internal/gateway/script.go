@@ -3,7 +3,7 @@ package gateway
 import (
 	"net/http"
 
-	"github.com/taskmedia/outline-latex-pdf/web"
+	"github.com/taskmedia/outprint/web"
 )
 
 // scriptCacheControl is short on purpose: a new image should reach the

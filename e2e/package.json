@@ -1,5 +1,5 @@
 {
-  "name": "outline-latex-pdf-e2e",
+  "name": "outprint-e2e",
   "private": true,
   "version": "0.0.0",
   "description": "Browser end-to-end tests against the dev stack (docs/development.md)",

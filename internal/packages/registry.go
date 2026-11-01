@@ -5,7 +5,7 @@ import (
 	"os"
 	"slices"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
+	"github.com/taskmedia/outprint/internal/config"
 )
 
 // Roots are the two directories packages are installed in.

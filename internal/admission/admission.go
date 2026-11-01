@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
+	"github.com/taskmedia/outprint/internal/limits"
 )
 
 // Reasons for a rejection. Test with errors.Is.

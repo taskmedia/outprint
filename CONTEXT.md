@@ -1,6 +1,6 @@
-# Outline → LaTeX PDF
+# Outprint
 
-Turns Outline documents into typeset PDFs. A Template provides the look and structure; a Template Configuration adapts it to an organisation or purpose.
+Outprint turns Outline documents into typeset PDFs. A Template provides the look and structure; a Template Configuration adapts it to an organisation or purpose.
 
 ## Language
 

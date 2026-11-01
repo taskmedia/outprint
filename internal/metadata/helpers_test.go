@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
+	"github.com/taskmedia/outprint/internal/packages"
 )
 
 const testManifest = `manifest_version: 1

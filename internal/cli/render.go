@@ -12,11 +12,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
-	"github.com/taskmedia/outline-latex-pdf/internal/images"
-	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
-	"github.com/taskmedia/outline-latex-pdf/internal/worker"
+	"github.com/taskmedia/outprint/internal/config"
+	"github.com/taskmedia/outprint/internal/images"
+	"github.com/taskmedia/outprint/internal/metadata"
+	"github.com/taskmedia/outprint/internal/packages"
+	"github.com/taskmedia/outprint/internal/worker"
 )
 
 const usage = `usage: renderer render --template NAME --config NAME [--title TEXT] [--date YYYY-MM-DD]

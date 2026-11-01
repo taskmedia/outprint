@@ -14,9 +14,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
-	"github.com/taskmedia/outline-latex-pdf/internal/worker"
-	"github.com/taskmedia/outline-latex-pdf/internal/workerapi"
+	"github.com/taskmedia/outprint/internal/bundle"
+	"github.com/taskmedia/outprint/internal/worker"
+	"github.com/taskmedia/outprint/internal/workerapi"
 )
 
 // ErrUnknownPackage is returned by a Renderer when the bundle names a

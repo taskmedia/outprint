@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
+	"github.com/taskmedia/outprint/internal/bundle"
 )
 
 const validBlock = "```yaml\nbinding:\n  template: neutral\n  configuration: example\n```\n"

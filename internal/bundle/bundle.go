@@ -14,8 +14,8 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
+	"github.com/taskmedia/outprint/internal/config"
+	"github.com/taskmedia/outprint/internal/limits"
 )
 
 // Limits of a bundle. The Gateway pre-checks them to answer 413; the Worker
