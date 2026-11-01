@@ -26,6 +26,22 @@ const (
 	MaxTeXRuns = 2
 )
 
+// Image limits, enforced by the Gateway while it fetches and canonicalises
+// the Document's images; the bundle checks them again.
+const (
+	// MaxImages is the number of distinct images in one Document.
+	MaxImages = 50
+	// MaxImageBytes is the size of one fetched image and of one canonical image.
+	MaxImageBytes = 10 << 20
+	// MaxImagesTotal is the size of all canonical images of a Document.
+	MaxImagesTotal = 50 << 20
+	// MaxImagePixels is the largest image the Gateway decodes, checked on
+	// the header before any pixel is decoded.
+	MaxImagePixels = 40_000_000
+	// MaxImageRedirects is how many redirects the image fetch follows.
+	MaxImageRedirects = 5
+)
+
 // Worker container limits. The shipped Compose file sets them; the sandbox
 // tests fail if it stops doing so.
 const (

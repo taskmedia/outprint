@@ -22,9 +22,9 @@ import (
 // enforces them again because it trusts nobody.
 const (
 	MaxMarkdownBytes   = limits.MaxMarkdownBytes
-	MaxImages          = 50
-	MaxImageBytes      = 10 << 20
-	MaxImagesTotal     = 50 << 20
+	MaxImages          = limits.MaxImages
+	MaxImageBytes      = limits.MaxImageBytes
+	MaxImagesTotal     = limits.MaxImagesTotal
 	MaxValues          = 200
 	MaxValueBytes      = 64 << 10
 	MaxListItems       = 200

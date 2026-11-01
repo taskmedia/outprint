@@ -115,3 +115,15 @@ func trimLeadingBlankLines(s string) string {
 	lines := strings.Split(s, "\n")
 	return strings.Join(lines[firstNonBlank(lines):], "\n")
 }
+
+// Body returns the Document without its Metadata Block, as Resolve does, and
+// the number of lines that were cut off before it. Callers that work on the
+// body even when the block has problems use it to report Document lines.
+func Body(markdown []byte) ([]byte, int) {
+	split := splitBlock(string(markdown))
+	text := strings.ReplaceAll(string(markdown), "\r\n", "\n")
+	if !strings.HasSuffix(text, split.body) {
+		return []byte(split.body), 0
+	}
+	return []byte(split.body), strings.Count(text[:len(text)-len(split.body)], "\n")
+}
