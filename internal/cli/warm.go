@@ -10,10 +10,10 @@ import (
 	"os"
 	"slices"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/images"
-	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
-	"github.com/taskmedia/outline-latex-pdf/internal/worker"
+	"github.com/taskmedia/outprint/internal/images"
+	"github.com/taskmedia/outprint/internal/metadata"
+	"github.com/taskmedia/outprint/internal/packages"
+	"github.com/taskmedia/outprint/internal/worker"
 )
 
 // warmDocument touches every font style the Templates use: roman, bold,

@@ -12,10 +12,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/gateway"
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
-	"github.com/taskmedia/outline-latex-pdf/internal/startup"
-	"github.com/taskmedia/outline-latex-pdf/internal/workerserver"
+	"github.com/taskmedia/outprint/internal/gateway"
+	"github.com/taskmedia/outprint/internal/limits"
+	"github.com/taskmedia/outprint/internal/startup"
+	"github.com/taskmedia/outprint/internal/workerserver"
 )
 
 const (

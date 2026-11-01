@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/worker"
+	"github.com/taskmedia/outprint/internal/worker"
 )
 
 func noEnv(string) string { return "" }

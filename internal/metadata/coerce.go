@@ -8,7 +8,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
+	"github.com/taskmedia/outprint/internal/packages"
 )
 
 const isoDateLayout = "2006-01-02"

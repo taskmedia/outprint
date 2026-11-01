@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/devseed"
+	"github.com/taskmedia/outprint/internal/devseed"
 )
 
 func main() { os.Exit(run()) }

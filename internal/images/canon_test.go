@@ -11,7 +11,7 @@ import (
 
 	_ "golang.org/x/image/webp"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
+	"github.com/taskmedia/outprint/internal/limits"
 )
 
 func decodeBack(t *testing.T, c Canonical) image.Image {

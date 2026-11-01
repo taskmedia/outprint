@@ -15,12 +15,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/admission"
-	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
-	"github.com/taskmedia/outline-latex-pdf/internal/outline"
-	"github.com/taskmedia/outline-latex-pdf/internal/startup"
-	"github.com/taskmedia/outline-latex-pdf/internal/workerapi"
+	"github.com/taskmedia/outprint/internal/admission"
+	"github.com/taskmedia/outprint/internal/bundle"
+	"github.com/taskmedia/outprint/internal/config"
+	"github.com/taskmedia/outprint/internal/outline"
+	"github.com/taskmedia/outprint/internal/startup"
+	"github.com/taskmedia/outprint/internal/workerapi"
 )
 
 const (

@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
+	"github.com/taskmedia/outprint/internal/bundle"
 )
 
 const (

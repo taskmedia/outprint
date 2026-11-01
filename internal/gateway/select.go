@@ -3,8 +3,8 @@ package gateway
 import (
 	"context"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/binding"
-	"github.com/taskmedia/outline-latex-pdf/internal/outline"
+	"github.com/taskmedia/outprint/internal/binding"
+	"github.com/taskmedia/outprint/internal/outline"
 )
 
 // selection is the Binding outcome of one Document, with the problems of a

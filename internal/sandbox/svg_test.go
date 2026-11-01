@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/svgcorpus"
+	"github.com/taskmedia/outprint/internal/svgcorpus"
 )
 
 // The SVG attack corpus against the Worker sandbox. The files are posted to

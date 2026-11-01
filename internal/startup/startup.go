@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
+	"github.com/taskmedia/outprint/internal/config"
+	"github.com/taskmedia/outprint/internal/packages"
 )
 
 // Result is what a successful startup hands to the service.

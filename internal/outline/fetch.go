@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
+	"github.com/taskmedia/outprint/internal/limits"
 )
 
 const (
@@ -21,7 +21,7 @@ const (
 	DefaultImageTimeout = 30 * time.Second
 	dialTimeout         = 10 * time.Second
 	responseHeaderWait  = 15 * time.Second
-	imageUserAgent      = "outline-latex-pdf-renderer"
+	imageUserAgent      = "outprint"
 )
 
 // BlockedError is a fetch the image policy refused: a redirect to a host that

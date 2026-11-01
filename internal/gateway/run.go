@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/admission"
-	"github.com/taskmedia/outline-latex-pdf/internal/outline"
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
-	"github.com/taskmedia/outline-latex-pdf/internal/worker"
-	"github.com/taskmedia/outline-latex-pdf/internal/workerapi"
+	"github.com/taskmedia/outprint/internal/admission"
+	"github.com/taskmedia/outprint/internal/outline"
+	"github.com/taskmedia/outprint/internal/packages"
+	"github.com/taskmedia/outprint/internal/worker"
+	"github.com/taskmedia/outprint/internal/workerapi"
 )
 
 const (

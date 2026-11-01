@@ -3,7 +3,7 @@ package svgcorpus
 import (
 	"testing"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/images"
+	"github.com/taskmedia/outprint/internal/images"
 )
 
 // TestPrecheckAnswersAsTheCorpusSays is the Gateway half of the SVG attack

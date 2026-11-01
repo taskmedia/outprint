@@ -10,7 +10,7 @@ import (
 
 	_ "golang.org/x/image/webp" // registers the WebP decoder for embedded images
 
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
+	"github.com/taskmedia/outprint/internal/limits"
 )
 
 const maxTokenRunes = 24

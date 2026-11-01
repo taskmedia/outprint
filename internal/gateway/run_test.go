@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/config"
-	"github.com/taskmedia/outline-latex-pdf/internal/startup"
+	"github.com/taskmedia/outprint/internal/config"
+	"github.com/taskmedia/outprint/internal/startup"
 )
 
 func TestRunServesAndStops(t *testing.T) {

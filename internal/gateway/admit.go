@@ -5,9 +5,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/admission"
-	"github.com/taskmedia/outline-latex-pdf/internal/metadata"
-	"github.com/taskmedia/outline-latex-pdf/internal/outline"
+	"github.com/taskmedia/outprint/internal/admission"
+	"github.com/taskmedia/outprint/internal/metadata"
+	"github.com/taskmedia/outprint/internal/outline"
 )
 
 // Codes of an admission rejection, in the error list.

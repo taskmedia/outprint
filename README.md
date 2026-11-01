@@ -1,6 +1,6 @@
-# outline-latex-pdf
+# Outprint for Outline
 
-Turns [Outline](https://www.getoutline.com/) documents into typeset PDFs.
+Turn [Outline](https://www.getoutline.com/) documents into typeset PDFs (letters, reports, custom LaTeX templates) with a Download PDF button. Self-hosted, no Outline fork.
 
 Pick a Template, bind it to an Outline Collection, write a few fields at the
 top of a Document and download a typeset PDF: letters, reports or your own
@@ -72,8 +72,8 @@ in [docs/development.md](docs/development.md).
 Render a letter with the shipped Template and Configuration:
 
 ```sh
-docker build -t renderer .
-docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" renderer render --template neutral \
+docker build -t outprint .
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" outprint render --template neutral \
   --config example --date 2026-03-02 -o /data/out.pdf /data/testdata/fixtures/letter-full/input.md
 ```
 
@@ -84,7 +84,7 @@ PDF bytes. Fixtures live in `testdata/fixtures/<topic>/`, goldens in
 Check Templates and Configurations before deploying them:
 
 ```sh
-docker run --rm renderer validate                  # the packages shipped in the image
+docker run --rm outprint validate                  # the packages shipped in the image
 renderer validate --templates-root ./templates --configs-root ./configurations
 ```
 

@@ -1,6 +1,6 @@
 # Injector and download button
 
-Outline has no plug-in point for a toolbar button, and the project does not fork
+Outline has no plug-in point for a toolbar button, and Outprint does not fork
 Outline. The **injector** is a small reverse proxy in front of Outline that adds
 one `<script>` tag to Outline's HTML pages. The script shows a "Download PDF"
 button on document pages, but only where the Gateway says a Binding applies.

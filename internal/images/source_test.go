@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/outline"
+	"github.com/taskmedia/outprint/internal/outline"
 )
 
 const (

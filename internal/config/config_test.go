@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
+	"github.com/taskmedia/outprint/internal/limits"
 )
 
 func env(m map[string]string) func(string) string {

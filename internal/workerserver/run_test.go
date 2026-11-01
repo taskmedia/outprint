@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/worker"
-	"github.com/taskmedia/outline-latex-pdf/internal/workerapi"
+	"github.com/taskmedia/outprint/internal/worker"
+	"github.com/taskmedia/outprint/internal/workerapi"
 )
 
 func runConfig(t *testing.T, r Renderer) (RunConfig, *bytes.Buffer, string) {

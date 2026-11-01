@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
+	"github.com/taskmedia/outprint/internal/limits"
 )
 
 const (

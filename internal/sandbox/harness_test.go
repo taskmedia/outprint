@@ -21,10 +21,10 @@ import (
 )
 
 const (
-	defaultSandboxImage = "outline-latex-pdf-sandbox"
-	defaultReleaseImage = "outline-latex-pdf-renderer"
+	defaultSandboxImage = "outprint-sandbox"
+	defaultReleaseImage = "outprint"
 	composePath         = "../../deploy/compose/compose.yaml"
-	runLabel            = "outline-latex-pdf-sandbox-test"
+	runLabel            = "outprint-sandbox-test"
 	dockerTimeout       = 3 * time.Minute
 )
 

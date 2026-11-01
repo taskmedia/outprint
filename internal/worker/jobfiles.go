@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/packages"
+	"github.com/taskmedia/outprint/internal/packages"
 )
 
 const (

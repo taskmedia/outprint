@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/taskmedia/outline-latex-pdf/internal/limits"
+	"github.com/taskmedia/outprint/internal/limits"
 )
 
 func process(t *testing.T, src Source, body string) (Result, []Problem) {
