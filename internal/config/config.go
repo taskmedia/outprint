@@ -9,9 +9,14 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/taskmedia/outline-latex-pdf/internal/admission"
+	"github.com/taskmedia/outline-latex-pdf/internal/limits"
 )
 
 // Environment variables. The roots override the file so that an image can
@@ -45,6 +50,9 @@ type Service struct {
 	// redirect may lead to, for example the file storage of the Outline.
 	// An entry is a host name or host:port.
 	ImageHosts []string `yaml:"imageHosts"`
+	// Admission sizes the Gateway's slot limit, queue and per-user limit.
+	// Keys left out keep their defaults; the environment overrides the file.
+	Admission admission.Config `yaml:"admission"`
 }
 
 // Errors is a list of configuration problems.
@@ -70,7 +78,7 @@ func Load(path string, getenv func(string) string) (Service, []error) {
 // Parse decodes strictly (unknown keys are errors), applies the environment
 // overrides and validates. It reports every problem it finds.
 func Parse(data []byte, getenv func(string) string) (Service, []error) {
-	var s Service
+	s := Service{Admission: admission.Defaults()}
 	dec := yaml.NewDecoder(bytes.NewReader(data))
 	dec.KnownFields(true)
 	if err := dec.Decode(&s); err != nil {
@@ -85,7 +93,42 @@ func Parse(data []byte, getenv func(string) string) (Service, []error) {
 	if v := getenv(EnvConfigurationsRoot); v != "" {
 		s.ConfigurationsRoot = v
 	}
-	return s, s.validate()
+	envErrs := applyAdmissionEnv(&s.Admission, getenv)
+	return s, append(envErrs, s.validate()...)
+}
+
+// applyAdmissionEnv overrides the admission settings from the environment.
+// A malformed value is an error, never a silent fallback.
+func applyAdmissionEnv(a *admission.Config, getenv func(string) string) []error {
+	var errs []error
+	for _, o := range []struct {
+		env string
+		set func(int)
+	}{
+		{limits.EnvAdmissionSlots, func(n int) { a.Slots = n }},
+		{limits.EnvAdmissionQueueDepth, func(n int) { a.QueueDepth = n }},
+		{limits.EnvAdmissionPerUser, func(n int) { a.PerUser = n }},
+	} {
+		raw := getenv(o.env)
+		if raw == "" {
+			continue
+		}
+		n, err := strconv.Atoi(raw)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s must be an integer, got %q", o.env, raw))
+			continue
+		}
+		o.set(n)
+	}
+	if raw := getenv(limits.EnvAdmissionMaxWait); raw != "" {
+		d, err := time.ParseDuration(raw)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s must be a duration such as 30s, got %q", limits.EnvAdmissionMaxWait, raw))
+		} else {
+			a.MaxWait = d
+		}
+	}
+	return errs
 }
 
 func (s Service) validate() []error {
@@ -117,6 +160,9 @@ func (s Service) validate() []error {
 		if !imageHostPattern.MatchString(h) {
 			errs = append(errs, fmt.Errorf("imageHosts[%d]: %q is not a lower-case host name or host:port (no scheme, path or wildcard)", i, h))
 		}
+	}
+	if err := s.Admission.Validate(); err != nil {
+		errs = append(errs, fmt.Errorf("admission: %w", err))
 	}
 	return errs
 }

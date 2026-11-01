@@ -19,3 +19,13 @@ defaultBinding:
 # write host:port for another port. See docs/images.md.
 # imageHosts:
 #   - files.example.invalid
+
+# Admission control of the Gateway (docs/limits.md). One Worker runs one job,
+# so keep slots equal to the number of Worker replicas. Every key is optional;
+# the values below are the defaults. Environment variables override the file:
+# RENDERER_ADMISSION_SLOTS, _QUEUE_DEPTH, _PER_USER and _MAX_WAIT.
+# admission:
+#   slots: 1        # renders at the same time
+#   queueDepth: 4   # requests that may wait for a slot; 0 = none wait
+#   perUser: 1      # renders per Outline user, queued and running together
+#   maxWait: 60s    # how long a queued request waits before it gets a 429

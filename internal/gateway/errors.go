@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
@@ -22,7 +23,9 @@ const (
 	PhaseMetadata = "metadata"
 	PhaseImages   = "images"
 	PhaseBundle   = "bundle"
-	PhaseWorker   = "worker"
+
+	PhaseAdmission = "admission"
+	PhaseWorker    = "worker"
 )
 
 const (
@@ -148,11 +151,47 @@ func bundleFailure(err error) *failure {
 	return fail(http.StatusInternalServerError, PhaseBundle, "invalid", "the document could not be rendered", err)
 }
 
+// Shapes the Gateway passes on from a Worker answer. Anything else is
+// replaced, so a misbehaving Worker cannot put text of its own in a response
+// or a log line.
+var (
+	workerTokenRE = regexp.MustCompile(`^[a-z][a-z0-9_]{0,31}$`)
+	workerJobIDRE = regexp.MustCompile(`^[A-Za-z0-9_-]{1,64}$`)
+)
+
+const unknownToken = "unknown"
+
+func tokenOr(v string, re *regexp.Regexp, fallback string) string {
+	if re.MatchString(v) {
+		return v
+	}
+	return fallback
+}
+
+// safeWorkerError copies a Worker answer with its free-text fields checked.
+func safeWorkerError(we *workerapi.Error) *workerapi.Error {
+	return &workerapi.Error{Status: we.Status, ErrorBody: workerapi.ErrorBody{
+		Phase: tokenOr(we.Phase, workerTokenRE, unknownToken),
+		Kind:  tokenOr(we.Kind, workerTokenRE, unknownToken),
+		JobID: tokenOr(we.JobID, workerJobIDRE, ""),
+	}}
+}
+
+// errWorkerFailed stands in for a Worker error whose text is not known to
+// be free of Document or tool output. The Worker's own log has the detail.
+var errWorkerFailed = errors.New("worker failed")
+
 func workerFailure(err error) *failure {
 	var we *workerapi.Error
 	if !errors.As(err, &we) {
-		return fail(http.StatusInternalServerError, PhaseWorker, "unreachable", "the document could not be rendered", err)
+		cause := errWorkerFailed
+		if errors.Is(err, workerapi.ErrUnreachable) {
+			cause = workerapi.ErrUnreachable
+		}
+		return fail(http.StatusInternalServerError, PhaseWorker, "unreachable", "the document could not be rendered", cause)
 	}
+	we = safeWorkerError(we)
+	err = we
 	var f *failure
 	switch {
 	case we.Busy():

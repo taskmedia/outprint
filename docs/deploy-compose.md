@@ -67,5 +67,6 @@ without it.
 
 Throughput scales by Worker replicas, not by parallel jobs in one Worker. One
 slow render delays others; a busy Worker answers `429` with `Retry-After`
-through the Gateway. Admission control (a queue, a per-user limit) is a later
-step.
+through the Gateway. The Gateway's admission control (slots, a queue, a
+per-user limit) sits in front of the Workers, see [limits.md](limits.md); raise
+its `slots` together with the number of Worker replicas.

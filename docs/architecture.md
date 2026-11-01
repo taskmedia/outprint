@@ -48,6 +48,7 @@ Configuration (environment):
 | `RENDERER_LISTEN` | listen address | `:8080` |
 | `RENDERER_TIMEOUT` | render limit; the Gateway waits 30 s longer for the Worker | `60s` |
 | `RENDERER_SERVICE_CONFIG` | service configuration file | |
+| `RENDERER_ADMISSION_SLOTS`, `_QUEUE_DEPTH`, `_PER_USER`, `_MAX_WAIT` | override the `admission` keys of the service configuration, see [limits.md](limits.md) | `1`, `4`, `1`, `60s` |
 | `RENDERER_LOG_LEVEL` | `debug`, `info`, `warn`, `error` | `info` |
 
 ### Worker
@@ -164,9 +165,13 @@ id, 401 without a cookie or when Outline answers 401, 403 and 404 when the
 user cannot read the Document or its Collection, 500 otherwise. A client must
 treat any non-200 answer as "do not decide" and may keep the button hidden.
 
-The place for admission control (global slot limit, per-user limit keyed by the
-Outline-confirmed user id from `UserID`) is between steps 5 and 6, in
-`gateway.process`.
+Admission control ([limits.md](limits.md)) sits in `gateway.process`. After the
+Binding is selected the Gateway asks Outline for the confirmed user id
+(`auth.info`) and counts the render against that user, before the images are
+fetched; a slot of the global limit is taken right before the Worker call. Both
+are released by `defer` on every path. A refusal is a 429 with `Retry-After`
+and an error list with `source: service`, code `busy` or `user_limit`. The
+status endpoint does neither.
 
 ### File name
 
@@ -201,6 +206,8 @@ response carries a log excerpt, TeX output, Document content or a cause.
 | too many pages (`pages_exceeded`), PDF too large (`pdf_too_large`) | 413 | `phase: output` |
 | the job ran out of memory or scratch space (`resource`) | 413 | the Worker restarts |
 | Worker busy | 429 | with `Retry-After` |
+| renderer at capacity (`busy`), user already has a render (`user_limit`) | 429 | admission control, with `Retry-After`; error list with `source: service`, see [limits.md](limits.md) |
+| Outline does not confirm the user | 401 / 403 / 500 | never counted by address |
 | Worker timeout | 504 | `phase: timeout` |
 | Outline or Worker unreachable, TeX error, any other failure | 500 | only phase and job id |
 

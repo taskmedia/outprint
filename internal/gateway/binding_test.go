@@ -52,10 +52,12 @@ func TestCollectionBlockSelectsTheBindingWithoutDefault(t *testing.T) {
 		t.Fatalf("status %d: %s", resp.StatusCode, body)
 	}
 	e.assertRenderedWith(t, "neutral", "example")
-	last := e.outline.seen[len(e.outline.seen)-1]
-	if last.path != "/api/collections.info" || last.cookie != cookieCanary {
-		t.Errorf("collection call = %+v, want the user's cookie", last)
+	for _, seen := range e.outline.seen {
+		if seen.path == "/api/collections.info" && seen.cookie == cookieCanary {
+			return
+		}
 	}
+	t.Errorf("no collection call with the user's cookie: %+v", e.outline.seen)
 }
 
 func TestBrokenBlockIs422AndNeverFallsBackToTheDefault(t *testing.T) {

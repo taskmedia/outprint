@@ -70,6 +70,12 @@ services:
       # Required: the base URL of your Outline. The gateway refuses to start
       # without it.
       OUTLINE_URL: ${OUTLINE_URL:-}
+      # Admission control (docs/limits.md). Empty keeps the service
+      # configuration's value. Scale the slots with the Worker replicas.
+      RENDERER_ADMISSION_SLOTS: ${RENDERER_ADMISSION_SLOTS:-}
+      RENDERER_ADMISSION_QUEUE_DEPTH: ${RENDERER_ADMISSION_QUEUE_DEPTH:-}
+      RENDERER_ADMISSION_PER_USER: ${RENDERER_ADMISSION_PER_USER:-}
+      RENDERER_ADMISSION_MAX_WAIT: ${RENDERER_ADMISSION_MAX_WAIT:-}
     volumes:
       - type: bind
         source: ../../templates

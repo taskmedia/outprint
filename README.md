@@ -75,6 +75,8 @@ Compose and the Worker security baseline.
 See [docs/security.md](docs/security.md) for the security layers, what each
 proves, the limits and how to run the suite, and
 [docs/testing.md](docs/testing.md) for the test tiers and the CI schedule.
+See [docs/limits.md](docs/limits.md) for the limits and admission control
+(slots, queue, per-user limit, and how to configure them).
 See [docs/sanitize.md](docs/sanitize.md) for the sanitisation gate.
 
 ## License
