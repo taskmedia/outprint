@@ -1,0 +1,4 @@
+fonttools
+pillow
+imagequant
+pyoxipng
