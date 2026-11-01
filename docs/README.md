@@ -26,17 +26,17 @@
 | [architecture.md](architecture.md) | Gateway and Worker roles, the job bundle, request flow, error mapping |
 | [worker.md](worker.md) | the Worker pipeline, filters, engine lockdown |
 | [security.md](security.md) | the security layers and what each proves |
-| [adr/](adr) | architecture decision records |
-| [../CONTEXT.md](../CONTEXT.md) | the vocabulary |
+| [adr/](adr/README.md) | architecture decision records |
+| [../CONTEXT.md](https://github.com/taskmedia/outprint/blob/main/CONTEXT.md) | the vocabulary |
 
 ## Developing and publishing
 
 | Page | What it covers |
 |------|----------------|
 | [development.md](development.md) | the seeded local stack with Outline |
-| [testing.md](testing.md) | test tiers and CI |
-| [sanitize.md](sanitize.md) | the sanitisation gate and the pre-publish audit |
-| [publishing.md](publishing.md) | the maintainer's checklist before the repository goes public |
-| [releasing.md](releasing.md) | the maintainer's release procedure: release PR, image publishing, one-time settings |
-| [research/](research/README.md) | the research notes behind the design |
-| [../THIRD_PARTY_NOTICES](../THIRD_PARTY_NOTICES) | third-party licences and the Pandoc source offer |
+| [testing.md](https://github.com/taskmedia/outprint/blob/main/docs/testing.md) | test tiers and CI |
+| [sanitize.md](https://github.com/taskmedia/outprint/blob/main/docs/sanitize.md) | the sanitisation gate and the pre-publish audit |
+| [publishing.md](https://github.com/taskmedia/outprint/blob/main/docs/publishing.md) | the maintainer's checklist before the repository goes public |
+| [releasing.md](https://github.com/taskmedia/outprint/blob/main/docs/releasing.md) | the maintainer's release procedure: release PR, image publishing, one-time settings |
+| [research/](https://github.com/taskmedia/outprint/blob/main/docs/research/README.md) | the research notes behind the design |
+| [../THIRD_PARTY_NOTICES](https://github.com/taskmedia/outprint/blob/main/THIRD_PARTY_NOTICES) | third-party licences and the Pandoc source offer |

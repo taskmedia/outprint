@@ -17,3 +17,9 @@ node_modules/
 e2e/test-results/
 e2e/playwright-report/
 .venv/
+
+# Documentation site (website/)
+website/node_modules/
+website/build/
+website/.docusaurus/
+website/static/brand/

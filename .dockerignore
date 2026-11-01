@@ -13,3 +13,4 @@ agentdb.rvf*
 !testdata/**/*.pdf
 !scripts/run-golden.sh
 .security-logs
+website

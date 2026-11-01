@@ -3,7 +3,7 @@
 This guide is for people who write a **Template** (a style family such as a
 letter or a report) or a **Template Configuration** (the values that adapt a
 Template to an organisation). It ties together the reference pages and walks
-through one complete example. Terms are defined in [CONTEXT.md](../CONTEXT.md).
+through one complete example. Terms are defined in [CONTEXT.md](https://github.com/taskmedia/outprint/blob/main/CONTEXT.md).
 
 Reference pages this guide builds on:
 
@@ -115,7 +115,7 @@ supported, and a variable may never build a control sequence name
 (`\foo$name$`).
 
 Things the Pandoc LaTeX writer needs from a template (taken from the
-[fidelity research](research/markdown-latex-fidelity.md) and what `neutral`
+[fidelity research](https://github.com/taskmedia/outprint/blob/main/docs/research/markdown-latex-fidelity.md) and what `neutral`
 does):
 
 - `longtable`, `booktabs`, `array`, `calc`, `etoolbox` for tables, and
@@ -274,7 +274,7 @@ To cover your Template:
 
 **Not available yet:** a per-Document-Type opt-in to compare rasterised pages
 (PNG diff). The research suggested it as an optional narrow check
-([research/test-environment.md](research/test-environment.md)), but it is not
+([research/test-environment.md](https://github.com/taskmedia/outprint/blob/main/docs/research/test-environment.md)), but it is not
 implemented: there is no PNG golden and no manifest or fixture switch for it.
 Today, layout regressions are caught by the text goldens and by the asserted
 facts only. If you need visual checks, render and look at the PDF; do not rely
@@ -367,4 +367,4 @@ with `validate` and `render` against the image of this repository.
 - Every non-text field has a narrow pattern.
 - A golden fixture covers each Document Type.
 - No organisation-specific names, logos or addresses in a public repository:
-  run `make sanitize` ([sanitize.md](sanitize.md)).
+  run `make sanitize` ([sanitize.md](https://github.com/taskmedia/outprint/blob/main/docs/sanitize.md)).

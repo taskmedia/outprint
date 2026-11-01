@@ -19,7 +19,7 @@ SANDBOX_PARALLEL ?= 4
 # Fixed so that PDFs are reproducible across runs.
 SOURCE_DATE_EPOCH ?= 1700000000
 
-.PHONY: dev dev-up dev-secrets seed dev-down dev-down-volumes dev-logs dev-clean e2e e2e-install build test test-web image image-injector test-golden test-security test-security-layer1 test-sandbox test-guard update-goldens sanitize test-sanitize audit test-audit
+.PHONY: dev dev-up dev-secrets seed dev-down dev-down-volumes dev-logs dev-clean e2e e2e-install build test test-web image image-injector test-golden test-security test-security-layer1 test-sandbox test-guard update-goldens sanitize test-sanitize audit test-audit docs docs-serve
 
 build:
 	go build -ldflags "$(LDFLAGS)" -o bin/outprint ./cmd/outprint
@@ -142,3 +142,11 @@ e2e-install:
 
 e2e: dev-up seed
 	cd e2e && npx playwright test
+
+# Documentation site (website/README.md): strict build, then serve the build at
+# http://localhost:3000/outprint/. Needs Node 22.
+docs:
+	cd website && npm ci && npm run build
+
+docs-serve: docs
+	cd website && npm run serve
