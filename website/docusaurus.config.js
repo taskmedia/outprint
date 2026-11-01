@@ -61,6 +61,8 @@ const config = {
     // The docs are plain CommonMark for GitHub; 'detect' keeps .md files out
     // of MDX so braces and angle brackets in prose do not break the build.
     format: 'detect',
+    // Diagrams are ```mermaid fences, which GitHub renders as well.
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'throw',
     },
@@ -131,6 +133,7 @@ const config = {
   plugins: [['@docusaurus/plugin-client-redirects', {createRedirects}]],
 
   themes: [
+    '@docusaurus/theme-mermaid',
     [
       '@easyops-cn/docusaurus-search-local',
       /** @type {import('@easyops-cn/docusaurus-search-local').PluginOptions} */
