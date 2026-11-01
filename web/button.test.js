@@ -535,6 +535,6 @@ test('metadataBlockMode: show and a missing block change nothing', () => {
 });
 
 test('textsFor has the label of the metadata toggle', () => {
-  assert.equal(b.textsFor('en', {}).metadata, 'Metadata');
-  assert.equal(b.textsFor('de', {}).metadata, 'Metadaten');
+  assert.equal(b.textsFor('en', {}).metadata, 'PDF details');
+  assert.equal(b.textsFor('de', {}).metadata, 'PDF-Details');
 });

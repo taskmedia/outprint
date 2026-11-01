@@ -53,8 +53,8 @@
 
   // Built-in texts. 'busy', 'dismiss' and 'metadata' are not configurable.
   var BUILTIN_TEXTS = {
-    en: { menu: 'Formatted PDF', button: 'PDF', tooltip: 'Download formatted PDF', busy: 'Creating PDF…', dismiss: 'Dismiss', metadata: 'Metadata' },
-    de: { menu: 'Formatiertes PDF', button: 'PDF', tooltip: 'Formatiertes PDF herunterladen', busy: 'PDF wird erstellt…', dismiss: 'Schließen', metadata: 'Metadaten' }
+    en: { menu: 'Formatted PDF', button: 'PDF', tooltip: 'Download formatted PDF', busy: 'Creating PDF…', dismiss: 'Dismiss', metadata: 'PDF details' },
+    de: { menu: 'Formatiertes PDF', button: 'PDF', tooltip: 'Formatiertes PDF herunterladen', busy: 'PDF wird erstellt…', dismiss: 'Schließen', metadata: 'PDF-Details' }
   };
   var FALLBACK_LANGUAGE = 'en';
 
