@@ -225,7 +225,7 @@ comes from the embedded version:
 
 The site serves the newest release at its root, so `/<newest minor>/` is a
 redirect there that keeps the `#<code>` anchor, and until the first release
-snapshot exists `/dev/` redirects to the root ([site setup](https://github.com/taskmedia/outprint/blob/main/website/README.md#versions)).
+tag exists `/dev/` redirects to the root ([site setup](https://github.com/taskmedia/outprint/blob/main/website/README.md#versions)).
 The button renders only `https:` links to that origin, as "How to fix" next
 to each error and a "Help" link to the docs home of the same version. A test
 fails when a code in the source has no anchor on the page

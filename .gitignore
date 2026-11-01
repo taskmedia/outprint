@@ -23,6 +23,10 @@ website/node_modules/
 website/build/
 website/.docusaurus/
 website/static/brand/
+# Older docs versions, exported from Git tags at build time (website/scripts/docs-versions.mjs)
+website/versioned_docs/
+website/versioned_sidebars/
+website/versions.json
 
 # Task checksum state
 .task/

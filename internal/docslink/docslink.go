@@ -12,7 +12,7 @@
 //	dev, 0.3.2-dev,        dev     a development build: the unreleased docs
 //	*-dirty, v0.3.2-5-gabc1234,
 //	abc1234 (commit only)
-//	0.4.0-rc.1             latest  a pre-release has no docs snapshot of its own
+//	0.4.0-rc.1             latest  a pre-release has no docs version of its own
 //	"", banana, 0.3        latest  unknown or unparsable: the site root
 package docslink
 

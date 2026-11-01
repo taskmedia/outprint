@@ -3,22 +3,23 @@
 const fs = require('fs');
 const path = require('path');
 
-// Release snapshots, newest first. Empty until the first `docs:version`.
+// The released minors, newest first, written by scripts/docs-versions.mjs from
+// the Git tags before every build. Absent until the first tag vX.Y.0.
 const versionsFile = path.join(__dirname, 'versions.json');
 const releasedVersions = fs.existsSync(versionsFile)
   ? JSON.parse(fs.readFileSync(versionsFile, 'utf8'))
   : [];
-const hasSnapshot = releasedVersions.length > 0;
+const hasRelease = releasedVersions.length > 0;
 
 // The product links to /<minor>/... for a release and to /dev/... for a
 // development build (internal/docslink). Docusaurus serves the newest
 // release at the site root and the unreleased docs at /dev/, so the paths the
 // product uses for those two do not exist as folders. They are redirects,
 // created here from the same versions.json, so they are right from the first
-// snapshot on:
-//   with a snapshot:     /<newest minor>/*  ->  /*
-//   without a snapshot:  /dev/*             ->  /*   (the current docs are the root)
-const rootAlias = hasSnapshot ? releasedVersions[0] : 'dev';
+// release on:
+//   with a release:     /<newest minor>/*  ->  /*
+//   without a release:  /dev/*             ->  /*   (the current docs are the root)
+const rootAlias = hasRelease ? releasedVersions[0] : 'dev';
 const versionFolders = ['dev', ...releasedVersions];
 
 /** @param {string} existingPath */
@@ -112,11 +113,11 @@ const config = {
             // The logo kit (build script, lock files, its own README).
             'assets/**',
           ],
-          // Until the first release snapshot exists, the current docs are the
-          // only version and stay at the site root; with a snapshot they move to
+          // Until the first release tag exists, the current docs are the
+          // only version and stay at the site root; with a release they move to
           // /dev/ and the newest release takes the root. Do NOT set lastVersion
           // (see website/README.md, "Versions").
-          versions: hasSnapshot
+          versions: hasRelease
             ? {current: {label: 'dev', path: 'dev', banner: 'unreleased'}}
             : undefined,
         },
@@ -167,7 +168,7 @@ const config = {
           {to: '/deploy/', label: 'Deploy', position: 'left', activeBaseRegex: '^/deploy/'},
           {to: '/templates/', label: 'Templates', position: 'left', activeBaseRegex: '^/templates/'},
           {to: '/internals/', label: 'Internals', position: 'left', activeBaseRegex: '^/(internals|adr)/'},
-          ...(hasSnapshot ? [{type: 'docsVersionDropdown', position: 'right'}] : []),
+          ...(hasRelease ? [{type: 'docsVersionDropdown', position: 'right'}] : []),
           {
             href: 'https://github.com/taskmedia/outprint',
             label: 'GitHub',
