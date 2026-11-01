@@ -17,8 +17,8 @@ Check these before you start. If one is missing, Outprint cannot work.
 2. **The injector is a required step, not an option.** Outline has no plug-in
    point for a toolbar button, and Outprint does not change Outline. The
    injector is a small reverse proxy that adds one `<script>` tag to Outline's
-   pages. That script shows the **Download PDF** button. Without the injector
-   there is no button. The reasons are in the
+   pages. That script puts the **Formatted PDF** action into Outline. Without the
+   injector there is no action. The reasons are in the
    [research notes on Outline](https://github.com/taskmedia/outprint/blob/main/docs/research/outline-surface.md).
 3. **The injector sits between your edge proxy and Outline.** The edge proxy
    keeps TLS and your host name. Everything goes to the injector. The injector
@@ -50,7 +50,7 @@ second login.
 | Page | What it covers |
 |------|----------------|
 | [Docker Compose](docker-compose.md) | Run all three services with the shipped Compose file. |
-| [Injector and download button](injector.md) | Put the injector in front of Outline, and the settings `OUTPRINT_INJECTOR_*`. |
+| [Injector and PDF action](injector.md) | Put the injector in front of Outline, and the settings `OUTPRINT_INJECTOR_*`. |
 | [Image fetching](image-fetching.md) | Which hosts the Gateway may fetch images from. |
 | [Limits and admission control](limits-and-admission.md) | How large a document can be, and how many PDFs run at once. |
 | [Security notes for operators](security-for-operators.md) | What to expose, what to keep inside, and what to check. |

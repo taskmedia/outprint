@@ -204,6 +204,7 @@ type statusBody struct {
 	Available bool   `json:"available"`
 	Reason    string `json:"reason"`
 	Message   string `json:"message"`
+	Language  string `json:"language"`
 }
 
 func (e *env) status(t *testing.T, id, cookie string) (int, statusBody) {
@@ -283,5 +284,25 @@ func TestStatusNeedsCookieAndValidID(t *testing.T) {
 	}
 	if len(e.outline.seen) != 0 {
 		t.Error("an invalid request reached Outline")
+	}
+}
+
+func TestStatusReportsTheUsersLanguage(t *testing.T) {
+	e := newEnv(t, true)
+	e.outline.add("d", 200, "T", docText)
+	e.outline.language = "de_DE"
+	code, sb := e.status(t, "d", cookieCanary)
+	if code != 200 || sb.Language != "de_DE" {
+		t.Errorf("status %d body %+v, want language de_DE", code, sb)
+	}
+}
+
+func TestStatusStaysAvailableWhenTheLanguageIsUnknown(t *testing.T) {
+	e := newEnv(t, true)
+	e.outline.add("d", 200, "T", docText)
+	e.outline.authStatus = 500
+	code, sb := e.status(t, "d", cookieCanary)
+	if code != 200 || !sb.Available || sb.Language != "" {
+		t.Errorf("status %d body %+v, want available without a language", code, sb)
 	}
 }

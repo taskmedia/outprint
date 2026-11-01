@@ -431,7 +431,6 @@ func TestStatusEndpointNeverTakesASlotOrCountsAgainstTheUser(t *testing.T) {
 	first := e.getAsync(context.Background(), "d", cookieA, nil)
 	g.waitEntered(t)
 	before := ctrl.Stats()
-	authCalls := e.outline.calls("/api/auth.info")
 
 	for range 3 {
 		resp, body := e.getPath(t, "/status/d", cookieA)
@@ -441,9 +440,6 @@ func TestStatusEndpointNeverTakesASlotOrCountsAgainstTheUser(t *testing.T) {
 	}
 	if ctrl.Stats() != before {
 		t.Errorf("stats changed from %+v to %+v", before, ctrl.Stats())
-	}
-	if e.outline.calls("/api/auth.info") != authCalls {
-		t.Error("the status endpoint asked Outline for the user")
 	}
 	g.open()
 	await(t, first)

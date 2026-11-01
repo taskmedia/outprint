@@ -1,13 +1,20 @@
 /*
- * "Download PDF" button for Outline document pages.
+ * "Formatted PDF" action for Outline document pages.
  *
  * The injector adds this script to Outline's HTML. It asks the Gateway,
  * same-origin and with the user's own cookie, whether the open document has a
- * Binding, and shows a floating button only if it does. Plain ES2019, no
- * dependencies. All server text reaches the page through textContent.
+ * Binding, and only then places the action: as an item of the Export submenu
+ * of the document menu (default), or as a header button before Share. When the
+ * anchor cannot be found it falls back to a small floating button. The
+ * operator chooses through data attributes the injector writes on the script
+ * tag. Plain ES2019, no dependencies. All server text reaches the page through
+ * textContent.
  */
 (function (root) {
   'use strict';
+
+  // Only set while the script runs for the first time, before DOMContentLoaded.
+  var bootScript = typeof document !== 'undefined' ? document.currentScript : null;
 
   var BUTTON_ID = 'olp-pdf-button';
   var PANEL_ID = 'olp-pdf-panel';
@@ -23,9 +30,29 @@
   var DOCS_PAGE_SUFFIX = '/write/when-something-goes-wrong/';
   var UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-  var LABEL = 'Download PDF';
-  var LABEL_BUSY = 'Creating PDF…';
-  var ARIA_LABEL = 'Download this document as PDF';
+  var ITEM_ATTR = 'data-olp-item';
+  var HEADER_WRAP_ATTR = 'data-olp-header';
+  var DEFAULT_FALLBACK_DELAY_MS = 3000;
+  var MAX_FALLBACK_DELAY_MS = 60000;
+  var MAX_LABEL_LENGTH = 80;
+  var PANEL_GAP = 8;
+  // The document header is the topmost bar; a trigger further down is not its.
+  var HEADER_MAX_TOP = 100;
+  var ACTION_ROW_DEPTH = 3;
+  // The "…" button ends at the right edge of the header, within this distance.
+  var HEADER_RIGHT_EDGE = 120;
+  var PLACEMENTS = ['menu', 'button'];
+  var STYLES = ['icon-label', 'icon'];
+  // The items of Outline's Export submenu carry the file type as text that is
+  // not translated (Markdown.md, HTML.html, ...); the labels are.
+  var EXPORT_ITEM_PATTERN = /\.(md|html|textpack|pdf)$/i;
+
+  // Built-in texts. 'busy' and 'dismiss' are not configurable.
+  var BUILTIN_TEXTS = {
+    en: { menu: 'Formatted PDF', button: 'PDF', tooltip: 'Download formatted PDF', busy: 'Creating PDF…', dismiss: 'Dismiss' },
+    de: { menu: 'Formatiertes PDF', button: 'PDF', tooltip: 'Formatiertes PDF herunterladen', busy: 'PDF wird erstellt…', dismiss: 'Schließen' }
+  };
+  var FALLBACK_LANGUAGE = 'en';
 
   // ---- pure helpers (exported for the tests) -----------------------------
 
@@ -179,6 +206,80 @@
     return failure;
   }
 
+  // "de_DE" and "de-AT" are German: only the primary subtag counts.
+  function primaryLanguage(tag) {
+    var match = /^([a-z]{2,3})(?:[-_]|$)/i.exec(typeof tag === 'string' ? tag.trim() : '');
+    return match ? match[1].toLowerCase() : '';
+  }
+
+  // The language of the labels: the user's Outline language when the Gateway
+  // reports one, otherwise the browser's. A language there is no text for
+  // (built in or configured) means English.
+  function resolveLanguage(outlineLanguage, browserLanguage, extraLanguages) {
+    var known = Object.keys(BUILTIN_TEXTS).concat(extraLanguages || []);
+    var wanted = primaryLanguage(outlineLanguage) || primaryLanguage(browserLanguage);
+    return wanted && known.indexOf(wanted) !== -1 ? wanted : FALLBACK_LANGUAGE;
+  }
+
+  function cleanLabels(raw) {
+    var out = {};
+    if (!raw || typeof raw !== 'object') return out;
+    ['menu', 'button', 'tooltip'].forEach(function (key) {
+      var byLanguage = raw[key];
+      if (!byLanguage || typeof byLanguage !== 'object') return;
+      Object.keys(byLanguage).forEach(function (lang) {
+        var text = byLanguage[lang];
+        if (!/^[a-z]{2,3}$/.test(lang) || typeof text !== 'string') return;
+        text = text.trim();
+        if (text === '' || text.length > MAX_LABEL_LENGTH) return;
+        out[key] = out[key] || {};
+        out[key][lang] = text;
+      });
+    });
+    return out;
+  }
+
+  function oneOf(value, allowed, fallback) {
+    return allowed.indexOf(value) !== -1 ? value : fallback;
+  }
+
+  // The data attributes of the script tag -> the options. get(name) returns
+  // the attribute value or null. Anything unusable falls back to the default.
+  function parseOptions(get) {
+    var labels = {};
+    try {
+      labels = cleanLabels(JSON.parse(get('data-labels') || '{}'));
+    } catch (e) {
+      /* the injector validates the labels; ignore a damaged value */
+    }
+    var delay = parseInt(get('data-fallback-delay'), 10);
+    return {
+      placement: oneOf(get('data-placement'), PLACEMENTS, 'menu'),
+      style: oneOf(get('data-style'), STYLES, 'icon-label'),
+      fallback: get('data-fallback') !== 'off',
+      fallbackDelay: delay >= 0 ? Math.min(delay, MAX_FALLBACK_DELAY_MS) : DEFAULT_FALLBACK_DELAY_MS,
+      labels: labels
+    };
+  }
+
+  // The texts for one language: a configured text for the language, the
+  // built-in text for it, a configured English text, the built-in English one.
+  function textsFor(language, labels) {
+    var texts = {};
+    var builtin = BUILTIN_TEXTS[language] || {};
+    Object.keys(BUILTIN_TEXTS[FALLBACK_LANGUAGE]).forEach(function (key) {
+      var configured = (labels && labels[key]) || {};
+      texts[key] = configured[language] || builtin[key] || configured[FALLBACK_LANGUAGE] || BUILTIN_TEXTS[FALLBACK_LANGUAGE][key];
+    });
+    return texts;
+  }
+
+  // The visible text of an Export item without its file type: for a menu item
+  // "Markdown.md" this is true, for "Print" and "Copy link" it is not.
+  function isExportItemText(text) {
+    return EXPORT_ITEM_PATTERN.test(String(text || '').trim());
+  }
+
   // The script is served at <prefix>/button.js; the API lives next to it.
   function basePathFromScriptSrc(src) {
     var match = /^(?:[a-z][a-z0-9+.-]*:\/\/[^/]+)?(\/(?:[^?#]*\/)?)button\.js(?:[?#].*)?$/i.exec(src || '');
@@ -192,15 +293,18 @@
     '--olp-border:#c3c9d1;--olp-danger:#b42318;--olp-focus:#1d4ed8;font:600 14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}',
     '@media (prefers-color-scheme:dark){#olp-pdf-button,#olp-pdf-panel{--olp-accent:#93c5fd;--olp-on-accent:#0b1220;',
     '--olp-surface:#1b1f27;--olp-text:#e6e8eb;--olp-border:#3a414d;--olp-danger:#f97066;--olp-focus:#93c5fd}}',
-    '#olp-pdf-button{position:fixed;right:20px;bottom:20px;z-index:900;padding:10px 18px;border:0;border-radius:8px;',
-    'background:var(--olp-accent);color:var(--olp-on-accent);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.3)}',
+    '#olp-pdf-button{position:fixed;right:16px;bottom:16px;z-index:900;padding:6px 12px;border:0;border-radius:6px;font-size:13px;',
+    'background:var(--olp-accent);color:var(--olp-on-accent);cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.25)}',
     '#olp-pdf-button:hover:not(:disabled){filter:brightness(1.08)}',
-    '#olp-pdf-button:focus-visible,#olp-pdf-panel button:focus-visible{outline:3px solid var(--olp-focus);outline-offset:2px}',
-    '#olp-pdf-button:disabled{cursor:progress;opacity:.7}',
+    '#olp-pdf-button:focus-visible,#olp-pdf-panel button:focus-visible,.olp-header-button:focus-visible{outline:3px solid var(--olp-focus,#1d4ed8);outline-offset:2px}',
+    '#olp-pdf-button:disabled,.olp-header-button:disabled{cursor:progress;opacity:.7}',
+    '.olp-header-button{display:inline-flex;align-items:center;gap:6px;cursor:pointer}',
+    '.olp-header-button svg,.olp-icon{flex:none;width:18px;height:18px}',
     '@media (prefers-reduced-motion:no-preference){#olp-pdf-button{transition:filter .15s,opacity .15s}}',
-    '#olp-pdf-panel{position:fixed;right:20px;bottom:72px;z-index:900;box-sizing:border-box;width:28rem;max-width:calc(100vw - 40px);',
+    '#olp-pdf-panel{position:fixed;right:20px;bottom:56px;z-index:900;box-sizing:border-box;width:28rem;max-width:calc(100vw - 40px);',
     'max-height:60vh;overflow:auto;padding:14px 16px;border:1px solid var(--olp-border);border-left:4px solid var(--olp-danger);',
     'border-radius:8px;background:var(--olp-surface);color:var(--olp-text);box-shadow:0 4px 18px rgba(0,0,0,.3);font-weight:400}',
+    '#olp-pdf-panel[data-kind="busy"]{border-left-color:var(--olp-accent);width:auto;max-width:calc(100vw - 40px)}',
     '#olp-pdf-panel .olp-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}',
     '#olp-pdf-panel .olp-title{margin:0;font-weight:600}',
     '#olp-pdf-panel .olp-close{flex:none;border:0;background:transparent;color:inherit;font:inherit;font-size:20px;line-height:1;',
@@ -214,7 +318,24 @@
     '#olp-pdf-panel .olp-foot{margin:12px 0 0;padding-top:8px;border-top:1px solid var(--olp-border);font-size:13px}'
   ].join('');
 
-  var state = { id: null, lastShown: null, token: 0, busy: false, base: DEFAULT_BASE };
+  var state = {
+    id: null,
+    lastShown: null,
+    token: 0,
+    busy: false,
+    busyId: null,
+    base: DEFAULT_BASE,
+    options: parseOptions(function () { return null; }),
+    language: FALLBACK_LANGUAGE,
+    texts: textsFor(FALLBACK_LANGUAGE, {}),
+    available: false,
+    anchored: false,
+    observer: null,
+    fallbackTimer: null,
+    placePending: false,
+    refocus: null,
+    panelAnchor: null
+  };
 
   function installStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -242,51 +363,374 @@
     if (el) el.remove();
   }
 
-  function setBusy(button, busy) {
-    state.busy = busy;
-    button.disabled = busy;
-    button.setAttribute('aria-busy', busy ? 'true' : 'false');
-    button.textContent = busy ? LABEL_BUSY : LABEL;
-  }
-
-  function createButton(id) {
-    var button = document.createElement('button');
-    button.id = BUTTON_ID;
-    button.type = 'button';
-    button.textContent = LABEL;
-    button.setAttribute('aria-label', ARIA_LABEL);
-    button.addEventListener('click', function () { download(button, id); });
-    return button;
-  }
-
-  function showButton(id) {
-    installStyles();
-    removeById(BUTTON_ID);
-    document.body.appendChild(createButton(id));
-  }
-
-  function hideButton() {
-    removeById(BUTTON_ID);
-    dismissPanel();
-  }
-
-  function dismissPanel() {
-    document.removeEventListener('keydown', onPanelKey, true);
-    removeById(PANEL_ID);
-  }
-
-  function onPanelKey(event) {
-    if (event.key !== 'Escape') return;
-    dismissPanel();
-    var button = document.getElementById(BUTTON_ID);
-    if (button) button.focus();
-  }
-
   function element(tag, className, text) {
     var el = document.createElement(tag);
     if (className) el.className = className;
     if (text !== undefined) el.textContent = text;
     return el;
+  }
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+
+  // A page with a folded corner and a down arrow.
+  function createIcon(size) {
+    var svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('width', size || '18');
+    svg.setAttribute('height', size || '18');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    svg.setAttribute('class', 'olp-icon');
+    ['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z', 'M14 3v5h5', 'M12 11v6', 'M9.5 14.5 12 17l2.5-2.5'].forEach(function (d) {
+      var path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', d);
+      svg.appendChild(path);
+    });
+    return svg;
+  }
+
+  // ---- finding Outline's anchors -----------------------------------------
+  // Outline's DOM has no stable classes or test ids and its texts are
+  // translated, so everything here goes by role, aria-haspopup and structure.
+
+  function isInsideMenu(el) {
+    return !!el.closest('[role="menu"]');
+  }
+
+  // The "…" button of the document header: of the menu triggers at the top of
+  // the page, the right-most. The sidebar has triggers of its own (the team
+  // and user menus, the document tree); none of them sits at the right edge
+  // of the header.
+  function findOptionsButton() {
+    var triggers = document.querySelectorAll('button[aria-haspopup="menu"]');
+    var best = null;
+    var bestRight = -1;
+    for (var i = 0; i < triggers.length; i++) {
+      var el = triggers[i];
+      if (isInsideMenu(el) || el.hasAttribute(ITEM_ATTR)) continue;
+      var rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0 || rect.top >= HEADER_MAX_TOP || rect.right < root.innerWidth - HEADER_RIGHT_EDGE) continue;
+      if (rect.right > bestRight) {
+        best = el;
+        bestRight = rect.right;
+      }
+    }
+    return best;
+  }
+
+  // The header's action row: the nearest ancestor of the "…" button that also
+  // holds a dialog trigger (Share, the collaborators), looking at most
+  // ACTION_ROW_DEPTH levels up. Without one (a reader on a small screen) the
+  // row is the button's grandparent: button, its wrapper, the row.
+  function findActionRow(options) {
+    var el = options.parentElement;
+    for (var depth = 0; el && depth < ACTION_ROW_DEPTH; depth++, el = el.parentElement) {
+      if (el.querySelector('button[aria-haspopup="dialog"]')) return el;
+    }
+    var wrapper = options.parentElement;
+    return wrapper && wrapper.parentElement !== document.body ? wrapper.parentElement : null;
+  }
+
+  // Share opens a dialog and has a text label; the collaborators' avatars
+  // open one too but contain an element with an aria-label.
+  function findShareButton(row) {
+    var dialogs = row.querySelectorAll('button[aria-haspopup="dialog"]');
+    for (var i = dialogs.length - 1; i >= 0; i--) {
+      if (!dialogs[i].hasAttribute('aria-label') && !dialogs[i].querySelector('[aria-label]')) return dialogs[i];
+    }
+    return null;
+  }
+
+  // The child of row that holds el.
+  function rowChild(row, el) {
+    var node = el;
+    while (node && node.parentElement !== row) node = node.parentElement;
+    return node;
+  }
+
+  // An open menu whose items are file exports is the Export submenu.
+  function findExportMenus() {
+    var found = [];
+    document.querySelectorAll('[role="menu"]').forEach(function (menu) {
+      var items = menu.querySelectorAll('[role="menuitem"]');
+      for (var i = 0; i < items.length; i++) {
+        if (isExportItemText(items[i].textContent)) {
+          found.push(menu);
+          return;
+        }
+      }
+    });
+    return found;
+  }
+
+  // ---- placing the action ------------------------------------------------
+
+  function setBusy(busy) {
+    state.busy = busy;
+    // A disabled button loses the focus; give it back when it is usable again.
+    var refocus = busy ? document.activeElement : state.refocus;
+    state.refocus = busy ? refocus : null;
+    var button = document.getElementById(BUTTON_ID);
+    if (button) setButtonBusy(button, busy);
+    document.querySelectorAll('.olp-header-button').forEach(function (b) { setButtonBusy(b, busy); });
+    if (!busy) {
+      var panel = document.getElementById(PANEL_ID);
+      if (panel && panel.getAttribute('data-kind') === 'busy') dismissPanel();
+      if (refocus && refocus.isConnected && refocus.getAttribute && refocus.hasAttribute(ITEM_ATTR) && refocus.focus) refocus.focus();
+    }
+  }
+
+  function setButtonBusy(button, busy) {
+    button.disabled = busy;
+    button.setAttribute('aria-busy', busy ? 'true' : 'false');
+    var text = busy ? state.texts.busy : state.texts.button;
+    if (button.id === BUTTON_ID) {
+      button.textContent = text;
+      return;
+    }
+    var label = button.querySelector('.olp-label');
+    if (label) label.textContent = text;
+  }
+
+  function startDownload(anchor) {
+    if (!state.id || (state.busy && state.busyId === state.id)) return;
+    state.panelAnchor = anchor;
+    download(state.id);
+  }
+
+  function createFloatingButton() {
+    var button = element('button', '', state.texts.button);
+    button.id = BUTTON_ID;
+    button.type = 'button';
+    button.setAttribute('aria-label', state.texts.tooltip);
+    button.title = state.texts.tooltip;
+    button.addEventListener('click', function () { startDownload(button); });
+    return button;
+  }
+
+  function showFloatingButton() {
+    installStyles();
+    removeById(BUTTON_ID);
+    document.body.appendChild(createFloatingButton());
+  }
+
+  // The header button looks like its neighbour: it takes over the
+  // neighbour's classes and variant and builds its own content.
+  function createHeaderButton(neighbour) {
+    var button = neighbour.cloneNode(false);
+    ['id', 'aria-haspopup', 'aria-expanded', 'aria-controls', 'aria-label', 'data-state', 'width', 'height'].forEach(function (name) {
+      button.removeAttribute(name);
+    });
+    button.className = neighbour.className + ' olp-header-button';
+    button.type = 'button';
+    button.setAttribute(ITEM_ATTR, 'header');
+    button.setAttribute('aria-label', state.texts.tooltip);
+    button.title = state.texts.tooltip;
+    button.appendChild(createIcon());
+    if (state.options.style === 'icon-label') button.appendChild(element('span', 'olp-label', state.texts.button));
+    button.addEventListener('click', function () { startDownload(button); });
+    return button;
+  }
+
+  // Makes sure the header button sits before Share, or before "…" when there
+  // is no Share (no edit permission, narrow screens). Reports whether the
+  // anchor exists.
+  function ensureHeaderButton() {
+    var options = findOptionsButton();
+    var row = options && findActionRow(options);
+    if (!row) return false;
+    var share = findShareButton(row);
+    var before = rowChild(row, share || options);
+    var existing = row.querySelector('[' + HEADER_WRAP_ATTR + ']');
+    if (existing && existing.nextElementSibling === before) return true;
+    document.querySelectorAll('[' + HEADER_WRAP_ATTR + ']').forEach(function (el) { el.remove(); });
+    var wrap = before.cloneNode(false);
+    wrap.removeAttribute('id');
+    wrap.setAttribute(HEADER_WRAP_ATTR, '');
+    wrap.appendChild(createHeaderButton(share || options));
+    row.insertBefore(wrap, before);
+    installStyles();
+    return true;
+  }
+
+  function createMenuItem(template) {
+    var item = template.cloneNode(true);
+    ['id', 'data-highlighted', 'data-state', 'data-radix-collection-item', 'href', 'aria-haspopup', 'aria-expanded'].forEach(function (name) {
+      item.removeAttribute(name);
+    });
+    item.setAttribute(ITEM_ATTR, 'menu');
+    item.setAttribute('role', 'menuitem');
+    item.setAttribute('tabindex', '-1');
+    // Items of a root menu start with an icon; the Export items do not. The
+    // label is the first element that is not the icon.
+    var icon = item.querySelector(':scope > [aria-hidden="true"]');
+    var label = icon ? icon.nextElementSibling : item.firstElementChild;
+    if (label) label.textContent = state.texts.menu;
+    else item.textContent = state.texts.menu;
+    if (icon) {
+      var old = icon.querySelector('svg');
+      icon.replaceChildren(createIcon((old && old.getAttribute('width')) || '24'));
+    }
+    // Everything after the label (shortcuts, file types) does not apply.
+    while (label && label.nextElementSibling) label.nextElementSibling.remove();
+    item.addEventListener('pointermove', function () { if (document.activeElement !== item) item.focus({ preventScroll: true }); });
+    item.addEventListener('focus', function () { item.setAttribute('data-highlighted', ''); });
+    item.addEventListener('blur', function () { item.removeAttribute('data-highlighted'); });
+    item.addEventListener('click', function (event) {
+      event.preventDefault();
+      selectMenuItem(item);
+    });
+    return item;
+  }
+
+  // Closes the menu the way Radix does on Escape and starts the download
+  // anchored at the "…" button. Radix hands the focus back to that button as
+  // the menu unmounts; doing the same afterwards makes sure of it.
+  function selectMenuItem(item) {
+    var menu = item.closest('[role="menu"]');
+    var options = findOptionsButton();
+    if (menu) menu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    root.setTimeout(function () {
+      if (options && options.isConnected && !document.querySelector('[role="menu"]')) options.focus();
+    }, 0);
+    startDownload(options);
+  }
+
+  // Radix moves between the items it knows; ours is not one of them. Steer
+  // the arrow keys across it.
+  function onMenuKey(event) {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    var items = Array.prototype.slice.call(event.currentTarget.querySelectorAll('[role="menuitem"]'));
+    var from = items.indexOf(document.activeElement);
+    if (from === -1) return;
+    var step = event.key === 'ArrowDown' ? 1 : -1;
+    var target = items[from + step];
+    var involvesOurs = document.activeElement.hasAttribute(ITEM_ATTR) || (target && target.hasAttribute(ITEM_ATTR));
+    if (!involvesOurs) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (target) target.focus();
+  }
+
+  function ensureMenuItems() {
+    findExportMenus().forEach(function (menu) {
+      if (menu.querySelector('[' + ITEM_ATTR + ']')) return;
+      var items = menu.querySelectorAll('[role="menuitem"]');
+      var last = null;
+      for (var i = 0; i < items.length; i++) {
+        if (isExportItemText(items[i].textContent)) last = items[i];
+      }
+      if (!last) return;
+      last.parentNode.insertBefore(createMenuItem(last), last.nextSibling);
+      menu.addEventListener('keydown', onMenuKey, true);
+    });
+  }
+
+  // Looks for the anchor of the chosen placement and keeps it in place.
+  function place() {
+    if (!state.available) return;
+    var anchored;
+    if (state.options.placement === 'button') {
+      anchored = ensureHeaderButton();
+    } else {
+      anchored = !!findOptionsButton();
+      if (anchored) ensureMenuItems();
+    }
+    if (anchored) {
+      state.anchored = true;
+      removeById(BUTTON_ID);
+    }
+  }
+
+  // The editor changes the page on every keystroke and place() reads layout:
+  // look once per frame at most.
+  function schedulePlace() {
+    if (state.placePending) return;
+    state.placePending = true;
+    var run = function () {
+      state.placePending = false;
+      place();
+    };
+    if (typeof root.requestAnimationFrame === 'function') root.requestAnimationFrame(run);
+    else root.setTimeout(run, 16);
+  }
+
+  function startPlacing() {
+    stopPlacing();
+    // Radix mounts the menu when it opens and removes it when it closes, and
+    // React may redraw the header: look again whenever the page changes.
+    state.observer = new MutationObserver(schedulePlace);
+    state.observer.observe(document.body, { childList: true, subtree: true });
+    place();
+    if (!state.options.fallback || state.anchored) return;
+    state.fallbackTimer = setTimeout(function () {
+      state.fallbackTimer = null;
+      if (state.anchored || !state.available) return;
+      if (root.console && root.console.warn) {
+        root.console.warn('Outprint: the "' + state.options.placement + '" anchor was not found in Outline; showing the floating PDF button.');
+      }
+      showFloatingButton();
+    }, state.options.fallbackDelay);
+  }
+
+  function stopPlacing() {
+    if (state.observer) state.observer.disconnect();
+    state.observer = null;
+    clearTimeout(state.fallbackTimer);
+    state.fallbackTimer = null;
+    state.anchored = false;
+  }
+
+  function removeInjected() {
+    stopPlacing();
+    removeById(BUTTON_ID);
+    document.querySelectorAll('[' + HEADER_WRAP_ATTR + '],[' + ITEM_ATTR + ']').forEach(function (el) { el.remove(); });
+    dismissPanel();
+  }
+
+  // ---- feedback panel ----------------------------------------------------
+
+  function dismissPanel() {
+    document.removeEventListener('keydown', onPanelKey, true);
+    root.removeEventListener('resize', positionPanel);
+    root.removeEventListener('scroll', positionPanel, true);
+    removeById(PANEL_ID);
+  }
+
+  function returnFocus() {
+    var target = state.panelAnchor;
+    if (!target || !target.isConnected) target = document.getElementById(BUTTON_ID) || document.querySelector('.olp-header-button') || findOptionsButton();
+    if (target && target.focus) target.focus();
+  }
+
+  function onPanelKey(event) {
+    if (event.key !== 'Escape') return;
+    // Escape belongs to an open Outline menu or dialog first.
+    if (document.querySelector('[role="menu"], [role="dialog"]')) return;
+    dismissPanel();
+    returnFocus();
+  }
+
+  // Under the anchor, right-aligned with it; bottom right of the window when
+  // there is no anchor on the page (the floating button).
+  function positionPanel() {
+    var panel = document.getElementById(PANEL_ID);
+    var anchor = state.panelAnchor;
+    if (!panel) return;
+    if (!anchor || !anchor.isConnected || anchor.id === BUTTON_ID) {
+      panel.style.top = '';
+      panel.style.right = '';
+      return;
+    }
+    var rect = anchor.getBoundingClientRect();
+    panel.style.bottom = 'auto';
+    panel.style.top = Math.round(rect.bottom + PANEL_GAP) + 'px';
+    panel.style.right = Math.max(PANEL_GAP, Math.round(root.innerWidth - rect.right)) + 'px';
   }
 
   // A link to the docs. href comes only from safeDocsUrl, never from raw
@@ -312,21 +756,41 @@
     return list;
   }
 
+  function mountPanel(panel) {
+    document.body.appendChild(panel);
+    positionPanel();
+    root.addEventListener('resize', positionPanel);
+    root.addEventListener('scroll', positionPanel, true);
+  }
+
+  // Menu placement has no control that can show the busy state: the menu has
+  // closed. A small status panel stands in.
+  function showBusyPanel() {
+    dismissPanel();
+    installStyles();
+    var panel = element('section');
+    panel.id = PANEL_ID;
+    panel.setAttribute('data-kind', 'busy');
+    panel.setAttribute('role', 'status');
+    panel.appendChild(element('p', 'olp-title', state.texts.busy));
+    mountPanel(panel);
+  }
+
   function showFailure(failure) {
     dismissPanel();
     installStyles();
     var panel = element('section');
     panel.id = PANEL_ID;
+    panel.setAttribute('data-kind', 'error');
     panel.setAttribute('role', 'alert');
     var head = element('div', 'olp-head');
     head.appendChild(element('p', 'olp-title', failure.title));
     var close = element('button', 'olp-close', '×');
     close.type = 'button';
-    close.setAttribute('aria-label', 'Dismiss');
+    close.setAttribute('aria-label', state.texts.dismiss);
     close.addEventListener('click', function () {
       dismissPanel();
-      var button = document.getElementById(BUTTON_ID);
-      if (button) button.focus();
+      returnFocus();
     });
     head.appendChild(close);
     panel.appendChild(head);
@@ -337,9 +801,11 @@
       foot.appendChild(docsLink(failure.helpUrl, 'Help'));
       panel.appendChild(foot);
     }
-    document.body.appendChild(panel);
+    mountPanel(panel);
     document.addEventListener('keydown', onPanelKey, true);
   }
+
+  // ---- download ----------------------------------------------------------
 
   function saveBlob(blob, filename) {
     var url = URL.createObjectURL(blob);
@@ -368,10 +834,11 @@
     return /^application\/pdf\b/i.test(response.headers.get('Content-Type') || '');
   }
 
-  function download(button, id) {
-    if (state.busy) return;
+  function download(id) {
     dismissPanel();
-    setBusy(button, true);
+    state.busyId = id;
+    setBusy(true);
+    if (!document.getElementById(BUTTON_ID) && !document.querySelector('.olp-header-button')) showBusyPanel();
     fetch(state.base + '/render/' + encodeURIComponent(id), { credentials: 'same-origin', cache: 'no-store' })
       .then(function (response) {
         if (response.status === 200 && isPDF(response)) {
@@ -385,11 +852,38 @@
         });
       })
       .catch(function () { report(id, { status: 0, retryAfter: null, body: null }); })
-      .then(function () { setBusy(button, false); });
+      // A render of another document may have started since: leave its state alone.
+      .then(function () { if (state.busyId === id) setBusy(false); });
   }
 
   function report(id, response) {
-    if (state.id === id) showFailure(describeFailure(response));
+    if (state.id !== id) return;
+    // Dismiss the busy panel first: setBusy(false) would remove the error.
+    dismissPanel();
+    showFailure(describeFailure(response));
+  }
+
+  // ---- availability and routing -------------------------------------------
+
+  function show(body) {
+    state.language = resolveLanguage(body.language, root.navigator && root.navigator.language, Object.keys(languagesOf(state.options.labels)));
+    state.texts = textsFor(state.language, state.options.labels);
+    removeInjected();
+    state.available = true;
+    startPlacing();
+  }
+
+  function languagesOf(labels) {
+    var langs = {};
+    Object.keys(labels).forEach(function (key) {
+      Object.keys(labels[key]).forEach(function (lang) { langs[lang] = true; });
+    });
+    return langs;
+  }
+
+  function hide() {
+    state.available = false;
+    removeInjected();
   }
 
   function checkStatus(id, token) {
@@ -402,8 +896,8 @@
       .catch(function () { return null; })
       .then(function (body) {
         if (token !== state.token) return;
-        if (body && body.available === true) showButton(id);
-        else hideButton();
+        if (body && body.available === true) show(body);
+        else hide();
       });
   }
 
@@ -416,10 +910,10 @@
     state.id = id;
     state.token += 1;
     if (!id) {
-      hideButton();
+      hide();
       return;
     }
-    if (id !== state.lastShown) hideButton();
+    if (id !== state.lastShown) hide();
     state.lastShown = id;
     checkStatus(id, state.token);
   }
@@ -438,8 +932,9 @@
   function start() {
     if (root.__olpPdfButton) return;
     root.__olpPdfButton = true;
-    var script = document.currentScript;
+    var script = bootScript || document.querySelector('script[data-outline-pdf-injector]');
     state.base = basePathFromScriptSrc(script && script.src);
+    state.options = parseOptions(function (name) { return script ? script.getAttribute(name) : null; });
     patchHistory();
     var onRoute = function () { sync(false); };
     root.addEventListener('popstate', onRoute);
@@ -462,6 +957,10 @@
       basePathFromScriptSrc: basePathFromScriptSrc,
       safeDocsUrl: safeDocsUrl,
       docsHome: docsHome,
+      parseOptions: parseOptions,
+      resolveLanguage: resolveLanguage,
+      textsFor: textsFor,
+      isExportItemText: isExportItemText,
       DOCS_ORIGIN: DOCS_ORIGIN
     };
   }

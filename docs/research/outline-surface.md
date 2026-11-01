@@ -238,7 +238,7 @@ Feasibility of injecting a "Render with template X" item via an external script:
 
 ## Outcome
 
-The hybrid shape of section 7 was implemented: the service configuration is the allow-list, a fenced block in the Collection overview selects a Template ([Choose a Template and Configuration](../configure/choose-a-template.md)), and the Download PDF button is injected by a reverse proxy ([Injector and download button](../deploy/injector.md)).
+The hybrid shape of section 7 was implemented: the service configuration is the allow-list, a fenced block in the Collection overview selects a Template ([Choose a Template and Configuration](../configure/choose-a-template.md)), and the PDF action is injected by a reverse proxy ([Injector and PDF action](../deploy/injector.md)).
 
 One assumption of section 2 turned out to be wrong when tested against a real Outline in the seeded dev stack: the editor keeps only the first word of a code fence's info string, so a block opened with an info string of two words is stored with the first word alone. This affects the markers used for the Binding and the Metadata Block and was tracked in issue #42.
 

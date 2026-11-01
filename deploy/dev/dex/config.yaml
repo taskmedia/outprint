@@ -31,3 +31,9 @@ staticPasswords:
     hash: "$2a$10$dk7N9iSTJZmOmhArJx822Ok.9t7Rpoboly.wdkBcdVwtn/KhShQg6"
     username: sam
     userID: 8c1d2b6e-5f3a-4c7e-9a10-2d3e4f5a6b7c
+  # A second user, made a viewer by the seed (same password): it cannot edit,
+  # so Outline shows it no Share button. The browser tests use it.
+  - email: riley@example.invalid
+    hash: "$2a$10$dk7N9iSTJZmOmhArJx822Ok.9t7Rpoboly.wdkBcdVwtn/KhShQg6"
+    username: riley
+    userID: 3b9f1c04-7a52-4d86-b1e3-6c0d8e2a9f47

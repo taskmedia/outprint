@@ -2,12 +2,13 @@
 sidebar_position: 3
 ---
 
-# Injector and download button
+# Injector and PDF action
 
 The injector is a required part of every install. Outline has no plug-in point for a toolbar button, and Outprint does not fork
 Outline. The **injector** is a small reverse proxy in front of Outline that adds
-one `<script>` tag to Outline's HTML pages. The script shows a "Download PDF"
-button on document pages, but only where the Gateway says a Binding applies.
+one `<script>` tag to Outline's HTML pages. The script puts a **Formatted PDF**
+action into Outline's interface on document pages, but only where the Gateway
+says a Binding applies.
 
 ```
 browser --> edge (TLS) --> injector --> Outline
@@ -35,7 +36,8 @@ binary on a distroless base, non-root, with no shell and no TeX toolchain.
    error pages, event streams and WebSocket upgrades (Outline uses a WebSocket
    for collaboration).
 
-The injector adds this tag to every complete page of Outline:
+The injector adds this tag to every complete page of Outline. Options that differ
+from the defaults are added as `data-` attributes (see [Configuration](#configuration)):
 
 ```html
 <script src="/pdf/button.js" defer data-outline-pdf-injector></script>
@@ -70,10 +72,10 @@ injects. `Content-Security-Policy-Report-Only` is left alone. Two limits:
 
 - With `'strict-dynamic'` browsers ignore `'self'`; that needs a nonce, which the
   injector does not add.
-- The button's styles use a constructed stylesheet and fall back to a `<style>`
+- The script's styles use a constructed stylesheet and fall back to a `<style>`
   element, which needs `style-src 'unsafe-inline'`.
 
-Check the policy of your Outline with the browser's developer tools; if the button
+Check the policy of your Outline with the browser's developer tools; if the action
 does not appear and the console reports a blocked script, this is the cause.
 
 ## Configuration
@@ -88,34 +90,83 @@ does not appear and the console reports a blocked script, this is the cause.
 | `OUTPRINT_INJECTOR_CSP_ALLOW_SELF` | add `'self'` to Outline's script policy | `false` |
 | `OUTPRINT_INJECTOR_LOG_LEVEL` | `debug`, `info`, `warn`, `error` | `info` |
 
+### Placement of the action
+
+These variables apply to the whole installation. They are not per Collection or
+per document: where the action sits is an operator decision.
+
+| Variable | Meaning | Default |
+|----------|---------|---------|
+| `OUTPRINT_BUTTON_PLACEMENT` | `menu`: Export → Formatted PDF in the document menu. `button`: a header button before Share | `menu` |
+| `OUTPRINT_BUTTON_STYLE` | `icon-label` or `icon`; applies to the header button | `icon-label` |
+| `OUTPRINT_BUTTON_FALLBACK` | `on` or `off`: show a floating button when the anchor is missing | `on` |
+| `OUTPRINT_BUTTON_FALLBACK_DELAY` | how long to wait for the anchor before the fallback, for example `3s` | `3s` |
+| `OUTPRINT_BUTTON_LABELS` | override the texts, see below | built-in |
+
+A wrong value stops the injector at startup with a message naming the variable.
+
+`OUTPRINT_BUTTON_LABELS` is a JSON object. The keys are `menu` (the menu item),
+`button` (the text of the header button) and `tooltip` (the tooltip and
+accessible name of the header button). Each holds a text per language code. A
+text is 1 to 80 characters:
+
+```sh
+OUTPRINT_BUTTON_LABELS='{"menu":{"en":"Letterhead PDF","de":"PDF mit Briefkopf"},"tooltip":{"de":"PDF mit Briefkopf herunterladen"}}'
+```
+
+For a language the order is: your text, the built-in text, your English text,
+the built-in English text. English and German are built in; another language
+needs your text for every label you care about.
+
 `GET /_injector/healthz` answers 200 without calling Outline. The image has no
 shell, so the container health check runs `/outprint-injector healthcheck <url>`.
 
 If an edge proxy already routes `/pdf` to the Gateway, leave `OUTPRINT_INJECTOR_GATEWAY_URL`
 empty and set `OUTPRINT_INJECTOR_SCRIPT_URL` if the Gateway is reachable under another path.
 
-## The button
+## The PDF action
 
 `web/button.js` is embedded in the outprint image and served by the Gateway at
 `GET /button.js` (`text/javascript`, `nosniff`, `Cache-Control: public, max-age=300`).
-Plain ES2019, no dependencies.
+Plain ES2019, no dependencies. For where the action appears and how it looks to
+users, see [Where the PDF action appears](../configure/pdf-action.md).
 
 - It recognises `/doc/<title>-<urlId>` (and `/doc/<uuid>`, with `/edit` or
   `/history` after it) and follows Outline's client-side navigation.
-- It calls `GET <prefix>/status/<id>` and shows the button only for
-  `{"available": true}`. Any other answer or failure hides it. A malformed
+- It calls `GET <prefix>/status/<id>` and places the action only for
+  `{"available": true}`. Any other answer or failure shows nothing. A malformed
   Binding block counts as available, so the author sees the error on click.
   The id may be the urlId from the URL; the Gateway passes it to Outline's
-  `documents.info`, which accepts both.
-- The floating button sits at the bottom right. It is a native `<button>` with an
-  `aria-label`, keyboard focusable, with a visible focus ring, light and dark
-  colours, and motion only when the user has not asked for less. Where exactly
-  the button belongs in Outline's UI is not settled; this placement needs no
-  knowledge of Outline's DOM.
-- On click it fetches `<prefix>/render/<id>`, disables itself while the render
-  runs, and saves the PDF under the name from `Content-Disposition` (`filename*`
-  first, then `filename`).
-- Failures show a dismissible panel (close button or Escape):
+  `documents.info`, which accepts both. The answer also carries `language`, the
+  Outline language of the user (for example `de_DE`), read from `auth.info`
+  with the user's own cookie. It is left out when Outline names none.
+- **Finding the anchors.** Outline has no extension point for its menus, so the
+  script reads the page. It does not rely on classes (they are generated) or on
+  translated text:
+  - the **…** button of the document header is the right-most button with
+    `aria-haspopup="menu"` at the top of the page;
+  - **Share** is the dialog trigger (`aria-haspopup="dialog"`) in the same row
+    that has no `aria-label` of its own and no avatar inside;
+  - the **Export** submenu is the open menu whose items end in `.md`, `.html`
+    or `.textpack`.
+- **Menu placement.** Outline mounts a menu when it opens and removes it when it
+  closes. A `MutationObserver` on the page adds the item whenever the Export
+  submenu appears, once per menu. The item copies its neighbour, reacts to the
+  pointer and the arrow keys like the other items, and on selection closes the
+  menu the way Outline does, which also returns the focus to **…**.
+- **Header button placement.** The button copies the look of **Share** and is
+  put back if Outline redraws the header.
+- **Fallback.** If no anchor shows up within the wait, the floating button
+  appears (smaller than before) and `console.warn` says so. The floating button
+  is a native `<button>` with an `aria-label`, keyboard focusable, with a visible
+  focus ring, light and dark colours, and motion only when the user has not asked
+  for less.
+- On click it fetches `<prefix>/render/<id>` and saves the PDF under the name
+  from `Content-Disposition` (`filename*` first, then `filename`). The header
+  button and the floating button are disabled while the render runs; in menu
+  placement a "Creating PDF…" panel under **…** stands in.
+- Failures show a dismissible panel (close button or Escape) anchored under the
+  control that was used:
   - a validation error list (422): message, with field, line and source;
   - `429`: "busy, retry in N seconds" from `Retry-After`;
   - `413`, `504`, `500`, `401`, `403`, `404` and a lost connection each have a
@@ -125,7 +176,9 @@ Plain ES2019, no dependencies.
 
 Tests: `task test-web` runs `web/button.test.js` with Node's built-in runner (pure
 functions plus a small DOM stub). `task test` runs it when Node is installed and
-prints a note when it is not; CI always runs it.
+prints a note when it is not; CI always runs it. The placement against Outline's
+real markup is covered by the browser tests, see
+[Compatibility](compatibility.md).
 
 ## Security notes
 

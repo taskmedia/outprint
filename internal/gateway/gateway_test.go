@@ -46,6 +46,8 @@ type fakeOutline struct {
 	// cookie is user-1. authStatus, when set, is the status auth.info answers.
 	users      map[string]string
 	authStatus int
+	// language is what auth.info reports as the user's language.
+	language string
 }
 
 type seenRequest struct{ path, cookie string }
@@ -62,10 +64,15 @@ func newFakeOutline(t *testing.T) *fakeOutline {
 		table := f.docs
 		if r.URL.Path == "/api/auth.info" {
 			id, status := f.userFor(r.Header.Get("Cookie"))
+			lang := f.language
 			f.mu.Unlock()
 			w.WriteHeader(status)
 			if status == 200 {
-				_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"user": map[string]any{"id": id}}})
+				user := map[string]any{"id": id}
+				if lang != "" {
+					user["language"] = lang
+				}
+				_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"user": user}})
 			}
 			return
 		}
@@ -576,6 +583,10 @@ func (panicOutline) Image(_ context.Context, _ string, _ outline.Session) ([]byt
 }
 
 func (panicOutline) UserID(_ context.Context, _ outline.Session) (string, error) {
+	panic(contentCanary)
+}
+
+func (panicOutline) UserLanguage(_ context.Context, _ outline.Session) (string, error) {
 	panic(contentCanary)
 }
 

@@ -36,7 +36,7 @@ To make the block in Outline, type three backticks, choose **YAML** as the
 language, and type the lines inside. Then save.
 
 The change counts at once. Every document in the Collection, including documents
-in folders below it, now shows the **Download PDF** button.
+in folders below it, now offers **Formatted PDF** in its Export menu.
 
 ![The binding block in the description of a Collection in Outline](../assets/screens/collection-binding-block.png)
 
@@ -65,11 +65,11 @@ in folders below it, now shows the **Download PDF** button.
    [`no_binding`](../write/when-something-goes-wrong.md#no_binding).
 
 A document in a Collection without a Binding and without a default shows no
-**Download PDF** button.
+**Formatted PDF**.
 
 ## If something is wrong
 
-Mistakes in the block show up when an author clicks **Download PDF**. The button
+Mistakes in the block show up when an author clicks **Formatted PDF**. The action
 stays visible on purpose, so that the mistake is seen. The error says
 `collection` and gives the line, counted from the first line of the description.
 
@@ -87,8 +87,7 @@ gets a message that names the Collection.
 ## Try it
 
 1. Add the block to a test Collection.
-2. Open a document in it. The **Download PDF** button appears at the bottom
-   right.
+2. Open a document in it. **Export → Formatted PDF** appears in the **…** menu.
 3. Click it. Open the PDF. The letterhead shows the name and logo of the
    Configuration.
 

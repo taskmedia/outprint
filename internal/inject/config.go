@@ -52,6 +52,8 @@ type Config struct {
 	// MaxHTMLBytes bounds the HTML held in memory per page; a larger page is
 	// passed through without the script. Default 8 MiB.
 	MaxHTMLBytes int64
+	// Button places the PDF action; the zero value is the default.
+	Button ButtonConfig
 
 	// Listen and Listener are used by Run only. Listener wins.
 	Listen   string
@@ -72,6 +74,9 @@ func ConfigFromEnv(getenv func(string) string) (Config, error) {
 	}
 	if cfg.Upstream == "" {
 		return Config{}, fmt.Errorf("%s is required: the base URL of Outline", envUpstream)
+	}
+	if err := cfg.Button.readEnv(getenv); err != nil {
+		return Config{}, err
 	}
 	if v := getenv(envCSPAllowSelf); v != "" {
 		b, err := strconv.ParseBool(v)
@@ -99,6 +104,8 @@ type settings struct {
 	scriptURL         string
 	allowScriptSelf   bool
 	maxHTML           int64
+	// buttonAttrs are the data attributes for the script tag, with a leading space.
+	buttonAttrs string
 }
 
 func (c Config) validate() (settings, error) {
@@ -120,6 +127,9 @@ func (c Config) validate() (settings, error) {
 		return settings{}, err
 	}
 	s.scriptURL = firstNonEmpty(c.ScriptURL, s.prefix+scriptName)
+	if s.buttonAttrs, err = c.Button.attributes(); err != nil {
+		return settings{}, err
+	}
 	return s, nil
 }
 

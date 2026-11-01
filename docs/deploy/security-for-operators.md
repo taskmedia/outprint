@@ -62,4 +62,4 @@ and no internal addresses.
 3. Open Outline through the injector. The **Download PDF** button appears in a
    Collection with a Binding.
 4. Check the Content-Security-Policy of Outline if the button is missing. See
-   [Injector and download button](injector.md#content-security-policy).
+   [Injector and PDF action](injector.md#content-security-policy).

@@ -20,7 +20,7 @@ browser --> injector --> Outline          (adds the button script to HTML pages)
 ```
 
 A third deployable, the **injector**, is a separate slim image
-([Injector and download button](../deploy/injector.md)). It is not a role of the outprint image.
+([Injector and PDF action](../deploy/injector.md)). It is not a role of the outprint image.
 
 ## Roles
 
@@ -43,7 +43,7 @@ file. The endpoint changes nothing on the server, and the response is
 `Cache-Control: no-store`. `GET /healthz` answers 200. `GET /button.js` serves the button script (embedded
 from `web/button.js`; `text/javascript`, `nosniff`, `max-age=300`, no cookie
 needed). The Gateway sends no CORS headers: it is reached through the injector's
-`/pdf` prefix, on the origin of Outline ([Injector and download button](../deploy/injector.md)).
+`/pdf` prefix, on the origin of Outline ([Injector and PDF action](../deploy/injector.md)).
 
 `GET /status/{documentId}` tells the button script whether to show the button
 (see [Status endpoint](#status-endpoint)). The Template and Configuration come

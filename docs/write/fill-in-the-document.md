@@ -169,7 +169,7 @@ Template.
 
 ## Check your block
 
-Click **Download PDF**. Outprint checks the whole block and reports all problems
+Click **Formatted PDF**. Outprint checks the whole block and reports all problems
 at once, each with its line. A name that is almost right gets a hint, such as
 `did you mean "recipient"?`. Find the message in
 [When something goes wrong](when-something-goes-wrong.md).

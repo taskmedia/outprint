@@ -29,7 +29,7 @@ type injector struct {
 }
 
 func newInjector(s settings, logger *slog.Logger) *injector {
-	tag := fmt.Sprintf(`<script src="%s" defer %s></script>`, html.EscapeString(s.scriptURL), injectedMarker)
+	tag := fmt.Sprintf(`<script src="%s" defer %s%s></script>`, html.EscapeString(s.scriptURL), injectedMarker, s.buttonAttrs)
 	return &injector{tag: []byte(tag), maxHTML: s.maxHTML, allowScriptSelf: s.allowScriptSelf, logger: logger}
 }
 

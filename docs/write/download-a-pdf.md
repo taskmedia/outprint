@@ -9,24 +9,29 @@ Collection that has a PDF look.
 
 ## 1. Open a document
 
-Open any document in your Collection. If the Collection is set up for PDFs, a
-**Download PDF** button appears at the bottom right of the page.
+Open any document in your Collection. If the Collection is set up for PDFs, the
+**Export** menu has a **Formatted PDF** item. Open the **…** menu at the top right
+of the document, then **Export**.
 
-![A document in Outline with the Download PDF button at the bottom right](../assets/screens/bound-document-with-button.png)
+![A document in Outline with the Export menu open and Formatted PDF in it](../assets/screens/bound-document-with-button.png)
 
-## 2. Click the button
+Your admin may have put the action in a button before **Share** instead. It does
+the same.
 
-Click **Download PDF**. The button is disabled while the PDF is made. This takes
-a few seconds. Your browser then saves the file, like any other download.
+## 2. Click Formatted PDF
+
+Click **Formatted PDF**. A small message under the **…** button says that the PDF
+is being made. This takes a few seconds. Your browser then saves the file, like
+any other download.
 
 Open the PDF. The title of the document is the title of the PDF. The date is the
 day the document was last changed.
 
-## 3. If there is no button
+## 3. If there is no Formatted PDF
 
-No button means that the Collection has no PDF look yet.
+No **Formatted PDF** means that the Collection has no PDF look yet.
 
-![A document in a Collection without a PDF look: there is no Download PDF button](../assets/screens/unbound-document-no-button.png)
+![A document in a Collection without a PDF look: there is no PDF action](../assets/screens/unbound-document-no-button.png)
 
 Ask the admin of the Collection to set one up. The admin finds the steps in
 [Configure](../configure/README.md).
@@ -44,7 +49,7 @@ download. It says what to fix and where.
 
 ![The message an author sees when the details at the top of the document are wrong](../assets/screens/error-shown-to-author.png)
 
-Fix the problem and click the button again. Find your message in
+Fix the problem and click **Formatted PDF** again. Find your message in
 [When something goes wrong](when-something-goes-wrong.md).
 
 ## Good to know

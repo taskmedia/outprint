@@ -34,7 +34,7 @@ GET http://localhost:8080/render/<documentId>
 
 The browser must send the user's Outline session cookie, so in a real
 deployment the Gateway is served from the same site as Outline: the injector
-routes `/pdf` to it ([Injector and download button](injector.md)). Check the file with
+routes `/pdf` to it ([Injector and PDF action](injector.md)). Check the file with
 `docker compose -f deploy/compose/compose.yaml config`.
 
 `./templates` and `./configurations` of the repository are mounted read-only
@@ -47,7 +47,7 @@ For a local stack with Outline, a login and seeded content, see [Development sta
 ## The injector (required)
 
 The `injector` service is a required part of the install, not an add-on: without
-it Outline shows no **Download PDF** button. It is built from the `injector` target of the Dockerfile
+it Outline shows no **Formatted PDF** action. It is built from the `injector` target of the Dockerfile
 (`task image-injector`): a distroless, non-root image without TeX. It is not
 part of the Worker baseline and the sandbox tests do not read it. Point it at
 Outline and publish it instead of Outline. These commands set where Outline
@@ -56,7 +56,7 @@ is and start the stack:
 ```sh
 export OUTPRINT_INJECTOR_UPSTREAM=http://outline:3000     # Outline, as the injector reaches it
 docker compose -f deploy/compose/compose.yaml up --build
-# http://localhost:8090/  is Outline with the button; /pdf/* is the Gateway
+# http://localhost:8090/  is Outline with the PDF action; /pdf/* is the Gateway
 ```
 
 In production publish the injector only, not the Gateway's own port; the

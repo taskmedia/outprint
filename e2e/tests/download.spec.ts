@@ -1,11 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 import { pdfText, squash } from '../support/pdf';
+import { clickSubmenuItem, openExportSubmenu } from '../support/placement';
 import { loadSeed } from '../support/seed';
 
 const seed = loadSeed();
-const BUTTON = '#olp-pdf-button';
-const BUTTON_NAME = 'Download this document as PDF';
+const FLOATING_BUTTON = '#olp-pdf-button';
+const HEADER_BUTTON = '.olp-header-button';
+const MENU_ITEM_NAME = 'Formatted PDF';
 
 // Signs in through the dev Dex, the way a person does.
 async function signIn(page: Page): Promise<void> {
@@ -31,11 +33,12 @@ test('a bound document downloads as a PDF with its text', async ({ page, context
   const status = statusResponse(page);
   await page.goto(seed.bound.documentPath);
   expect((await status).status()).toBe(200);
-  const button = page.locator(BUTTON);
-  await expect(button).toBeVisible();
-  await expect(page.getByRole('button', { name: BUTTON_NAME })).toBeVisible();
+  // The default placement is Export > Formatted PDF in the document menu.
+  await openExportSubmenu(page);
+  const item = page.getByRole('menuitem', { name: MENU_ITEM_NAME });
+  await expect(item).toBeVisible();
 
-  const [download] = await Promise.all([page.waitForEvent('download'), button.click()]);
+  const [download] = await Promise.all([page.waitForEvent('download'), clickSubmenuItem(page, item)]);
   expect(download.suggestedFilename()).toMatch(/\.pdf$/);
   const file = testInfo.outputPath('download.pdf');
   await download.saveAs(file);
@@ -78,5 +81,8 @@ test('a document in a collection without a binding has no button', async ({ page
   await expect(page).toHaveTitle(new RegExp(seed.unbound.documentTitle));
   const answer = await status;
   expect(await answer.json()).toMatchObject({ available: false });
-  await expect(page.locator(BUTTON)).toHaveCount(0);
+  await expect(page.locator(FLOATING_BUTTON)).toHaveCount(0);
+  await expect(page.locator(HEADER_BUTTON)).toHaveCount(0);
+  await openExportSubmenu(page);
+  await expect(page.getByRole('menuitem', { name: MENU_ITEM_NAME })).toHaveCount(0);
 });

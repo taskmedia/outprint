@@ -6,7 +6,7 @@
   <br><br>
 </p>
 
-Turn [Outline](https://www.getoutline.com/) documents into typeset PDFs (letters, reports, custom LaTeX templates) with a Download PDF button. Self-hosted, no Outline fork.
+Turn [Outline](https://www.getoutline.com/) documents into typeset PDFs (letters, reports, custom LaTeX templates) with a Formatted PDF action in the Export menu. Self-hosted, no Outline fork.
 
 Pick a Template, bind it to an Outline Collection, write a few fields at the
 top of a Document and download a typeset PDF: letters, reports or your own
@@ -26,7 +26,7 @@ Collection; a Document author fills structured fields in a leading
   bundle into a PDF with Pandoc and LuaLaTeX. It also offers `render` and
   `validate` CLI subcommands that run the same pipeline without Outline.
 - **injector**: a small reverse proxy in front of Outline that adds a
-  "Download PDF" button without forking Outline.
+  "Formatted PDF" action to Outline's Export menu without forking Outline.
 
 See the [vocabulary](CONTEXT.md) and the
 [architecture decision records](docs/adr/README.md).
@@ -105,7 +105,7 @@ the TeX deny-list, the drift guard and `validate`) and
 [Choose a Template and Configuration](docs/configure/choose-a-template.md) for the
 `binding:` block of a Collection admin; the [Worker pipeline](docs/internals/worker.md);
 [Architecture](docs/internals/architecture.md); [Docker Compose](docs/deploy/docker-compose.md)
-with the Worker security baseline; the [Injector and download button](docs/deploy/injector.md);
+with the Worker security baseline; the [Injector and PDF action](docs/deploy/injector.md);
 [Security](docs/internals/security.md) and [Testing](docs/testing.md) for the test tiers
 and the CI schedule; [Limits and admission control](docs/deploy/limits-and-admission.md);
 and, for the maintainer, the [Sanitisation gate](docs/sanitize.md) and the

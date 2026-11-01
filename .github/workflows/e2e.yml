@@ -84,3 +84,72 @@ jobs:
             compose-logs.txt
           if-no-files-found: warn
           retention-days: 14
+
+  # The same tests against the oldest Outline the placement is supported on
+  # (OUTLINE_OLDEST_IMAGE in deploy/dev/versions.env). Skipped while it equals
+  # the pinned version, which the job above already covers.
+  e2e-oldest:
+    name: browser e2e, oldest supported Outline
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: oldest supported Outline
+        id: oldest
+        run: |
+          set -euo pipefail
+          set -a; . deploy/dev/versions.env; set +a
+          if [ "${OUTLINE_OLDEST_IMAGE}" = "${OUTLINE_IMAGE}" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "The oldest supported Outline is the pinned one (${OUTLINE_IMAGE}); nothing more to test." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "image=${OUTLINE_OLDEST_IMAGE}" >> "$GITHUB_OUTPUT"
+            echo "Testing ${OUTLINE_OLDEST_IMAGE}" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - if: steps.oldest.outputs.run == 'true'
+        uses: go-task/setup-task@v2
+        with:
+          version: 3.54.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: steps.oldest.outputs.run == 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - if: steps.oldest.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - if: steps.oldest.outputs.run == 'true'
+        name: install poppler
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
+
+      - if: steps.oldest.outputs.run == 'true'
+        name: install the browser
+        run: cd e2e && npm ci && npx playwright install --with-deps chromium
+
+      # The shell variable wins over deploy/dev/versions.env.
+      - if: steps.oldest.outputs.run == 'true'
+        name: seeded stack and tests
+        run: task e2e:run
+        env:
+          CI: "true"
+          OUTLINE_IMAGE: ${{ steps.oldest.outputs.image }}
+
+      - if: failure() && steps.oldest.outputs.run == 'true'
+        name: upload the report and traces
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-oldest-failure
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          if-no-files-found: warn
+          retention-days: 14
