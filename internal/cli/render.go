@@ -1,4 +1,4 @@
-// Package cli implements the renderer command line.
+// Package cli implements the outprint command line.
 package cli
 
 import (
@@ -19,13 +19,13 @@ import (
 	"github.com/taskmedia/outprint/internal/worker"
 )
 
-const usage = `usage: renderer render --template NAME --config NAME [--title TEXT] [--date YYYY-MM-DD]
+const usage = `usage: outprint render --template NAME --config NAME [--title TEXT] [--date YYYY-MM-DD]
                        [--json-errors] [--templates-root DIR] [--configs-root DIR]
                        [--timeout DURATION] [--debug-tex-log]
                        -o OUTPUT.pdf INPUT.md
-       renderer warm-cache --template NAME --config NAME --out DIR
+       outprint warm-cache --template NAME --config NAME --out DIR
                            [--templates-root DIR] [--configs-root DIR]
-       renderer validate [--service-config FILE]
+       outprint validate [--service-config FILE]
                          [--templates-root DIR] [--configs-root DIR]
                          [--template NAME] [--config NAME]
 ` + serveUsage
@@ -37,13 +37,13 @@ const (
 	defaultTemplatesRoot = "./templates"
 	defaultConfigsRoot   = "./configurations"
 
-	envTimeout     = "RENDERER_TIMEOUT"
-	envDebugTeXLog = "RENDERER_DEBUG_TEX_LOG"
-	envWorkDir     = "RENDERER_WORK_DIR"
-	envLogLevel    = "RENDERER_LOG_LEVEL"
-	envCacheDir    = "RENDERER_TEXCACHE_DIR"
+	envTimeout     = "OUTPRINT_TIMEOUT"
+	envDebugTeXLog = "OUTPRINT_DEBUG_TEX_LOG"
+	envWorkDir     = "OUTPRINT_WORK_DIR"
+	envLogLevel    = "OUTPRINT_LOG_LEVEL"
+	envCacheDir    = "OUTPRINT_TEXCACHE_DIR"
 
-	defaultCacheDir = "/opt/renderer/texcache"
+	defaultCacheDir = "/opt/outprint/texcache"
 
 	isoDateLayout = "2006-01-02"
 )
@@ -93,7 +93,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 func runRender(args []string, stdout, stderr io.Writer) int {
 	opts, err := parseRender(args, os.Getenv)
 	if err != nil {
-		fmt.Fprintf(stderr, "renderer: %v\n%s\n", err, usage)
+		fmt.Fprintf(stderr, "outprint: %v\n%s\n", err, usage)
 		return 2
 	}
 	if err := render(context.Background(), opts, stderr); err != nil {
@@ -251,7 +251,7 @@ func timeoutFromEnv(getenv func(string) string) time.Duration {
 	return worker.DefaultTimeout
 }
 
-// logLevelFromEnv reads RENDERER_LOG_LEVEL (debug, info, warn, error). The
+// logLevelFromEnv reads OUTPRINT_LOG_LEVEL (debug, info, warn, error). The
 // default, warn, logs only failures.
 func logLevelFromEnv(getenv func(string) string) slog.Level {
 	var level slog.Level

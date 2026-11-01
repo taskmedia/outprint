@@ -62,7 +62,7 @@ func TestHealthcheckFailures(t *testing.T) {
 
 func TestMain_(t *testing.T) {
 	var out, errOut bytes.Buffer
-	if code := Main(nil, envOf(nil), &out, &errOut); code != 2 || !strings.Contains(errOut.String(), "INJECTOR_UPSTREAM") {
+	if code := Main(nil, envOf(nil), &out, &errOut); code != 2 || !strings.Contains(errOut.String(), "OUTPRINT_INJECTOR_UPSTREAM") {
 		t.Errorf("no env: code %d stderr %q", code, errOut.String())
 	}
 	ok := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))

@@ -28,7 +28,7 @@ func TestParseRenderOptions(t *testing.T) {
 		Template: "neutral", Config: "example", Title: "Spring sale", Date: "2026-03-02", JSONErrors: true,
 		TemplatesRoot: "/t", ConfigsRoot: "/c",
 		Output: "out.pdf", Input: "in.md",
-		Timeout: 60 * time.Second, LogLevel: slog.LevelWarn, CacheDir: "/opt/renderer/texcache",
+		Timeout: 60 * time.Second, LogLevel: slog.LevelWarn, CacheDir: "/opt/outprint/texcache",
 	}
 	if opts != want {
 		t.Fatalf("got %+v, want %+v", opts, want)
@@ -47,7 +47,7 @@ func TestRootsDefaultAndEnvPrecedence(t *testing.T) {
 	}
 
 	env := func(k string) string {
-		return map[string]string{"RENDERER_TEMPLATES_ROOT": "/env/t", "RENDERER_CONFIGURATIONS_ROOT": "/env/c"}[k]
+		return map[string]string{"OUTPRINT_TEMPLATES_ROOT": "/env/t", "OUTPRINT_CONFIGURATIONS_ROOT": "/env/c"}[k]
 	}
 	opts, err = parseRender(args, env)
 	if err != nil {
@@ -188,7 +188,7 @@ func TestTimeoutAndDebugSwitchesDefaultOffAndComeFromFlagOrEnv(t *testing.T) {
 	}
 
 	env := func(k string) string {
-		return map[string]string{"RENDERER_TIMEOUT": "90s", "RENDERER_DEBUG_TEX_LOG": "1", "RENDERER_WORK_DIR": "/work"}[k]
+		return map[string]string{"OUTPRINT_TIMEOUT": "90s", "OUTPRINT_DEBUG_TEX_LOG": "1", "OUTPRINT_WORK_DIR": "/work"}[k]
 	}
 	opts, err = parseRender(args, env)
 	if err != nil {
@@ -216,13 +216,13 @@ func TestEnvDebugSwitchNeedsExactlyOne(t *testing.T) {
 	args := []string{"--template", "a", "--config", "b", "-o", "o.pdf", "in.md"}
 	for _, v := range []string{"", "0", "true", "yes"} {
 		opts, err := parseRender(args, func(k string) string {
-			if k == "RENDERER_DEBUG_TEX_LOG" {
+			if k == "OUTPRINT_DEBUG_TEX_LOG" {
 				return v
 			}
 			return ""
 		})
 		if err != nil || opts.DebugTeXLog {
-			t.Errorf("RENDERER_DEBUG_TEX_LOG=%q enabled the debug log", v)
+			t.Errorf("OUTPRINT_DEBUG_TEX_LOG=%q enabled the debug log", v)
 		}
 	}
 }

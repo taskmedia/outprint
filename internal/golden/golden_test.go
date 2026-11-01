@@ -1,8 +1,8 @@
 //go:build golden
 
-// Tier-2 tests: render fixtures with the real renderer binary and compare
+// Tier-2 tests: render fixtures with the real outprint binary and compare
 // PDF facts and extracted text with checked-in goldens. PDF bytes are never
-// compared. These tests are meant to run inside the pinned renderer image
+// compared. These tests are meant to run inside the pinned outprint image
 // (see the golden target in the Dockerfile and `make test-golden`).
 package golden
 
@@ -117,7 +117,7 @@ func TestGoldens(t *testing.T) {
 	root := repoRoot(t)
 	for _, tool := range []string{"pdfinfo", "pdffonts", "pdftotext", "pdftoppm"} {
 		if _, err := exec.LookPath(tool); err != nil {
-			t.Fatalf("%s not found: golden tests must run in the renderer image (make test-golden)", tool)
+			t.Fatalf("%s not found: golden tests must run in the outprint image (make test-golden)", tool)
 		}
 	}
 	for _, tc := range cases {
@@ -152,14 +152,14 @@ func TestGoldens(t *testing.T) {
 	}
 }
 
-// TestValidateShippedPackages runs `renderer validate` against the packages
+// TestValidateShippedPackages runs `outprint validate` against the packages
 // shipped in the image: once as a service would load them (service
 // configuration from the image environment), once as the pair an author
 // would check.
 func TestValidateShippedPackages(t *testing.T) {
-	bin := os.Getenv("RENDERER_BIN")
+	bin := os.Getenv("OUTPRINT_BIN")
 	if bin == "" {
-		bin = "renderer"
+		bin = "outprint"
 	}
 	for name, args := range map[string][]string{
 		"service configuration": {"validate"},
@@ -168,7 +168,7 @@ func TestValidateShippedPackages(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			output, err := exec.Command(bin, args...).CombinedOutput()
 			if err != nil {
-				t.Fatalf("renderer %v failed: %v\n%s", args, err, output)
+				t.Fatalf("outprint %v failed: %v\n%s", args, err, output)
 			}
 			if !strings.Contains(string(output), "validate: ok, 0 warning(s)") {
 				t.Fatalf("expected a clean validation, got:\n%s", output)
@@ -188,12 +188,12 @@ func render(t *testing.T, root string, tc testCase) string {
 	if tc.title != "" {
 		args = slices.Insert(args, 1, "--title", tc.title)
 	}
-	bin := os.Getenv("RENDERER_BIN")
+	bin := os.Getenv("OUTPRINT_BIN")
 	if bin == "" {
-		bin = "renderer"
+		bin = "outprint"
 	}
 	if output, err := exec.Command(bin, args...).CombinedOutput(); err != nil {
-		t.Fatalf("renderer failed: %v\n%s", err, output)
+		t.Fatalf("outprint failed: %v\n%s", err, output)
 	}
 	return out
 }
@@ -404,7 +404,7 @@ func field(t *testing.T, info, key string) string {
 
 func repoRoot(t *testing.T) string {
 	t.Helper()
-	if root := os.Getenv("RENDERER_REPO_ROOT"); root != "" {
+	if root := os.Getenv("OUTPRINT_REPO_ROOT"); root != "" {
 		return root
 	}
 	dir, err := os.Getwd()

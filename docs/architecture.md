@@ -1,6 +1,6 @@
 # Architecture
 
-One image, `renderer`, runs in two roles. The reasons for the split are in
+One image, `outprint`, runs in two roles. The reasons for the split are in
 [ADR 0001](adr/0001-split-renderer-into-gateway-and-worker.md); this page
 describes the roles, the contract between them, the request flow and how
 errors are mapped.
@@ -16,17 +16,17 @@ browser --> injector --> Outline          (adds the button script to HTML pages)
 ```
 
 A third deployable, the **injector**, is a separate slim image
-([injector.md](injector.md)). It is not a role of the renderer image.
+([injector.md](injector.md)). It is not a role of the outprint image.
 
 ## Roles
 
 | Role | Command | Talks to | Holds |
 |------|---------|----------|-------|
-| Gateway | `renderer gateway` | the browser, Outline, the Worker | the user's cookie, for one request |
-| Worker | `renderer worker` | the Gateway only | nothing; at most a shared bearer token |
+| Gateway | `outprint gateway` | the browser, Outline, the Worker | the user's cookie, for one request |
+| Worker | `outprint worker` | the Gateway only | nothing; at most a shared bearer token |
 
 Both load and validate all packages at startup and refuse to start, naming
-every cause, if anything is wrong (the same check as `renderer validate`). The
+every cause, if anything is wrong (the same check as `outprint validate`). The
 Gateway needs the packages to resolve the Metadata Block; the Worker needs
 them to render.
 
@@ -52,13 +52,13 @@ Configuration (environment):
 |----------|---------|---------|
 | `OUTLINE_URL` | base URL of Outline; the only origin the cookie is sent to | required |
 | `OUTLINE_PUBLIC_URL` | Outline's own `URL` setting, when `OUTLINE_URL` is an internal address; a redirect to this origin is fetched from `OUTLINE_URL` ([images.md](images.md#outline-behind-an-internal-address)) | none |
-| `RENDERER_WORKER_URL` | base URL of the Worker | required |
-| `RENDERER_WORKER_TOKEN` | optional shared bearer token | none |
-| `RENDERER_LISTEN` | listen address | `:8080` |
-| `RENDERER_TIMEOUT` | render limit; the Gateway waits 30 s longer for the Worker | `60s` |
-| `RENDERER_SERVICE_CONFIG` | service configuration file | |
-| `RENDERER_ADMISSION_SLOTS`, `_QUEUE_DEPTH`, `_PER_USER`, `_MAX_WAIT` | override the `admission` keys of the service configuration, see [limits.md](limits.md) | `1`, `4`, `1`, `60s` |
-| `RENDERER_LOG_LEVEL` | `debug`, `info`, `warn`, `error` | `info` |
+| `OUTPRINT_WORKER_URL` | base URL of the Worker | required |
+| `OUTPRINT_WORKER_TOKEN` | optional shared bearer token | none |
+| `OUTPRINT_LISTEN` | listen address | `:8080` |
+| `OUTPRINT_TIMEOUT` | render limit; the Gateway waits 30 s longer for the Worker | `60s` |
+| `OUTPRINT_SERVICE_CONFIG` | service configuration file | |
+| `OUTPRINT_ADMISSION_SLOTS`, `_QUEUE_DEPTH`, `_PER_USER`, `_MAX_WAIT` | override the `admission` keys of the service configuration, see [limits.md](limits.md) | `1`, `4`, `1`, `60s` |
+| `OUTPRINT_LOG_LEVEL` | `debug`, `info`, `warn`, `error` | `info` |
 
 ### Worker
 
@@ -68,14 +68,14 @@ The pipeline behind it is described in [worker.md](worker.md).
 
 - One job per instance. While a job runs, a second request gets `503` with
   kind `busy`.
-- A fresh `0700` job directory below `RENDERER_WORK_DIR` per job, removed
+- A fresh `0700` job directory below `OUTPRINT_WORK_DIR` per job, removed
   afterwards. Production mounts the work root as a tmpfs.
 - After a timeout, a kill, a panic or any unexpected failure the Worker sends
   its response, then shuts down and exits non-zero. While it is shutting down it
   answers `busy`. The container runtime restarts it (`restart: always`), so the
   next job starts in a clean process. Ordinary document failures (a TeX error,
   an image problem) do not restart it.
-- If `RENDERER_WORKER_TOKEN` is set, `/render` requires
+- If `OUTPRINT_WORKER_TOKEN` is set, `/render` requires
   `Authorization: Bearer <token>`; the comparison is constant-time and a
   mismatch is `401`.
 - It refuses to start as UID 0 and logs its security posture: uid, gid,

@@ -158,7 +158,7 @@ func networkChecks(p params) []check {
 func writeChecks() []check {
 	var out []check
 	for _, path := range []string{"/probe-write", "/etc/probe-write", "/usr/local/bin/probe-write",
-		"/opt/renderer/templates/probe-write", "/opt/renderer/configurations/probe-write"} {
+		"/opt/outprint/templates/probe-write", "/opt/outprint/configurations/probe-write"} {
 		err := os.WriteFile(path, []byte("x"), 0o600)
 		if err == nil {
 			_ = os.Remove(path)

@@ -11,7 +11,7 @@ func TestWorkerRunArgsCarryEveryShippedFlag(t *testing.T) {
 	args, err := loadShipped(t).WorkerRunArgs(RunOptions{
 		Name:        "w1",
 		NetworkName: func(n string) string { return "t-" + n },
-		Env:         map[string]string{"RENDERER_TIMEOUT": "5s"},
+		Env:         map[string]string{"OUTPRINT_TIMEOUT": "5s"},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -22,8 +22,8 @@ func TestWorkerRunArgsCarryEveryShippedFlag(t *testing.T) {
 		"--user 10001:10001", "--security-opt no-new-privileges:true", "--cap-drop ALL", "--read-only",
 		"--tmpfs /tmp:mode=1777,size=64m,uid=10001,gid=10001",
 		"--tmpfs /work:mode=0700,size=256m,uid=10001,gid=10001",
-		"-v " + templates + ":/opt/renderer/templates:ro",
-		"-e RENDERER_WORK_DIR=/work", "-e RENDERER_WORKER_TOKEN= ", "-e RENDERER_TIMEOUT=5s",
+		"-v " + templates + ":/opt/outprint/templates:ro",
+		"-e OUTPRINT_WORK_DIR=/work", "-e OUTPRINT_WORKER_TOKEN= ", "-e OUTPRINT_TIMEOUT=5s",
 		"--network t-worker-net", "--memory 1g", "--cpus 1", "--pids-limit 128", "--restart always",
 	} {
 		if !strings.Contains(joined+" ", want) {

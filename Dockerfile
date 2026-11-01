@@ -5,13 +5,13 @@ RUN go mod download
 COPY cmd ./cmd
 COPY internal ./internal
 COPY web ./web
-RUN CGO_ENABLED=0 go build -trimpath -o /out/renderer ./cmd/renderer \
- && CGO_ENABLED=0 go build -trimpath -o /out/injector ./cmd/injector \
+RUN CGO_ENABLED=0 go build -trimpath -o /out/outprint ./cmd/outprint \
+ && CGO_ENABLED=0 go build -trimpath -o /out/outprint-injector ./cmd/outprint-injector \
  && CGO_ENABLED=0 go test -c -tags golden -o /out/golden.test ./internal/golden \
  && CGO_ENABLED=0 go test -c -tags golden -o /out/worker.test ./internal/worker \
  && CGO_ENABLED=0 go build -trimpath -o /out/sandbox-probe ./cmd/sandbox-probe
 
-FROM debian:trixie-20261027-slim AS renderer
+FROM debian:trixie-20261027-slim AS outprint
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       pandoc \
@@ -21,26 +21,26 @@ RUN apt-get update \
       texlive-latex-recommended \
       fonts-texgyre \
  && rm -rf /var/lib/apt/lists/*
-COPY --from=build /out/renderer /usr/local/bin/renderer
-COPY templates /opt/renderer/templates
-COPY configurations /opt/renderer/configurations
-COPY config/service.yaml /opt/renderer/service.yaml
-ENV RENDERER_TEMPLATES_ROOT=/opt/renderer/templates \
-    RENDERER_CONFIGURATIONS_ROOT=/opt/renderer/configurations \
-    RENDERER_SERVICE_CONFIG=/opt/renderer/service.yaml
+COPY --from=build /out/outprint /usr/local/bin/outprint
+COPY templates /opt/outprint/templates
+COPY configurations /opt/outprint/configurations
+COPY config/service.yaml /opt/outprint/service.yaml
+ENV OUTPRINT_TEMPLATES_ROOT=/opt/outprint/templates \
+    OUTPRINT_CONFIGURATIONS_ROOT=/opt/outprint/configurations \
+    OUTPRINT_SERVICE_CONFIG=/opt/outprint/service.yaml
 RUN useradd --system --create-home --uid 10001 render \
- && install -d -o render -g render -m 0755 /opt/renderer/texcache
+ && install -d -o render -g render -m 0755 /opt/outprint/texcache
 USER render
 # Build the luaotfload cache once, at image build time. A job copies it into
 # its own writable cache directory, so the fonts are not processed again.
-ENV RENDERER_TEXCACHE_DIR=/opt/renderer/texcache
-RUN renderer warm-cache --template neutral --config example --out /opt/renderer/texcache \
- && chmod -R a+rX /opt/renderer/texcache
-ENTRYPOINT ["/usr/local/bin/renderer"]
+ENV OUTPRINT_TEXCACHE_DIR=/opt/outprint/texcache
+RUN outprint warm-cache --template neutral --config example --out /opt/outprint/texcache \
+ && chmod -R a+rX /opt/outprint/texcache
+ENTRYPOINT ["/usr/local/bin/outprint"]
 
 # Tier-2 golden tests run against the same toolchain as the release image,
 # plus the poppler tools used to inspect the PDFs.
-FROM renderer AS golden
+FROM outprint AS golden
 USER root
 RUN apt-get update \
  && apt-get install -y --no-install-recommends poppler-utils \
@@ -51,7 +51,7 @@ COPY testdata /work/testdata
 COPY go.mod /work/go.mod
 USER render
 WORKDIR /work
-ENV RENDERER_REPO_ROOT=/work \
+ENV OUTPRINT_REPO_ROOT=/work \
     SOURCE_DATE_EPOCH=1700000000 \
     FORCE_SOURCE_DATE=1
 ENTRYPOINT ["/usr/local/bin/run-golden.sh"]
@@ -61,7 +61,7 @@ CMD ["-test.v"]
 # pipeline: the probe stands in for lualatex ahead of the real one on PATH and
 # runs hostile actions on request (cmd/sandbox-probe). It exists in this stage
 # only; the release image must not contain it (checked by the sandbox tests).
-FROM renderer AS sandbox
+FROM outprint AS sandbox
 USER root
 RUN apt-get update \
  && apt-get install -y --no-install-recommends poppler-utils \
@@ -74,10 +74,10 @@ USER render
 # toolchain, no shell and no package manager, only the one static binary.
 # Build it with --target injector (make image-injector).
 FROM gcr.io/distroless/static-debian13:nonroot AS injector
-COPY --from=build /out/injector /injector
+COPY --from=build /out/outprint-injector /outprint-injector
 USER 65532:65532
 EXPOSE 8090
-ENTRYPOINT ["/injector"]
+ENTRYPOINT ["/outprint-injector"]
 
 # The release image is the default target.
-FROM renderer
+FROM outprint

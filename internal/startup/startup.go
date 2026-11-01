@@ -31,7 +31,7 @@ func (e *RefusedError) Error() string {
 }
 
 // Run loads the service configuration at path (or, when path is empty, at
-// the file named by $RENDERER_SERVICE_CONFIG), then loads and validates all
+// the file named by $OUTPRINT_SERVICE_CONFIG), then loads and validates all
 // packages. getenv is os.Getenv in production.
 func Run(path string, getenv func(string) string) (*Result, error) {
 	if path == "" {

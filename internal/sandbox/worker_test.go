@@ -166,7 +166,7 @@ func (w *liveWorker) assertClean() {
 		w.t.Errorf("the job directory is not clean: %v", left)
 	}
 	for _, name := range w.listJSON("procs") {
-		if name != "renderer" && name != "sandbox-probe" {
+		if name != "outprint" && name != "sandbox-probe" {
 			w.t.Errorf("a process is left over: %s", name)
 		}
 	}

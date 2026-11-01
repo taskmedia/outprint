@@ -205,15 +205,15 @@ Templates. `extends` is reserved and not supported in v1. See
 
 ## validate and render
 
-Both commands are subcommands of the `renderer` binary (or the container
-image, whose entrypoint it is). The usage is printed by `renderer --help`.
+Both commands are subcommands of the `outprint` binary (or the container
+image, whose entrypoint it is). The usage is printed by `outprint --help`.
 
 ```text
-renderer validate [--service-config FILE]
+outprint validate [--service-config FILE]
                   [--templates-root DIR] [--configs-root DIR]
                   [--template NAME] [--config NAME]
 
-renderer render --template NAME --config NAME [--title TEXT] [--date YYYY-MM-DD]
+outprint render --template NAME --config NAME [--title TEXT] [--date YYYY-MM-DD]
                 [--json-errors] [--templates-root DIR] [--configs-root DIR]
                 [--timeout DURATION] [--debug-tex-log]
                 -o OUTPUT.pdf INPUT.md
@@ -226,8 +226,8 @@ collected, one per line; errors give exit code 1, warnings alone are success.
 
 ```sh
 make build
-bin/renderer validate --templates-root ./templates --configs-root ./configurations
-bin/renderer validate --templates-root ./templates --configs-root ./configurations \
+bin/outprint validate --templates-root ./templates --configs-root ./configurations
+bin/outprint validate --templates-root ./templates --configs-root ./configurations \
   --template mine --config example
 ```
 
@@ -329,7 +329,7 @@ with `validate` and `render` against the image of this repository.
 4. Check it:
 
    ```sh
-   go run ./cmd/renderer validate --templates-root ./templates \
+   go run ./cmd/outprint validate --templates-root ./templates \
      --configs-root ./configurations --template mine --config example
    ```
 

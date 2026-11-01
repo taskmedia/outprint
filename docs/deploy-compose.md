@@ -1,7 +1,7 @@
 # Deploying with Docker Compose
 
 `deploy/compose/compose.yaml` runs the Gateway and the Worker from the
-`renderer` image. The `worker` service is the shipped Worker baseline of
+`outprint` image. The `worker` service is the shipped Worker baseline of
 [ADR 0001](adr/0001-split-renderer-into-gateway-and-worker.md).
 
 ## Run it
@@ -9,12 +9,12 @@
 ```sh
 export OUTLINE_URL=https://wiki.example.test      # your Outline
 # optional: a token shared by Gateway and Worker
-export RENDERER_WORKER_TOKEN="$(openssl rand -hex 32)"
+export OUTPRINT_WORKER_TOKEN="$(openssl rand -hex 32)"
 
 docker compose -f deploy/compose/compose.yaml up --build
 ```
 
-The Gateway listens on port 8080 (`RENDERER_PORT` changes the published port).
+The Gateway listens on port 8080 (`OUTPRINT_PORT` changes the published port).
 Download a Document as PDF while signed in to Outline:
 
 ```
@@ -41,7 +41,7 @@ part of the Worker baseline and the sandbox tests do not read it. Point it at
 Outline and publish it instead of Outline:
 
 ```sh
-export INJECTOR_UPSTREAM=http://outline:3000     # Outline, as the injector reaches it
+export OUTPRINT_INJECTOR_UPSTREAM=http://outline:3000     # Outline, as the injector reaches it
 docker compose -f deploy/compose/compose.yaml up --build
 # http://localhost:8090/  is Outline with the button; /pdf/* is the Gateway
 ```
@@ -58,11 +58,11 @@ Gateway sends no CORS headers and must stay same-origin.
 | no `seccomp` entry | Docker's default profile (`RuntimeDefault`) applies; never `unconfined` |
 | `cap_drop: [ALL]` | the Worker needs no capability |
 | `read_only: true` | the root file system cannot be written |
-| `tmpfs: /work`, mode `0700`, `uid=10001`, 256 MiB | the job directories (`RENDERER_WORK_DIR`); gone when the container stops |
+| `tmpfs: /work`, mode `0700`, `uid=10001`, 256 MiB | the job directories (`OUTPRINT_WORK_DIR`); gone when the container stops |
 | `tmpfs: /tmp` | scratch space for tools |
 | `networks: [worker-net]`, `internal: true` | no route out: no internet, no Outline, no host |
 | no `ports` | the Worker is reachable from the Gateway only |
-| no secrets | the only environment variable that looks like one is the optional `RENDERER_WORKER_TOKEN` |
+| no secrets | the only environment variable that looks like one is the optional `OUTPRINT_WORKER_TOKEN` |
 | package mounts `read_only: true` | a package cannot be changed from inside |
 | `mem_limit: 1g`, `cpus: 1`, `pids_limit: 128` | a resource bomb ends at the container |
 | `restart: always` | the Worker exits after a timeout or kill; this gives the next job a clean process |

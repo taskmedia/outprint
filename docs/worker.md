@@ -1,8 +1,8 @@
 # Worker pipeline
 
 The Worker turns one job into one PDF. The same pipeline runs behind the
-`renderer render` command and behind the Worker's HTTP endpoint
-(`renderer worker`, see [architecture.md](architecture.md)). This page
+`outprint render` command and behind the Worker's HTTP endpoint
+(`outprint worker`, see [architecture.md](architecture.md)). This page
 describes what it does, how it is locked down, what it logs and where it is
 limited. The reasons for the two-role split are in
 [ADR 0001](adr/0001-split-renderer-into-gateway-and-worker.md).
@@ -83,7 +83,7 @@ The Template decides how headings look. The `neutral` report uses KOMA-Script
 sections; its letter has no sectioning commands, so it defines a heading as a
 bold line.
 
-A filter failure is raised as `renderer-filter:<kind>: <fixed text>`. The
+A filter failure is raised as `outprint-filter:<kind>: <fixed text>`. The
 Worker reads only the kind; the text never contains Document content.
 
 ## SVG phase
@@ -191,9 +191,9 @@ token or cookie can reach a child process through the environment.
 
 ### Font cache
 
-luaotfload caches processed font data. `renderer warm-cache` renders a small
+luaotfload caches processed font data. `outprint warm-cache` renders a small
 document of every Document Type once when the image is built and keeps the
-cache in `/opt/renderer/texcache` (`RENDERER_TEXCACHE_DIR`). A job copies it
+cache in `/opt/outprint/texcache` (`OUTPRINT_TEXCACHE_DIR`). A job copies it
 into its own `texmf-var`, which is writable; the shared copy is never written.
 If the directory does not exist, the job builds its cache itself and is
 slower.
@@ -204,7 +204,7 @@ LuaLaTeX runs once, and a second time only if the log asks for it
 ("Rerun to get", "Label(s) may have changed"). It never runs a third time.
 
 The whole job has a wall-clock limit, 60 seconds by default
-(`--timeout`, `RENDERER_TIMEOUT`). Every tool runs in its own process group;
+(`--timeout`, `OUTPRINT_TIMEOUT`). Every tool runs in its own process group;
 when the limit ends, or after any tool exits, the group is killed with
 `SIGKILL`, so no `pandoc`, `rsvg-convert` or `lualatex` child outlives the
 job.
@@ -212,7 +212,7 @@ job.
 ## Job directory
 
 Each job gets a new directory `job-<id>` below the work root
-(`RENDERER_WORK_DIR`, default the system temporary directory), mode `0700`,
+(`OUTPRINT_WORK_DIR`, default the system temporary directory), mode `0700`,
 removed when the job ends, whatever the outcome. The id is 16 random hex
 digits. Production mounts the work root as a tmpfs.
 
@@ -243,13 +243,13 @@ Document.
 | `filter` | `raw_tex`, `raw_format`, `math`, `image_path` | A filter rejected the document. `raw_tex`, `raw_format` and `math` are internal errors. |
 | `tex` | `tex_error`, `no_output` | LuaLaTeX failed or produced no PDF. |
 | `timeout` | `timeout` | The wall-clock limit ended the job. |
-| `output` | `pages_exceeded`, `pdf_too_large` | The PDF has more than `RENDERER_MAX_PAGES` pages, or is larger than `RENDERER_MAX_PDF_BYTES`. The Worker answers 413 and keeps running. |
+| `output` | `pages_exceeded`, `pdf_too_large` | The PDF has more than `OUTPRINT_MAX_PAGES` pages, or is larger than `OUTPRINT_MAX_PDF_BYTES`. The Worker answers 413 and keeps running. |
 | any | `resource` | A tool was killed by the system (out of memory), or the job directory (tmpfs) is full. The Worker answers with the error and then exits, so the container runtime starts a fresh process. |
 
 The CLI prints the phase, kind and job id, and a hint:
 
 ```
-renderer: render failed in phase tex (tex_error), job 3f1c9a0b5d7e2468: lualatex exited with code 1
+outprint: render failed in phase tex (tex_error), job 3f1c9a0b5d7e2468: lualatex exited with code 1
   LaTeX could not typeset the document; --debug-tex-log prints the full log (it may contain document content)
 ```
 
@@ -258,7 +258,7 @@ renderer: render failed in phase tex (tex_error), job 3f1c9a0b5d7e2468: lualatex
 The Worker logs with `log/slog` to stderr. Failures are logged at `WARN` with
 only these attributes: `job`, `phase`, `duration_ms`, `exit_code`, and, for
 TeX failures, `tex_error`, the first line of the log that starts with `!`.
-Successful phases are logged at `DEBUG` (`RENDERER_LOG_LEVEL=debug`). Neither
+Successful phases are logged at `DEBUG` (`OUTPRINT_LOG_LEVEL=debug`). Neither
 Document content nor metadata values are logged.
 
 The first TeX error line can still name a control sequence or file the
@@ -267,7 +267,7 @@ Document used, as in `! Undefined control sequence.` or ``! LaTeX Error: File
 
 ### Debug switch
 
-`--debug-tex-log`, or `RENDERER_DEBUG_TEX_LOG=1`, prints the full TeX log of
+`--debug-tex-log`, or `OUTPRINT_DEBUG_TEX_LOG=1`, prints the full TeX log of
 every run to stderr, between lines that say it may contain Document content.
 It is off by default and meant for a developer's workstation. Do not set it in
 a deployment.
@@ -276,13 +276,13 @@ a deployment.
 
 | Setting | Flag | Environment | Default |
 |---------|------|-------------|---------|
-| Time limit | `--timeout` | `RENDERER_TIMEOUT` | `60s` |
-| Page limit | | `RENDERER_MAX_PAGES` | `500` |
-| PDF size limit | | `RENDERER_MAX_PDF_BYTES` | `52428800` (50 MiB; can be lowered, not raised) |
-| Full TeX log | `--debug-tex-log` | `RENDERER_DEBUG_TEX_LOG=1` | off |
-| Work root | | `RENDERER_WORK_DIR` | system temporary directory |
-| Font cache | | `RENDERER_TEXCACHE_DIR` | `/opt/renderer/texcache` |
-| Log level | | `RENDERER_LOG_LEVEL` | `warn` |
+| Time limit | `--timeout` | `OUTPRINT_TIMEOUT` | `60s` |
+| Page limit | | `OUTPRINT_MAX_PAGES` | `500` |
+| PDF size limit | | `OUTPRINT_MAX_PDF_BYTES` | `52428800` (50 MiB; can be lowered, not raised) |
+| Full TeX log | `--debug-tex-log` | `OUTPRINT_DEBUG_TEX_LOG=1` | off |
+| Work root | | `OUTPRINT_WORK_DIR` | system temporary directory |
+| Font cache | | `OUTPRINT_TEXCACHE_DIR` | `/opt/outprint/texcache` |
+| Log level | | `OUTPRINT_LOG_LEVEL` | `warn` |
 
 ## Limitations
 

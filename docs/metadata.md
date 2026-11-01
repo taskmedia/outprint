@@ -138,7 +138,7 @@ overrides is not reported.
 ## Rendering from the command line
 
 ```sh
-renderer render --template neutral --config example \
+outprint render --template neutral --config example \
   --title "Spring plant sale" --date 2026-03-02 -o out.pdf letter.md
 ```
 
@@ -147,7 +147,7 @@ renderer render --template neutral --config example \
 - Problems are printed one per line on stderr and the exit code is 1:
 
   ```
-  renderer: letter.md has 2 problem(s):
+  outprint: letter.md has 2 problem(s):
     document line 4: recipent: unknown key "recipent": ... (unknown)
     document line 5: side: "middle" is not one of left, right (enum)
   ```

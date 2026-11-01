@@ -40,7 +40,7 @@ func TestFromEnvRefusesBadValues(t *testing.T) {
 	}
 	for name, vars := range cases {
 		_, err := FromEnv(env(vars))
-		if err == nil || !strings.Contains(err.Error(), "RENDERER_MAX_") {
+		if err == nil || !strings.Contains(err.Error(), "OUTPRINT_MAX_") {
 			t.Errorf("%s: err = %v, want one naming the variable", name, err)
 		}
 	}

@@ -51,10 +51,10 @@ Work in progress. Tracked in the project issues. Known gaps are listed there.
 ## Development
 
 ```sh
-make build           # build bin/renderer
+make build           # build bin/outprint
 make test            # tier 1: Go unit tests, and the button script tests when Node is installed
 make image-injector  # build the slim injector image
-make image           # build the renderer image
+make image           # build the outprint image
 make test-golden     # tier 2: PDF goldens, Worker and security tests, in the pinned image
 make test-security   # security layers 1-3: hostile payloads, sandbox, resource bombs
 make test-sandbox    # security layers 2 and 3 only (needs a Docker daemon)
@@ -85,7 +85,7 @@ Check Templates and Configurations before deploying them:
 
 ```sh
 docker run --rm outprint validate                  # the packages shipped in the image
-renderer validate --templates-root ./templates --configs-root ./configurations
+outprint validate --templates-root ./templates --configs-root ./configurations
 ```
 
 See [docs/metadata.md](docs/metadata.md) for the Metadata Block authors write
@@ -116,7 +116,7 @@ maintainer's checklist.
 
 ## License
 
-[MIT](LICENSE). The renderer image also contains Pandoc, TeX Live, librsvg and
+[MIT](LICENSE). The outprint image also contains Pandoc, TeX Live, librsvg and
 fonts under their own licences; see [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES),
 which includes the written source offer. Operators remain bound by Outline's
 own licence for their Outline instance.

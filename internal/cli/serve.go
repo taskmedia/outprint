@@ -19,10 +19,10 @@ import (
 )
 
 const (
-	envListen      = "RENDERER_LISTEN"
+	envListen      = "OUTPRINT_LISTEN"
 	envOutlineURL  = "OUTLINE_URL"
 	envOutlinePub  = "OUTLINE_PUBLIC_URL"
-	envWorkerURL   = "RENDERER_WORKER_URL"
+	envWorkerURL   = "OUTPRINT_WORKER_URL"
 	envWorkerToken = workerserver.TokenEnv
 
 	defaultGatewayListen = ":8080"
@@ -31,14 +31,14 @@ const (
 	healthcheckTimeout = 3 * time.Second
 )
 
-const serveUsage = `       renderer gateway [--listen ADDR] [--service-config FILE]
-                        (env: OUTLINE_URL, OUTLINE_PUBLIC_URL, RENDERER_WORKER_URL, RENDERER_WORKER_TOKEN,
-                         RENDERER_ADMISSION_SLOTS, RENDERER_ADMISSION_QUEUE_DEPTH,
-                         RENDERER_ADMISSION_PER_USER, RENDERER_ADMISSION_MAX_WAIT)
-       renderer worker  [--listen ADDR] [--service-config FILE]
-                        (env: RENDERER_WORK_DIR, RENDERER_WORKER_TOKEN, RENDERER_TIMEOUT,
-                         RENDERER_MAX_PAGES, RENDERER_MAX_PDF_BYTES)
-       renderer healthcheck URL`
+const serveUsage = `       outprint gateway [--listen ADDR] [--service-config FILE]
+                        (env: OUTLINE_URL, OUTLINE_PUBLIC_URL, OUTPRINT_WORKER_URL, OUTPRINT_WORKER_TOKEN,
+                         OUTPRINT_ADMISSION_SLOTS, OUTPRINT_ADMISSION_QUEUE_DEPTH,
+                         OUTPRINT_ADMISSION_PER_USER, OUTPRINT_ADMISSION_MAX_WAIT)
+       outprint worker  [--listen ADDR] [--service-config FILE]
+                        (env: OUTPRINT_WORK_DIR, OUTPRINT_WORKER_TOKEN, OUTPRINT_TIMEOUT,
+                         OUTPRINT_MAX_PAGES, OUTPRINT_MAX_PDF_BYTES)
+       outprint healthcheck URL`
 
 type serveOptions struct {
 	Listen        string
@@ -50,7 +50,7 @@ func parseServe(name, defaultListen string, args []string, getenv func(string) s
 	fs := flag.NewFlagSet(name, flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	fs.StringVar(&o.Listen, "listen", firstNonEmpty(getenv(envListen), defaultListen), "address to listen on")
-	fs.StringVar(&o.ServiceConfig, "service-config", "", "service configuration file (default $RENDERER_SERVICE_CONFIG)")
+	fs.StringVar(&o.ServiceConfig, "service-config", "", "service configuration file (default $OUTPRINT_SERVICE_CONFIG)")
 	if err := fs.Parse(args); err != nil {
 		return serveOptions{}, err
 	}
@@ -90,17 +90,17 @@ func loadStartup(o serveOptions, getenv func(string) string, log *slog.Logger) (
 func runGateway(args []string, getenv func(string) string, stderr io.Writer) int {
 	o, err := parseServe("gateway", defaultGatewayListen, args, getenv)
 	if err != nil {
-		fmt.Fprintf(stderr, "renderer: %v\n%s\n", err, usage)
+		fmt.Fprintf(stderr, "outprint: %v\n%s\n", err, usage)
 		return 2
 	}
 	log := serviceLogger(stderr, getenv)
 	if getenv(envOutlineURL) == "" || getenv(envWorkerURL) == "" {
-		fmt.Fprintf(stderr, "renderer: gateway needs %s and %s\n", envOutlineURL, envWorkerURL)
+		fmt.Fprintf(stderr, "outprint: gateway needs %s and %s\n", envOutlineURL, envWorkerURL)
 		return 2
 	}
 	started, err := loadStartup(o, getenv, log)
 	if err != nil {
-		fmt.Fprintf(stderr, "renderer: %v\n", err)
+		fmt.Fprintf(stderr, "outprint: %v\n", err)
 		return 1
 	}
 	ctx, stop := signalContext()
@@ -111,7 +111,7 @@ func runGateway(args []string, getenv func(string) string, stderr io.Writer) int
 		RenderLimit: timeoutFromEnv(getenv), Admission: started.Service.Admission, Logger: log,
 	})
 	if err != nil {
-		fmt.Fprintf(stderr, "renderer: gateway: %v\n", err)
+		fmt.Fprintf(stderr, "outprint: gateway: %v\n", err)
 		return 1
 	}
 	return 0
@@ -122,18 +122,18 @@ func runGateway(args []string, getenv func(string) string, stderr io.Writer) int
 func runWorker(args []string, getenv func(string) string, stderr io.Writer) int {
 	o, err := parseServe("worker", defaultWorkerListen, args, getenv)
 	if err != nil {
-		fmt.Fprintf(stderr, "renderer: %v\n%s\n", err, usage)
+		fmt.Fprintf(stderr, "outprint: %v\n%s\n", err, usage)
 		return 2
 	}
 	log := serviceLogger(stderr, getenv)
 	jobLimits, err := limits.FromEnv(getenv)
 	if err != nil {
-		fmt.Fprintf(stderr, "renderer: %v\n", err)
+		fmt.Fprintf(stderr, "outprint: %v\n", err)
 		return 2
 	}
 	started, err := loadStartup(o, getenv, log)
 	if err != nil {
-		fmt.Fprintf(stderr, "renderer: %v\n", err)
+		fmt.Fprintf(stderr, "outprint: %v\n", err)
 		return 1
 	}
 	ctx, stop := signalContext()
@@ -154,18 +154,18 @@ func runWorker(args []string, getenv func(string) string, stderr io.Writer) int 
 // curl. It succeeds on a 200 from the URL.
 func runHealthcheck(args []string, stderr io.Writer) int {
 	if len(args) != 1 {
-		fmt.Fprintf(stderr, "usage: renderer healthcheck URL\n")
+		fmt.Fprintf(stderr, "usage: outprint healthcheck URL\n")
 		return 2
 	}
 	client := &http.Client{Timeout: healthcheckTimeout}
 	resp, err := client.Get(args[0])
 	if err != nil {
-		fmt.Fprintf(stderr, "renderer: healthcheck: %v\n", err)
+		fmt.Fprintf(stderr, "outprint: healthcheck: %v\n", err)
 		return 1
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		fmt.Fprintf(stderr, "renderer: healthcheck: status %d\n", resp.StatusCode)
+		fmt.Fprintf(stderr, "outprint: healthcheck: status %d\n", resp.StatusCode)
 		return 1
 	}
 	return 0

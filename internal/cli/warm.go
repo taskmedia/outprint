@@ -25,11 +25,11 @@ const warmDocument = "Warm **bold** *italic* ***both*** `code`\n"
 func runWarmCache(args []string, getenv func(string) string, stderr io.Writer) int {
 	o, err := parseWarm(args, getenv)
 	if err != nil {
-		fmt.Fprintf(stderr, "renderer: %v\n%s\n", err, usage)
+		fmt.Fprintf(stderr, "outprint: %v\n%s\n", err, usage)
 		return 2
 	}
 	if err := warmCache(context.Background(), o, stderr); err != nil {
-		fmt.Fprintf(stderr, "renderer: warm-cache: %v\n", err)
+		fmt.Fprintf(stderr, "outprint: warm-cache: %v\n", err)
 		return 1
 	}
 	return 0

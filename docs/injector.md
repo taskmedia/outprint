@@ -59,7 +59,7 @@ A corrupt gzip body is answered with `502`.
 
 The script is served from the page's own origin (`/pdf/button.js`), so a policy
 that allows `'self'` for scripts needs no change. If Outline's policy lists
-`script-src` without `'self'`, set `INJECTOR_CSP_ALLOW_SELF=true`: the injector
+`script-src` without `'self'`, set `OUTPRINT_INJECTOR_CSP_ALLOW_SELF=true`: the injector
 then adds `'self'` to `script-src` and `script-src-elem` (or creates `script-src`
 from `default-src`) in the `Content-Security-Policy` header of the pages it
 injects. `Content-Security-Policy-Report-Only` is left alone. Two limits:
@@ -76,23 +76,23 @@ does not appear and the console reports a blocked script, this is the cause.
 
 | Variable | Meaning | Default |
 |----------|---------|---------|
-| `INJECTOR_UPSTREAM` | base URL of Outline (the only place requests go, besides the Gateway); required | |
-| `INJECTOR_LISTEN` | listen address | `:8090` |
-| `INJECTOR_GATEWAY_URL` | base URL of the Gateway; empty disables the prefix route | none |
-| `INJECTOR_GATEWAY_PREFIX` | path prefix routed to the Gateway | `/pdf` |
-| `INJECTOR_SCRIPT_URL` | `src` of the injected script | `<prefix>/button.js` |
-| `INJECTOR_CSP_ALLOW_SELF` | add `'self'` to Outline's script policy | `false` |
-| `INJECTOR_LOG_LEVEL` | `debug`, `info`, `warn`, `error` | `info` |
+| `OUTPRINT_INJECTOR_UPSTREAM` | base URL of Outline (the only place requests go, besides the Gateway); required | |
+| `OUTPRINT_INJECTOR_LISTEN` | listen address | `:8090` |
+| `OUTPRINT_INJECTOR_GATEWAY_URL` | base URL of the Gateway; empty disables the prefix route | none |
+| `OUTPRINT_INJECTOR_GATEWAY_PREFIX` | path prefix routed to the Gateway | `/pdf` |
+| `OUTPRINT_INJECTOR_SCRIPT_URL` | `src` of the injected script | `<prefix>/button.js` |
+| `OUTPRINT_INJECTOR_CSP_ALLOW_SELF` | add `'self'` to Outline's script policy | `false` |
+| `OUTPRINT_INJECTOR_LOG_LEVEL` | `debug`, `info`, `warn`, `error` | `info` |
 
 `GET /_injector/healthz` answers 200 without calling Outline. The image has no
-shell, so the container health check runs `/injector healthcheck <url>`.
+shell, so the container health check runs `/outprint-injector healthcheck <url>`.
 
-If an edge proxy already routes `/pdf` to the Gateway, leave `INJECTOR_GATEWAY_URL`
-empty and set `INJECTOR_SCRIPT_URL` if the Gateway is reachable under another path.
+If an edge proxy already routes `/pdf` to the Gateway, leave `OUTPRINT_INJECTOR_GATEWAY_URL`
+empty and set `OUTPRINT_INJECTOR_SCRIPT_URL` if the Gateway is reachable under another path.
 
 ## The button
 
-`web/button.js` is embedded in the renderer image and served by the Gateway at
+`web/button.js` is embedded in the outprint image and served by the Gateway at
 `GET /button.js` (`text/javascript`, `nosniff`, `Cache-Control: public, max-age=300`).
 Plain ES2019, no dependencies.
 
@@ -125,7 +125,7 @@ prints a note when it is not; CI always runs it.
 
 ## Security notes
 
-- **Fixed upstream.** The injector forwards to `INJECTOR_UPSTREAM` and the
+- **Fixed upstream.** The injector forwards to `OUTPRINT_INJECTOR_UPSTREAM` and the
   Gateway only. A request line or `Host` header naming another host does not
   change where it goes.
 - **Hop-by-hop headers** (`Connection` and the headers it names, `Keep-Alive`,
@@ -170,13 +170,13 @@ http:
 ```
 
 ```sh
-INJECTOR_UPSTREAM=http://outline.internal.example.invalid:3000
-INJECTOR_GATEWAY_URL=http://gateway.internal.example.invalid:8080
+OUTPRINT_INJECTOR_UPSTREAM=http://outline.internal.example.invalid:3000
+OUTPRINT_INJECTOR_GATEWAY_URL=http://gateway.internal.example.invalid:8080
 ```
 
 Outline keeps its public URL (`URL=https://wiki.example.invalid`) and its
 `Host`-based origin checks, because the injector forwards the public `Host`.
 
 With Docker Compose, `deploy/compose/compose.yaml` has an `injector` service next
-to `gateway` and `worker`. It publishes port 8090 (`INJECTOR_PORT`) and needs
-`INJECTOR_UPSTREAM`; see [deploy-compose.md](deploy-compose.md).
+to `gateway` and `worker`. It publishes port 8090 (`OUTPRINT_INJECTOR_PORT`) and needs
+`OUTPRINT_INJECTOR_UPSTREAM`; see [deploy-compose.md](deploy-compose.md).

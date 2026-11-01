@@ -27,10 +27,10 @@ func TestFilterKindReadsOnlyTheKind(t *testing.T) {
 		want   Kind
 		ok     bool
 	}{
-		{"Error running filter x.lua:\nrenderer-filter:raw_tex: raw TeX node reached the filter stage\nstack", KindRawTeX, true},
-		{"renderer-filter:math: math node found", KindMath, true},
-		{"renderer-filter:image_path: image does not refer", KindImagePath, true},
-		{"renderer-filter:surprise: ?", KindInternal, true},
+		{"Error running filter x.lua:\noutprint-filter:raw_tex: raw TeX node reached the filter stage\nstack", KindRawTeX, true},
+		{"outprint-filter:math: math node found", KindMath, true},
+		{"outprint-filter:image_path: image does not refer", KindImagePath, true},
+		{"outprint-filter:surprise: ?", KindInternal, true},
 		{"pandoc: something else failed", "", false},
 	}
 	for _, c := range cases {

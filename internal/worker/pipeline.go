@@ -29,7 +29,7 @@ const (
 	logoJobFile     = "logo.pdf"
 	pandocReader    = "markdown-raw_tex-raw_attribute-tex_math_dollars-yaml_metadata_block"
 	texJobName      = "doc"
-	filterMarker    = "renderer-filter:"
+	filterMarker    = "outprint-filter:"
 )
 
 // Job is everything the pipeline needs to produce one PDF. Markdown is the

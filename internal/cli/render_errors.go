@@ -22,25 +22,25 @@ func reportRenderError(err error, opts renderOptions, stdout, stderr io.Writer) 
 	case errors.As(err, &failure):
 		reportWorkerError(failure, opts, stderr)
 	default:
-		fmt.Fprintf(stderr, "renderer: %v\n", err)
+		fmt.Fprintf(stderr, "outprint: %v\n", err)
 	}
 }
 
 func reportMetadataErrors(list *metadata.ErrorList, opts renderOptions, stdout, stderr io.Writer) {
 	if opts.JSONErrors {
 		if err := json.NewEncoder(stdout).Encode(list); err != nil {
-			fmt.Fprintf(stderr, "renderer: encode errors: %v\n", err)
+			fmt.Fprintf(stderr, "outprint: encode errors: %v\n", err)
 		}
 		return
 	}
-	fmt.Fprintf(stderr, "renderer: %s has %d problem(s):\n", opts.Input, len(list.Errors))
+	fmt.Fprintf(stderr, "outprint: %s has %d problem(s):\n", opts.Input, len(list.Errors))
 	for _, e := range list.Errors {
 		fmt.Fprintf(stderr, "  %s\n", e)
 	}
 }
 
 func reportWorkerError(e *worker.Error, opts renderOptions, stderr io.Writer) {
-	fmt.Fprintf(stderr, "renderer: %s\n", e)
+	fmt.Fprintf(stderr, "outprint: %s\n", e)
 	if hint := workerHint(e, opts); hint != "" {
 		fmt.Fprintf(stderr, "  %s\n", hint)
 	}
