@@ -2,6 +2,7 @@ SHELL := /bin/bash
 .SHELLFLAGS := -o pipefail -ec
 
 IMAGE         ?= outline-latex-pdf-renderer
+INJECTOR_IMAGE ?= outline-latex-pdf-injector
 GOLDEN_IMAGE  ?= $(IMAGE)-golden
 SANDBOX_IMAGE ?= $(IMAGE)-sandbox
 # Where the security targets keep their test output for the skip guard.
@@ -12,18 +13,32 @@ SANDBOX_PARALLEL ?= 4
 # Fixed so that PDFs are reproducible across runs.
 SOURCE_DATE_EPOCH ?= 1700000000
 
-.PHONY: build test image test-golden test-security test-security-layer1 test-sandbox test-guard update-goldens sanitize test-sanitize
+.PHONY: build test test-web image image-injector test-golden test-security test-security-layer1 test-sandbox test-guard update-goldens sanitize test-sanitize
 
 build:
 	go build -o bin/renderer ./cmd/renderer
+	go build -o bin/injector ./cmd/injector
 
-# Tier 1: unit tests, no external tools.
-test:
+# Tier 1: unit tests, no external tools besides Go. The button script tests
+# need Node and are skipped, with a note, where it is not installed; CI
+# always has it.
+test: test-web
 	go vet ./...
 	go test ./...
 
+test-web:
+	@if command -v node >/dev/null 2>&1; then \
+		node --test web/*.test.js; \
+	else \
+		echo "note: node is not installed; skipping the button script tests"; \
+	fi
+
 image:
 	docker build -t $(IMAGE) .
+
+# The slim injector image: no TeX toolchain.
+image-injector:
+	docker build --target injector -t $(INJECTOR_IMAGE) .
 
 # Tier 2: goldens, run inside the pinned renderer image.
 test-golden:
