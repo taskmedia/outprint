@@ -1,4 +1,10 @@
-# Outprint for Outline
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo/svg/outprint-banner-dark.svg">
+    <img alt="Outprint: PDFs from Outline documents" src="docs/assets/logo/svg/outprint-banner.svg" width="440">
+  </picture>
+  <br><br>
+</p>
 
 Turn [Outline](https://www.getoutline.com/) documents into typeset PDFs (letters, reports, custom LaTeX templates) with a Download PDF button. Self-hosted, no Outline fork.
 

@@ -11,6 +11,7 @@ green element, so the mark also works in a single colour.
 | | `outprint-symbol-dark.svg` | Symbol, full colour, for dark backgrounds |
 | | `outprint-symbol-black.svg`, `-white.svg` | One-colour symbol (print, embossing, overlays) |
 | | `outprint-lockup.svg`, `-dark`, `-black`, `-white` | Symbol + wordmark "Outprint", same four variants |
+| | `outprint-banner.svg`, `-dark` | Lockup + tagline, transparent, tight margins (README header) |
 | `png/` | `outprint-symbol*-512.png` | Transparent symbol, 512 × 512 |
 | | `outprint-lockup*-1200w.png` | Transparent lockup, 1200 px wide |
 | | `outprint-avatar-512.png`, `-dark-512.png` | Opaque square for the container registry / GitHub org avatar |
