@@ -88,6 +88,26 @@ lists and the script fails when the cap is reached. Discussions, wikis and
 Actions logs are not scanned. See [Publishing checklist](publishing.md) for the whole
 checklist.
 
+### The audit in CI
+
+`.github/workflows/audit.yml` runs the same audit as a check named `audit`:
+
+- on the **release pull request** (branch `release-please--branches--main`):
+  the full audit. Add `audit` to the required checks of `main` and the release
+  cannot be merged while a finding is open.
+- on **every other pull request**: the job reports success at once, so a
+  required `audit` check never blocks unrelated work.
+- **weekly** (Monday) and on demand (`workflow_dispatch`): the full audit, to
+  catch text added to issues, comments or pull requests after the last release.
+
+It needs the Actions secret `SANITIZE_DENYLIST` (the contents of the private
+denylist) and **fails without it**, so an audit that cannot see the private list
+never looks clean. It reads with the workflow's own read-only token
+(`contents`, `issues`, `pull-requests`) and changes nothing. Pull requests from
+forks get the skip path (no secrets). The audit looks at the text as it is at
+the time of the run: a comment added after the check but before the merge is
+caught by the next weekly run, not by the merge.
+
 ## Optional pre-commit hook
 
 Not enforced. To enable it locally:
