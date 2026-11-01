@@ -1,0 +1,249 @@
+/* Landing page. Uses the --op-* tokens from custom.css, so light and dark
+   follow the site theme. The folded corner on the document card repeats the
+   mark in the logo. */
+
+.hero {
+  border-bottom: 1px solid var(--op-border);
+  padding: clamp(2.5rem, 6vw, 5.5rem) 1rem;
+}
+
+.heroInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: center;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.banner {
+  margin: 0 0 1.5rem;
+  line-height: 0;
+}
+.banner img {
+  display: block;
+  width: min(100%, 440px);
+  height: auto;
+}
+
+.lead {
+  max-width: 34rem;
+  margin: 0 0 2rem;
+  font-size: clamp(1.1rem, 1rem + 0.4vw, 1.3rem);
+  line-height: 1.6;
+  color: var(--op-muted-text);
+}
+.lead strong {
+  color: var(--op-text);
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.primary,
+.secondary {
+  display: inline-block;
+  padding: 0.7rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.primary {
+  background: var(--op-accent);
+  border: 1px solid var(--op-accent);
+  color: #0b2616;
+}
+.primary:hover {
+  background: #52d78c;
+  border-color: #52d78c;
+  color: #0b2616;
+  text-decoration: none;
+}
+.secondary {
+  border: 1px solid var(--op-border);
+  background: var(--op-card);
+  color: var(--op-text);
+}
+.secondary:hover {
+  border-color: var(--op-muted);
+  color: var(--op-text);
+  text-decoration: none;
+}
+
+/* The document card */
+.document {
+  position: relative;
+  margin: 0;
+  padding: 1.25rem 1.5rem 1.5rem;
+  background: var(--op-card);
+  border: 1px solid var(--op-border);
+  border-radius: 10px;
+  clip-path: polygon(0 0, calc(100% - 56px) 0, 100% 56px, 100% 100%, 0 100%);
+}
+.document::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 56px;
+  height: 56px;
+  background: var(--op-accent);
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+}
+
+.documentCaption {
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--op-muted-text);
+}
+
+.documentCode {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  overflow-x: auto;
+}
+.documentCode code {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.fence {
+  color: var(--op-muted-text);
+}
+.key {
+  color: var(--op-link);
+  font-weight: 500;
+}
+.value {
+  color: var(--op-text);
+}
+.body {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-family: var(--ifm-font-family-base);
+  color: var(--op-text);
+}
+
+/* Content sections */
+.section {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 5vw, 4rem) 1rem 0;
+}
+.section:last-child {
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+.sectionTitle {
+  max-width: 28rem;
+  margin: 0 0 1.75rem;
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  line-height: 1.25;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.step {
+  position: relative;
+  padding-top: 1rem;
+  border-top: 2px solid var(--op-text);
+  counter-increment: step;
+}
+.step::before {
+  content: counter(step);
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--op-link);
+}
+.step h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+.step p {
+  margin: 0;
+  max-width: 24rem;
+  color: var(--op-muted-text);
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem 3rem;
+  margin: 0;
+}
+.feature dt {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.feature dd {
+  margin: 0.3rem 0 0;
+  max-width: 30rem;
+  color: var(--op-muted-text);
+}
+
+.paths {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.path {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  height: 100%;
+  padding: 1.25rem;
+  background: var(--op-card);
+  border: 1px solid var(--op-border);
+  border-radius: 6px;
+  color: var(--op-text);
+  text-decoration: none;
+  transition: border-color 150ms ease;
+}
+.path:hover {
+  border-color: var(--op-accent);
+  color: var(--op-text);
+  text-decoration: none;
+}
+.pathTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.pathText {
+  color: var(--op-muted-text);
+}
+
+@media (max-width: 996px) {
+  .heroInner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .steps,
+  .paths {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .features {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
