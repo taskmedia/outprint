@@ -27,10 +27,16 @@ Publishing lives in the same workflow on purpose: a tag or release created
 with the default `GITHUB_TOKEN` does not trigger other workflows, so a separate
 `on: push: tags` workflow would never run.
 
-The release PR is also created with `GITHUB_TOKEN`, so the `test` workflow does
-not run on it. If you require status checks on `main`, merge it as an
-administrator, or give release-please a personal access token or GitHub App
-token instead.
+A release PR created with the default `GITHUB_TOKEN` does not run the `test`
+workflow, so required checks on `main` could never pass. The workflow therefore
+uses the repository secret `RELEASE_PLEASE_TOKEN` when it exists and falls back
+to `GITHUB_TOKEN` otherwise. Create a fine-grained personal access token (of a
+user who may push to the repository) with access to this repository only and
+the permissions **Contents: read and write**, **Pull requests: read and write**
+and **Issues: read and write**, give it an expiry, and store it as the secret
+`RELEASE_PLEASE_TOKEN` (Settings > Secrets and variables > Actions). Put the
+expiry date in your calendar: when the token expires the release PR silently
+stops getting its checks.
 
 ### The first release (v0.1.0)
 
@@ -45,6 +51,24 @@ before merging the setup, if the changelog should start from a later commit.
 `0.1.0` again. After the v0.1.0 release has been published, delete the
 `"release-as": "0.1.0"` line from `release-please-config.json` in a
 `chore:` pull request.
+
+## Immutable releases
+
+Turn on **Settings > General > Releases > Enable release immutability**. From
+then on a published release cannot be changed, its assets cannot be added or
+replaced, and its tag cannot be moved or deleted. Consequences:
+
+- A version number is used up once published. A broken release is fixed by the
+  next patch release, not by redoing the tag. The *publish* jobs may be re-run
+  (see below), because they only push images.
+- This workflow attaches no assets to the GitHub release, so it works as is.
+  If assets are added later (an SBOM, a checksum file), the release must be
+  created as a draft, assets attached, and then published; set
+  `"draft": true` in the release-please config for that.
+- Immutability covers the GitHub release and its git tag, **not the images in
+  GHCR**. `X.Y` and `latest` move by design, and a registry tag such as `X.Y.Z`
+  is not protected by this setting. Users who need an exact artefact should pin
+  the image by digest.
 
 ## One-time GitHub settings
 
