@@ -205,6 +205,9 @@ func (w *world) outlineAPI(rw http.ResponseWriter, r *http.Request) {
 	case "/api/collections.info":
 		rw.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(rw).Encode(map[string]any{"data": map[string]any{"id": "c1", "name": "C", "description": ""}})
+	case "/api/auth.info":
+		rw.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(rw).Encode(map[string]any{"data": map[string]any{"user": map[string]any{"id": "user-1"}}})
 	case "/api/attachments.redirect":
 		if fn := w.attach[r.URL.Query().Get("id")]; fn != nil {
 			fn(rw, r)

@@ -3,6 +3,9 @@ package config
 import (
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/taskmedia/outline-latex-pdf/internal/limits"
 )
 
 func env(m map[string]string) func(string) string {
@@ -108,5 +111,67 @@ func TestImageHosts(t *testing.T) {
 	}
 	if _, errs := Parse([]byte(base+"imageHost: [x]\n"), env(nil)); len(errs) == 0 {
 		t.Error("a misspelled key must be rejected")
+	}
+}
+
+func TestAdmissionDefaults(t *testing.T) {
+	s, errs := Parse([]byte(validService), env(nil))
+	if len(errs) != 0 {
+		t.Fatal(errs)
+	}
+	a := s.Admission
+	if a.Slots != 1 || a.QueueDepth != 4 || a.PerUser != 1 || a.MaxWait != time.Minute {
+		t.Errorf("defaults = %+v", a)
+	}
+}
+
+func TestAdmissionFromFileKeepsOtherDefaults(t *testing.T) {
+	s, errs := Parse([]byte(validService+"admission:\n  slots: 3\n  maxWait: 30s\n"), env(nil))
+	if len(errs) != 0 {
+		t.Fatal(errs)
+	}
+	a := s.Admission
+	if a.Slots != 3 || a.MaxWait != 30*time.Second || a.QueueDepth != 4 || a.PerUser != 1 {
+		t.Errorf("admission = %+v", a)
+	}
+}
+
+func TestAdmissionEnvOverridesFile(t *testing.T) {
+	s, errs := Parse([]byte(validService+"admission:\n  slots: 3\n"), env(map[string]string{
+		limits.EnvAdmissionSlots: "2", limits.EnvAdmissionQueueDepth: "0",
+		limits.EnvAdmissionPerUser: "2", limits.EnvAdmissionMaxWait: "5s",
+	}))
+	if len(errs) != 0 {
+		t.Fatal(errs)
+	}
+	a := s.Admission
+	if a.Slots != 2 || a.QueueDepth != 0 || a.PerUser != 2 || a.MaxWait != 5*time.Second {
+		t.Errorf("admission = %+v", a)
+	}
+}
+
+func TestAdmissionRejects(t *testing.T) {
+	tests := []struct {
+		name string
+		yaml string
+		env  map[string]string
+		want string
+	}{
+		{"zero slots", "admission: {slots: 0}\n", nil, "slots must be a positive integer"},
+		{"negative queue", "admission: {queueDepth: -1}\n", nil, "queueDepth"},
+		{"zero per user", "admission: {perUser: 0}\n", nil, "perUser must be a positive integer"},
+		{"bad wait", "admission: {maxWait: 0s}\n", nil, "maxWait"},
+		{"unknown key", "admission: {slot: 2}\n", nil, "slot"},
+		{"env not a number", "", map[string]string{limits.EnvAdmissionSlots: "many"}, limits.EnvAdmissionSlots},
+		{"env bad duration", "", map[string]string{limits.EnvAdmissionMaxWait: "soon"}, limits.EnvAdmissionMaxWait},
+		{"env zero", "", map[string]string{limits.EnvAdmissionPerUser: "0"}, "perUser"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, errs := Parse([]byte(validService+tt.yaml), env(tt.env))
+			if len(errs) == 0 || !strings.Contains(Errors(errs).Error(), tt.want) {
+				t.Errorf("errs = %v, want one mentioning %q", errs, tt.want)
+			}
+		})
 	}
 }

@@ -31,7 +31,9 @@ const (
 )
 
 const serveUsage = `       renderer gateway [--listen ADDR] [--service-config FILE]
-                        (env: OUTLINE_URL, RENDERER_WORKER_URL, RENDERER_WORKER_TOKEN)
+                        (env: OUTLINE_URL, RENDERER_WORKER_URL, RENDERER_WORKER_TOKEN,
+                         RENDERER_ADMISSION_SLOTS, RENDERER_ADMISSION_QUEUE_DEPTH,
+                         RENDERER_ADMISSION_PER_USER, RENDERER_ADMISSION_MAX_WAIT)
        renderer worker  [--listen ADDR] [--service-config FILE]
                         (env: RENDERER_WORK_DIR, RENDERER_WORKER_TOKEN, RENDERER_TIMEOUT,
                          RENDERER_MAX_PAGES, RENDERER_MAX_PDF_BYTES)
@@ -105,7 +107,7 @@ func runGateway(args []string, getenv func(string) string, stderr io.Writer) int
 	err = gateway.Run(ctx, gateway.RunConfig{
 		Listen: o.Listen, Registry: started.Registry, ImageHosts: started.Service.ImageHosts,
 		OutlineURL: getenv(envOutlineURL), WorkerURL: getenv(envWorkerURL), WorkerToken: getenv(envWorkerToken),
-		RenderLimit: timeoutFromEnv(getenv), Logger: log,
+		RenderLimit: timeoutFromEnv(getenv), Admission: started.Service.Admission, Logger: log,
 	})
 	if err != nil {
 		fmt.Fprintf(stderr, "renderer: gateway: %v\n", err)

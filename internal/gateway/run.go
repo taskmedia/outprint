@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/taskmedia/outline-latex-pdf/internal/admission"
 	"github.com/taskmedia/outline-latex-pdf/internal/outline"
 	"github.com/taskmedia/outline-latex-pdf/internal/packages"
 	"github.com/taskmedia/outline-latex-pdf/internal/worker"
@@ -40,6 +41,18 @@ type RunConfig struct {
 	RenderLimit  time.Duration
 	Logger       *slog.Logger
 	OutlineLimit time.Duration
+	// Admission sizes the slot limit, queue and per-user limit. The zero
+	// value means the defaults.
+	Admission admission.Config
+}
+
+// newAdmission builds the controller; a zero config means the defaults.
+func newAdmission(cfg admission.Config, renderLimit time.Duration) (*admission.Controller, error) {
+	if cfg == (admission.Config{}) {
+		cfg = admission.Defaults()
+	}
+	cfg.RenderTimeout = renderLimit
+	return admission.New(cfg)
 }
 
 // Run serves until ctx ends. A failure to build the clients or to listen is
@@ -60,18 +73,22 @@ func Run(ctx context.Context, cfg RunConfig) error {
 	if err != nil {
 		return err
 	}
+	admit, err := newAdmission(cfg.Admission, renderLimit)
+	if err != nil {
+		return err
+	}
 	ln := cfg.Listener
 	if ln == nil {
 		if ln, err = net.Listen("tcp", cfg.Listen); err != nil {
 			return fmt.Errorf("listen: %w", err)
 		}
 	}
-	handler := New(Config{Registry: cfg.Registry, Outline: outlineClient, Worker: workerClient, Logger: cfg.Logger}).Handler()
+	handler := New(Config{Registry: cfg.Registry, Outline: outlineClient, Worker: workerClient, Admission: admit, Logger: cfg.Logger}).Handler()
 	srv := &http.Server{
 		Handler:           handler,
 		ReadHeaderTimeout: readHeaderTimeout,
 		ReadTimeout:       readTimeout,
-		WriteTimeout:      outline.DefaultTimeout + renderLimit + workerMargin + readTimeout,
+		WriteTimeout:      outline.DefaultTimeout + admit.MaxWait() + renderLimit + workerMargin + readTimeout,
 		IdleTimeout:       idleTimeout,
 		MaxHeaderBytes:    maxHeaderBytes,
 	}

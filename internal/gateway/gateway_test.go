@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/taskmedia/outline-latex-pdf/internal/admission"
 	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
 	"github.com/taskmedia/outline-latex-pdf/internal/config"
 	"github.com/taskmedia/outline-latex-pdf/internal/outline"
@@ -41,13 +42,17 @@ type fakeOutline struct {
 	docs map[string]outlineDoc
 	cols map[string]outlineDoc
 	seen []seenRequest
+	// users maps a cookie to the user id auth.info confirms; an unmapped
+	// cookie is user-1. authStatus, when set, is the status auth.info answers.
+	users      map[string]string
+	authStatus int
 }
 
 type seenRequest struct{ path, cookie string }
 
 func newFakeOutline(t *testing.T) *fakeOutline {
 	t.Helper()
-	f := &fakeOutline{docs: map[string]outlineDoc{}, cols: map[string]outlineDoc{}}
+	f := &fakeOutline{docs: map[string]outlineDoc{}, cols: map[string]outlineDoc{}, users: map[string]string{}}
 	f.addCollection("c1", 200, "")
 	f.srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body map[string]string
@@ -55,6 +60,15 @@ func newFakeOutline(t *testing.T) *fakeOutline {
 		f.mu.Lock()
 		f.seen = append(f.seen, seenRequest{r.URL.Path, r.Header.Get("Cookie")})
 		table := f.docs
+		if r.URL.Path == "/api/auth.info" {
+			id, status := f.userFor(r.Header.Get("Cookie"))
+			f.mu.Unlock()
+			w.WriteHeader(status)
+			if status == 200 {
+				_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"user": map[string]any{"id": id}}})
+			}
+			return
+		}
 		if r.URL.Path == "/api/collections.info" {
 			table = f.cols
 		}
@@ -71,6 +85,24 @@ func newFakeOutline(t *testing.T) *fakeOutline {
 	}))
 	t.Cleanup(f.srv.Close)
 	return f
+}
+
+// userFor must be called with f.mu held.
+func (f *fakeOutline) userFor(cookie string) (string, int) {
+	status := f.authStatus
+	if status == 0 {
+		status = 200
+	}
+	if id, ok := f.users[cookie]; ok {
+		return id, status
+	}
+	return "user-1", status
+}
+
+func (f *fakeOutline) setUser(cookie, id string) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.users[cookie] = id
 }
 
 func (f *fakeOutline) add(id string, status int, title, text string) {
@@ -106,6 +138,8 @@ type fakeWorker struct {
 	status  int
 	pdf     string
 	errBody workerapi.ErrorBody
+	// hook, when set, runs for each request before the answer.
+	hook func()
 }
 
 func newFakeWorker(t *testing.T) *fakeWorker {
@@ -116,8 +150,11 @@ func newFakeWorker(t *testing.T) *fakeWorker {
 		f.mu.Lock()
 		f.bodies = append(f.bodies, body)
 		f.headers = append(f.headers, r.Header.Clone())
-		status, pdf, eb := f.status, f.pdf, f.errBody
+		status, pdf, eb, hook := f.status, f.pdf, f.errBody, f.hook
 		f.mu.Unlock()
+		if hook != nil {
+			hook()
+		}
 		if status == 200 {
 			w.Header().Set("Content-Type", "application/pdf")
 			io.WriteString(w, pdf)
@@ -140,6 +177,18 @@ type env struct {
 
 func newEnv(t *testing.T, defaultBinding bool) *env {
 	t.Helper()
+	return newEnvWithAdmission(t, defaultBinding, nil)
+}
+
+// newEnvWithAdmission is newEnv with a custom admission controller.
+func newEnvWithAdmission(t *testing.T, defaultBinding bool, admit *admission.Controller) *env {
+	t.Helper()
+	return newEnvFull(t, defaultBinding, admit, nil)
+}
+
+// newEnvFull also lets a test replace the HTTP Worker client with a stub.
+func newEnvFull(t *testing.T, defaultBinding bool, admit *admission.Controller, stub Worker) *env {
+	t.Helper()
 	e := &env{outline: newFakeOutline(t), worker: newFakeWorker(t), logs: &bytes.Buffer{}}
 	svc := config.Service{
 		TemplatesRoot: "../../templates", ConfigurationsRoot: "../../configurations",
@@ -160,8 +209,12 @@ func newEnv(t *testing.T, defaultBinding bool) *env {
 	if err != nil {
 		t.Fatal(err)
 	}
+	var w Worker = wc
+	if stub != nil {
+		w = stub
+	}
 	log := slog.New(slog.NewTextHandler(e.logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	e.gw = httptest.NewServer(New(Config{Registry: started.Registry, Outline: oc, Worker: wc, Logger: log}).Handler())
+	e.gw = httptest.NewServer(New(Config{Registry: started.Registry, Outline: oc, Worker: w, Admission: admit, Logger: log}).Handler())
 	t.Cleanup(e.gw.Close)
 	return e
 }
@@ -226,7 +279,7 @@ func TestHappyPath(t *testing.T) {
 		t.Errorf("Content-Disposition = %q (%v, %v)", resp.Header.Get("Content-Disposition"), params, err)
 	}
 
-	wantPaths := []string{"/api/documents.info", "/api/collections.info"}
+	wantPaths := []string{"/api/documents.info", "/api/collections.info", "/api/auth.info"}
 	if len(e.outline.seen) != len(wantPaths) {
 		t.Fatalf("outline saw %+v", e.outline.seen)
 	}
@@ -519,6 +572,10 @@ func (panicOutline) Document(_ context.Context, _ string, _ outline.Session) (ou
 }
 
 func (panicOutline) Image(_ context.Context, _ string, _ outline.Session) ([]byte, error) {
+	panic(contentCanary)
+}
+
+func (panicOutline) UserID(_ context.Context, _ outline.Session) (string, error) {
 	panic(contentCanary)
 }
 

@@ -64,6 +64,23 @@ const (
 	MaxSVGPDFBytes    = 10 << 20
 )
 
+// Admission control, enforced by the Gateway. The starting values match one
+// Worker replica; scale them together with the replicas.
+const (
+	// AdmissionSlots is how many renders run at once.
+	AdmissionSlots = 1
+	// AdmissionQueueDepth is how many requests wait for a slot.
+	AdmissionQueueDepth = 4
+	// AdmissionPerUser is how many renders one user may have, queued and
+	// running together.
+	AdmissionPerUser = 1
+	// AdmissionMaxWait is how long a queued request waits for a slot.
+	AdmissionMaxWait = 60 * time.Second
+	// AdmissionAssumedRender seeds the Retry-After estimate until real
+	// render times are known.
+	AdmissionAssumedRender = 10 * time.Second
+)
+
 // Worker container limits. The shipped Compose file sets them; the sandbox
 // tests fail if it stops doing so.
 const (
@@ -79,6 +96,15 @@ const (
 	EnvTimeout     = "RENDERER_TIMEOUT"
 	EnvMaxPages    = "RENDERER_MAX_PAGES"
 	EnvMaxPDFBytes = "RENDERER_MAX_PDF_BYTES"
+)
+
+// Environment variables that override the admission keys of the service
+// configuration (slots, queueDepth, perUser, maxWait).
+const (
+	EnvAdmissionSlots      = "RENDERER_ADMISSION_SLOTS"
+	EnvAdmissionQueueDepth = "RENDERER_ADMISSION_QUEUE_DEPTH"
+	EnvAdmissionPerUser    = "RENDERER_ADMISSION_PER_USER"
+	EnvAdmissionMaxWait    = "RENDERER_ADMISSION_MAX_WAIT"
 )
 
 // Job is the effective per-job limits.

@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/taskmedia/outline-latex-pdf/internal/admission"
 	"github.com/taskmedia/outline-latex-pdf/internal/bundle"
 	"github.com/taskmedia/outline-latex-pdf/internal/config"
 	"github.com/taskmedia/outline-latex-pdf/internal/images"
@@ -39,6 +40,8 @@ type Outline interface {
 	Collection(ctx context.Context, id string, s outline.Session) (outline.Collection, error)
 	// Image fetches an image of the Outline by its API path and query.
 	Image(ctx context.Context, target string, s outline.Session) ([]byte, error)
+	// UserID is the id Outline confirms for the session.
+	UserID(ctx context.Context, s outline.Session) (string, error)
 	BaseURL() string
 }
 
@@ -52,7 +55,10 @@ type Config struct {
 	Registry *packages.Registry
 	Outline  Outline
 	Worker   Worker
-	Logger   *slog.Logger
+	// Admission limits concurrent renders; nil means the defaults (one slot,
+	// a queue of four, one render per user).
+	Admission *admission.Controller
+	Logger    *slog.Logger
 }
 
 // Gateway serves the render endpoint.
@@ -65,7 +71,18 @@ func New(cfg Config) *Gateway {
 	if cfg.Logger == nil {
 		cfg.Logger = slog.Default()
 	}
+	if cfg.Admission == nil {
+		cfg.Admission = defaultAdmission()
+	}
 	return &Gateway{cfg: cfg}
+}
+
+func defaultAdmission() *admission.Controller {
+	c, err := admission.New(admission.Defaults())
+	if err != nil {
+		panic("gateway: default admission config is invalid: " + err.Error())
+	}
+	return c
 }
 
 // Handler serves GET /render/{documentId}, GET /status/{documentId} and
@@ -133,12 +150,27 @@ func (g *Gateway) process(r *http.Request, docID string) (rendered, *failure) {
 	if f != nil {
 		return rendered{}, f
 	}
+	// The per-user limit comes before the image fetches, which are the
+	// expensive part of building the bundle; the global slot comes right
+	// before the Worker call, so a Document that fails validation holds none.
+	userID, f := g.confirmedUser(r.Context(), session)
+	if f != nil {
+		return rendered{}, f
+	}
+	leaveUser, f := g.enterUser(userID)
+	if f != nil {
+		return rendered{}, f
+	}
+	defer leaveUser()
 	b, f := g.buildBundle(r.Context(), doc, sel.Binding, session)
 	if f != nil {
 		return rendered{}, f
 	}
-	// Admission control (global slot limit, per-user limit) belongs here:
-	// the Outline-confirmed user is known and no Worker time is spent yet.
+	releaseSlot, f := g.acquireSlot(r.Context())
+	if f != nil {
+		return rendered{}, f
+	}
+	defer releaseSlot()
 	pdf, err := g.cfg.Worker.Render(r.Context(), b)
 	if err != nil {
 		return rendered{}, workerFailure(err)
