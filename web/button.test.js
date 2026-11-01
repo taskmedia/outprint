@@ -274,3 +274,122 @@ test('a failed render shows an escaped, dismissible error list and re-enables th
   assert.equal(env.body.find('olp-pdf-panel'), null);
   assert.equal(button.focused, true);
 });
+
+// ---- links to the docs ----------------------------------------------------
+
+const DOCS = 'https://outprint.task.media';
+const PAGE = '/write/when-something-goes-wrong/';
+
+test('safeDocsUrl accepts only https links to the docs site', () => {
+  const ok = [
+    DOCS + '/0.3' + PAGE + '#enum',
+    DOCS + PAGE + '#enum',
+    DOCS + '/dev' + PAGE + '#no_binding',
+  ];
+  ok.forEach((url) => assert.equal(b.safeDocsUrl(url), url));
+  const hostile = [
+    'javascript:alert(1)',
+    'JaVaScRiPt:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'http://outprint.task.media/write/',
+    'https://evil.example/write/',
+    'https://outprint.task.media.evil.example/write/',
+    'https://outprint.task.media@evil.example/write/',
+    'https://user:pw@outprint.task.media/write/',
+    'https://outprint.task.media:8443/write/',
+    '//outprint.task.media/write/',
+    '/write/when-something-goes-wrong/',
+    'not a url',
+    '',
+    null,
+    undefined,
+    42,
+    { href: DOCS },
+  ];
+  hostile.forEach((url) => assert.equal(b.safeDocsUrl(url), '', String(url)));
+});
+
+test('formatErrorItem carries the docs link only when it is safe', () => {
+  const url = DOCS + '/0.3' + PAGE + '#enum';
+  assert.equal(b.formatErrorItem({ message: 'x', docs_url: url }).docsUrl, url);
+  assert.equal(b.formatErrorItem({ message: 'x', docs_url: 'javascript:alert(1)' }).docsUrl, undefined);
+  assert.equal(b.formatErrorItem({ message: 'x' }).docsUrl, undefined);
+});
+
+test('docsHome is the start page of the same version', () => {
+  assert.equal(b.docsHome(DOCS + '/0.3' + PAGE + '#enum'), DOCS + '/0.3/');
+  assert.equal(b.docsHome(DOCS + '/dev' + PAGE + '#enum'), DOCS + '/dev/');
+  assert.equal(b.docsHome(DOCS + PAGE + '#enum'), DOCS + '/');
+  assert.equal(b.docsHome(DOCS + '/somewhere/else/'), '');
+  assert.equal(b.docsHome(''), '');
+});
+
+test('describeFailure finds the docs links of an error list and of a plain failure', () => {
+  const url = DOCS + '/0.3' + PAGE + '#enum';
+  const list = b.describeFailure({ status: 422, retryAfter: null, body: { errors: [{ message: 'one', docs_url: url }] } });
+  assert.equal(list.items[0].docsUrl, url);
+  assert.equal(list.helpUrl, DOCS + '/0.3/');
+
+  const plain = b.describeFailure({ status: 504, retryAfter: null, body: { message: 'slow', docs_url: DOCS + '/0.3' + PAGE + '#timeout' } });
+  assert.equal(plain.docsUrl, DOCS + '/0.3' + PAGE + '#timeout');
+  assert.equal(plain.helpUrl, DOCS + '/0.3/');
+
+  const none = b.describeFailure({ status: 422, retryAfter: null, body: { errors: [{ message: 'one' }] } });
+  assert.equal(none.helpUrl, undefined);
+  assert.equal(none.items[0].docsUrl, undefined);
+});
+
+function linksOf(el, out) {
+  out = out || [];
+  if (el.tag === 'a') out.push(el);
+  el.children.forEach((c) => linksOf(c, out));
+  return out;
+}
+
+async function renderFailure(body, status) {
+  const env = setup('/doc/plan-aB3dE5fGh1', {
+    '/pdf/status/aB3dE5fGh1': json(200, { available: true }),
+    '/pdf/render/aB3dE5fGh1': Object.assign(json(status || 422, body), {
+      headers: { get: (h) => (h === 'Content-Type' ? 'application/json' : null) },
+    }),
+  });
+  await tick();
+  env.body.find('olp-pdf-button').click();
+  await tick();
+  return env.body.find('olp-pdf-panel');
+}
+
+test('each error with a docs link gets a "How to fix" link that opens safely in a new tab, and the panel a "Help" link', async () => {
+  const url = DOCS + '/0.3' + PAGE + '#enum';
+  const panel = await renderFailure({ errors: [
+    { message: 'first', docs_url: url },
+    { message: 'second', docs_url: DOCS + '/0.3' + PAGE + '#required' },
+    { message: 'third' },
+  ] });
+  const links = linksOf(panel);
+  assert.deepEqual(links.map((a) => a.textContent), ['How to fix', 'How to fix', 'Help']);
+  assert.deepEqual(links.map((a) => a.href), [url, DOCS + '/0.3' + PAGE + '#required', DOCS + '/0.3/']);
+  links.forEach((a) => {
+    assert.equal(a.target, '_blank');
+    assert.equal(a.rel, 'noopener noreferrer');
+  });
+});
+
+test('a hostile docs_url is shown as no link at all', async () => {
+  const panel = await renderFailure({ errors: [
+    { message: 'first', docs_url: 'javascript:alert(1)' },
+    { message: 'second', docs_url: 'https://evil.example/write/when-something-goes-wrong/#enum' },
+  ] });
+  assert.deepEqual(linksOf(panel), []);
+  assert.ok(panel.text().includes('first'));
+});
+
+test('a plain failure with a docs link shows it under the title', async () => {
+  const url = DOCS + PAGE + '#timeout';
+  const panel = await renderFailure({ message: 'slow', docs_url: url }, 504);
+  assert.deepEqual(linksOf(panel).map((a) => a.href), [url, DOCS + '/']);
+});
+
+test('the script trusts the same docs origin as the Gateway', () => {
+  assert.equal(b.DOCS_ORIGIN, DOCS);
+});
