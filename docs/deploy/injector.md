@@ -1,6 +1,10 @@
+---
+sidebar_position: 3
+---
+
 # Injector and download button
 
-Outline has no plug-in point for a toolbar button, and Outprint does not fork
+The injector is a required part of every install. Outline has no plug-in point for a toolbar button, and Outprint does not fork
 Outline. The **injector** is a small reverse proxy in front of Outline that adds
 one `<script>` tag to Outline's HTML pages. The script shows a "Download PDF"
 button on document pages, but only where the Gateway says a Binding applies.
@@ -31,7 +35,7 @@ binary on a distroless base, non-root, with no shell and no TeX toolchain.
    error pages, event streams and WebSocket upgrades (Outline uses a WebSocket
    for collaboration).
 
-The injected tag:
+The injector adds this tag to every complete page of Outline:
 
 ```html
 <script src="/pdf/button.js" defer data-outline-pdf-injector></script>
@@ -150,8 +154,9 @@ prints a note when it is not; CI always runs it.
 
 ## Routing example
 
-Traefik in front of the injector, with invented hosts. TLS ends at Traefik, which
-also compresses (the injector sends HTML uncompressed):
+The next example puts Traefik in front of the injector, with invented hosts. TLS
+ends at Traefik, which also compresses (the injector sends HTML uncompressed).
+This is the Traefik configuration:
 
 ```yaml
 # dynamic configuration
@@ -169,6 +174,8 @@ http:
           - url: http://injector.internal.example.invalid:8090
 ```
 
+These are the injector's settings for that setup:
+
 ```sh
 OUTPRINT_INJECTOR_UPSTREAM=http://outline.internal.example.invalid:3000
 OUTPRINT_INJECTOR_GATEWAY_URL=http://gateway.internal.example.invalid:8080
@@ -179,4 +186,4 @@ Outline keeps its public URL (`URL=https://wiki.example.invalid`) and its
 
 With Docker Compose, `deploy/compose/compose.yaml` has an `injector` service next
 to `gateway` and `worker`. It publishes port 8090 (`OUTPRINT_INJECTOR_PORT`) and needs
-`OUTPRINT_INJECTOR_UPSTREAM`; see [Deploying with Docker Compose](deploy-compose.md).
+`OUTPRINT_INJECTOR_UPSTREAM`; see [Deploying with Docker Compose](docker-compose.md).

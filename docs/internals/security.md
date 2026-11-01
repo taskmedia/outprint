@@ -1,9 +1,13 @@
+---
+sidebar_position: 5
+---
+
 # Security
 
 The renderer turns documents written by many people into PDFs with a TeX
 toolchain, so it assumes a hostile Document. The reasoning and the split into
 Gateway and Worker are in
-[ADR 0001](adr/0001-split-renderer-into-gateway-and-worker.md). This page lists
+[ADR 0001](../adr/0001-split-renderer-into-gateway-and-worker.md). This page lists
 the layers, what each one proves, the limits and how to run the tests.
 
 The principle: **the Worker's container sandbox is the security boundary, the
@@ -29,7 +33,7 @@ CI fails if any test of the security suite reports a skip.
 ## The shipped baseline
 
 `deploy/compose/compose.yaml`, service `worker` (see
-[Deploying with Docker Compose](deploy-compose.md)):
+[Deploying with Docker Compose](../deploy/docker-compose.md)):
 
 - fixed non-root user `10001:10001`, `no-new-privileges`, all capabilities
   dropped, Docker's default seccomp profile, read-only root file system

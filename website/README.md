@@ -5,10 +5,35 @@ GitHub Pages at <https://outprint.task.media/> (custom domain). The pages live i
 [`../docs`](../docs), so GitHub's rendering and the site share the same files;
 this directory holds only the site shell (config, theme, sidebar).
 
+## Structure of the docs
+
+`docs/` has five sections, one folder each, each with an intro page
+(`README.md`) and a `_category_.json`: `write/`, `configure/`, `deploy/`,
+`templates/` and `internals/`. The decision records stay in `docs/adr/` next to
+their index and are shown under Internals (`sidebars.js`).
+
+- **Landing page.** `src/pages/index.js` is the designed home page: the five
+  sections as numbered rows. `docs/README.md` is the same list as a plain table
+  that reads well on GitHub; it is excluded from the site so that the two do not
+  fight over `/`. If you add a section, change both and `sidebars.js`.
+- **Generated pages.** `docs/templates/catalogue/*.md` come from the Template
+  packages: `task docs:catalogue` writes them, `task docs:catalogue-check`
+  fails when they are out of date. The preview images in
+  `docs/assets/screens/template-<name>.png` are rendered by
+  `task docs:catalogue-preview` (needs Docker) and committed; the site build
+  never renders.
+- **Error catalogue.** `docs/write/when-something-goes-wrong.md` has one
+  heading per error code. `task docs:errors-check` fails when the headings and the
+  codes in the source differ.
+- **Images in pages.** Screenshots live in `docs/assets/screens/` and are
+  referenced with relative paths. `assets/**` is excluded from the docs pages,
+  but images that a page references are still bundled by the build.
+
 Repo-only pages are not published (`exclude` in `docusaurus.config.js`):
-`sanitize.md`, `publishing.md`, `testing.md`, `research/**`. Published pages
-that point at them use absolute GitHub URLs, so the strict build stays green.
-Links from published pages to anything outside `docs/` must be absolute
+`README.md` (the plain index), `sanitize.md`, `publishing.md`, `releasing.md`,
+`testing.md`, `research/**` and `assets/**`. Published pages that point at them
+use absolute GitHub URLs, so the strict build stays green. Links from published
+pages to anything outside `docs/` must be absolute
 `https://github.com/taskmedia/outprint/blob/main/...` URLs.
 
 Needs Node 22 (`nvm use` reads `.nvmrc`).

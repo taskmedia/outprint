@@ -1,10 +1,10 @@
-# Gateway and Worker from one image (docs/deploy-compose.md, ADR 0001).
+# Gateway and Worker from one image (docs/deploy/docker-compose.md, ADR 0001).
 #
 #   OUTLINE_URL=https://wiki.example.test docker compose \
 #     -f deploy/compose/compose.yaml up --build
 #
 # The worker service block is the shipped Worker baseline. Security tests
-# read it (see docs/deploy-compose.md): weaken it and the build breaks.
+# read it (see docs/deploy/docker-compose.md): weaken it and the build breaks.
 
 name: outprint
 
@@ -70,7 +70,7 @@ services:
       # Required: the base URL of your Outline. The gateway refuses to start
       # without it.
       OUTLINE_URL: ${OUTLINE_URL:-}
-      # Admission control (docs/limits.md). Empty keeps the service
+      # Admission control (docs/deploy/limits-and-admission.md). Empty keeps the service
       # configuration's value. Scale the slots with the Worker replicas.
       OUTPRINT_ADMISSION_SLOTS: ${OUTPRINT_ADMISSION_SLOTS:-}
       OUTPRINT_ADMISSION_QUEUE_DEPTH: ${OUTPRINT_ADMISSION_QUEUE_DEPTH:-}
@@ -102,7 +102,7 @@ services:
       retries: 3
       start_period: 5s
 
-  # The injector sits in front of Outline (docs/injector.md). It is a
+  # The injector sits in front of Outline (docs/deploy/injector.md). It is a
   # separate, slim image without the TeX toolchain and is not part of the
   # Worker baseline.
   injector:

@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # Packages
 
 The renderer reads two kinds of packages, each from its own root directory:
@@ -50,7 +54,7 @@ templates/neutral/
 ```
 
 Fonts are loaded by file path, never by name: the Worker's TeX engine cannot
-use the system font database (see [Worker pipeline](worker.md)). A Template loads
+use the system font database (see [Worker pipeline](../internals/worker.md)). A Template loads
 its fonts with the fontspec option `Path=./fonts/`:
 
 ```tex
@@ -237,7 +241,7 @@ fields:
   warning.
 
 How a Document's Metadata Block, the Configuration Defaults and the manifest
-defaults combine into field values is described in [Metadata](metadata.md).
+defaults combine into field values is described in [Metadata Block reference](metadata-reference.md).
 
 ## Path confinement
 

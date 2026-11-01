@@ -1,3 +1,7 @@
+---
+sidebar_position: 4
+---
+
 # Standard Fields
 
 Standard Fields are a documented set of common field names. Templates are

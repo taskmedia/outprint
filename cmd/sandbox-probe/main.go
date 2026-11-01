@@ -1,7 +1,7 @@
 //go:build linux
 
 // Command sandbox-probe is the test-only adversary of the sandbox security
-// suite (docs/security.md, layers 2 and 3). It runs hostile actions as the
+// suite (docs/internals/security.md, layers 2 and 3). It runs hostile actions as the
 // Worker user, inside the container flags the shipped Compose file sets, and
 // reports what was contained. It is built into the "sandbox" image stage
 // only; the release image must not contain it.

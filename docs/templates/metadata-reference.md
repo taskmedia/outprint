@@ -1,4 +1,11 @@
-# Metadata
+---
+sidebar_position: 5
+---
+
+# Metadata Block reference
+
+This page is the reference for Template authors and operators. Document authors
+find a plain-language version in [Fill in the document](../write/fill-in-the-document.md).
 
 A Document author sets field values, and picks the Document Type, in a
 **Metadata Block** at the very start of the Document. The block is removed

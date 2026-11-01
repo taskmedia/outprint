@@ -28,8 +28,8 @@ Collection; a Document author fills structured fields in a leading
 - **injector**: a small reverse proxy in front of Outline that adds a
   "Download PDF" button without forking Outline.
 
-See [CONTEXT.md](CONTEXT.md) for the vocabulary and
-[docs/adr](docs/adr) for architecture decisions.
+See the [vocabulary](CONTEXT.md) and the
+[architecture decision records](docs/adr/README.md).
 
 ## Quick start
 
@@ -44,14 +44,15 @@ task e2e:run # optional: the browser tests against that stack
 ```
 
 The log-in, the seed data and what to click are described in
-[docs/development.md](docs/development.md). To try only the renderer, see
+[Development stack and end-to-end tests](docs/internals/development.md). To try only the renderer, see
 "Development" below.
 
 ## Documentation
 
-Start at the index, [docs/README.md](docs/README.md). Template authors begin
-with the [Template author guide](docs/template-author-guide.md). The research
-behind the design is in [docs/research](docs/research/README.md).
+The docs are at <https://outprint.task.media> and in [docs/](docs/README.md), in
+five sections: Write, Configure, Deploy, Templates and Internals. Template authors
+begin with the [Template author guide](docs/templates/template-author-guide.md). The research
+behind the design is in the [research notes](docs/research/README.md).
 
 ## Status
 
@@ -76,7 +77,7 @@ task e2e:run         # tier 3: browser tests against that stack
 ```
 
 The local stack, its login, the seeding and the end-to-end tests are described
-in [docs/development.md](docs/development.md).
+in [Development stack and end-to-end tests](docs/internals/development.md).
 
 Render a letter with the shipped Template and Configuration:
 
@@ -97,31 +98,30 @@ docker run --rm outprint validate                  # the packages shipped in the
 outprint validate --templates-root ./templates --configs-root ./configurations
 ```
 
-See [docs/metadata.md](docs/metadata.md) for the Metadata Block authors write
-(syntax, layering, field types, errors),
-[docs/packages.md](docs/packages.md) for the package format, field types,
-typed patterns, the TeX deny-list, the drift guard and `validate`, and
-[docs/standard-fields.md](docs/standard-fields.md) for the Standard Fields.
-See [docs/images.md](docs/images.md) for images: formats, sizes, captions,
-limits, error kinds and the `imageHosts` setting.
-See [docs/binding.md](docs/binding.md) for the `binding:` block a
-Collection admin uses to choose the Template and Configuration.
-See [docs/worker.md](docs/worker.md) for the Worker pipeline: phases, filters,
-engine lockdown, errors, logging and the debug switch.
-See [docs/architecture.md](docs/architecture.md) for the Gateway and Worker
-roles, the job bundle, the request flow and the error mapping, and
-[docs/deploy-compose.md](docs/deploy-compose.md) for running both with Docker
-Compose and the Worker security baseline.
-See [docs/injector.md](docs/injector.md) for the injector, the download button,
-compression and CSP handling, routing and the security notes.
-See [docs/security.md](docs/security.md) for the security layers, what each
-proves, the limits and how to run the suite, and
-[docs/testing.md](docs/testing.md) for the test tiers and the CI schedule.
-See [docs/limits.md](docs/limits.md) for the limits and admission control
-(slots, queue, per-user limit, and how to configure them).
-See [docs/sanitize.md](docs/sanitize.md) for the sanitisation gate and the
-pre-publish audit, and [docs/publishing.md](docs/publishing.md) for the
-maintainer's checklist.
+The reference for each part is in the docs: the [Metadata Block reference](docs/templates/metadata-reference.md),
+[Packages](docs/templates/packages.md) (format, field types, typed patterns,
+the TeX deny-list, the drift guard and `validate`) and
+[Standard Fields](docs/templates/standard-fields.md); [Images in the pipeline](docs/internals/images.md);
+[Choose a Template and Configuration](docs/configure/choose-a-template.md) for the
+`binding:` block of a Collection admin; the [Worker pipeline](docs/internals/worker.md);
+[Architecture](docs/internals/architecture.md); [Docker Compose](docs/deploy/docker-compose.md)
+with the Worker security baseline; the [Injector and download button](docs/deploy/injector.md);
+[Security](docs/internals/security.md) and [Testing](docs/testing.md) for the test tiers
+and the CI schedule; [Limits and admission control](docs/deploy/limits-and-admission.md);
+and, for the maintainer, the [Sanitisation gate](docs/sanitize.md) and the
+[Publishing checklist](docs/publishing.md).
+
+### Documentation site
+
+The pages in `docs/` are also published as a site (`website/`, Docusaurus).
+
+```sh
+task docs:build              # strict build of the site (broken links fail)
+task docs:catalogue          # regenerate the Template catalogue pages from the packages
+task docs:catalogue-check    # fail if the generated catalogue pages are out of date
+task docs:catalogue-preview  # re-render the catalogue preview images (needs Docker)
+task docs:errors-check       # fail if the error catalogue and the source codes differ
+```
 
 ## License
 
