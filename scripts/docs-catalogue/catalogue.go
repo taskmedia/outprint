@@ -249,7 +249,7 @@ func defaultLabel(f packages.Field) string {
 	switch {
 	case f.HasDefault:
 		return "`" + scalarText(f.Default) + "`"
-	case f.Name == "title":
+	case f.Name == "title" || f.Name == "subject":
 		return "the Outline title"
 	case f.Name == "date":
 		return "the last-modified date"
