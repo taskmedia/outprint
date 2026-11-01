@@ -46,6 +46,7 @@
   // The items of Outline's Export submenu carry the file type as text that is
   // not translated (Markdown.md, HTML.html, ...); the labels are.
   var EXPORT_ITEM_PATTERN = /\.(md|html|textpack|pdf)$/i;
+  var FILE_TYPE_HINT = '.pdf';
 
   // Built-in texts. 'busy' and 'dismiss' are not configurable.
   var BUILTIN_TEXTS = {
@@ -558,6 +559,21 @@
     return true;
   }
 
+  // Drops what follows the label of a cloned item. The Export items end in a
+  // file-type hint (".md"): ours keeps that element, set to ".pdf", so it looks
+  // like its neighbours. Shortcuts of root-menu items do not apply.
+  function trimAfterLabel(label, keepFileType) {
+    if (!label) return;
+    var fileType = keepFileType ? label.nextElementSibling : null;
+    if (fileType) fileType.textContent = FILE_TYPE_HINT;
+    var next = fileType ? fileType.nextElementSibling : label.nextElementSibling;
+    while (next) {
+      var following = next.nextElementSibling;
+      next.remove();
+      next = following;
+    }
+  }
+
   function createMenuItem(template) {
     var item = template.cloneNode(true);
     ['id', 'data-highlighted', 'data-state', 'data-radix-collection-item', 'href', 'aria-haspopup', 'aria-expanded'].forEach(function (name) {
@@ -576,8 +592,7 @@
       var old = icon.querySelector('svg');
       icon.replaceChildren(createIcon((old && old.getAttribute('width')) || '24'));
     }
-    // Everything after the label (shortcuts, file types) does not apply.
-    while (label && label.nextElementSibling) label.nextElementSibling.remove();
+    trimAfterLabel(label, !icon);
     item.addEventListener('pointermove', function () { if (document.activeElement !== item) item.focus({ preventScroll: true }); });
     item.addEventListener('focus', function () { item.setAttribute('data-highlighted', ''); });
     item.addEventListener('blur', function () { item.removeAttribute('data-highlighted'); });
@@ -961,6 +976,7 @@
       resolveLanguage: resolveLanguage,
       textsFor: textsFor,
       isExportItemText: isExportItemText,
+      trimAfterLabel: trimAfterLabel,
       DOCS_ORIGIN: DOCS_ORIGIN
     };
   }
