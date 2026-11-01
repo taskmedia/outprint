@@ -110,7 +110,7 @@ or selectable in the PDF.
 An SVG that passes these checks can still be too complex to convert. The
 Worker stops a conversion after 20 seconds and refuses one that produces
 more than 10 MiB of PDF; the render fails with an error that names the SVG
-phase (see [worker.md](worker.md)). Embedded pictures are not recompressed,
+phase (see [Worker pipeline](worker.md)). Embedded pictures are not recompressed,
 so a large photo inside an SVG counts fully against the limits.
 
 ## How the Gateway works
@@ -229,4 +229,4 @@ must do the same.
 - SVG: the Gateway pre-check is in `internal/images/svg*.go`; the conversion is
   the first phase of the Worker (`internal/worker/svg.go`). The attack corpus
   that backs the table above is `internal/svgcorpus` (see
-  [security.md](security.md)).
+  [Security](security.md)).

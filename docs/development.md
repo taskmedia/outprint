@@ -82,7 +82,7 @@ Outline answers `/api/attachments.redirect?id=...` with a redirect to
 Gateway container `localhost` is the Gateway itself, so the Gateway gets
 `OUTLINE_PUBLIC_URL=http://localhost:8090` and fetches that redirect from
 `OUTLINE_URL=http://outline:3000` instead. See
-[images.md](images.md#outline-behind-an-internal-address). No `imageHosts` is
+[Images](images.md#outline-behind-an-internal-address). No `imageHosts` is
 needed.
 
 ### Secrets
@@ -138,7 +138,7 @@ Outline and both tracked:
    download, check the `%PDF` header and the text (the opening sentence, the
    name of the example Configuration, a table cell). It also fetches the export
    of the captioned Document through the API and checks that the captions are
-   the alt text (the verification recorded in [images.md](images.md)).
+   the alt text (the verification recorded in [Images](images.md)).
 2. **No Binding, no button.** Open *Garden notes*, wait for the status answer
    (`available: false`) and check that the button is absent.
 

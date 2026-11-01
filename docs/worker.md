@@ -2,7 +2,7 @@
 
 The Worker turns one job into one PDF. The same pipeline runs behind the
 `outprint render` command and behind the Worker's HTTP endpoint
-(`outprint worker`, see [architecture.md](architecture.md)). This page
+(`outprint worker`, see [Architecture](architecture.md)). This page
 describes what it does, how it is locked down, what it logs and where it is
 limited. The reasons for the two-role split are in
 [ADR 0001](adr/0001-split-renderer-into-gateway-and-worker.md).
@@ -167,7 +167,7 @@ in production, so a write through a link fails.
 
 The `neutral` fonts show the consequence. The luaotfload font name database
 cannot be built under paranoid reads, so a Template must load its fonts by
-file (`Path=./fonts/`, see [packages.md](packages.md)). The default Latin
+file (`Path=./fonts/`, see [Packages](packages.md)). The default Latin
 Modern fonts that LaTeX loads for code and math are found by file name and
 work.
 
@@ -295,10 +295,10 @@ a deployment.
 - Text inside SVGs, Document images and logos alike, uses the fonts of the
   image; a missing font is substituted silently (`sans-serif` and unknown
   names become a TeX Gyre font). Export text as paths. See
-  [images.md](images.md#svg).
+  [Images](images.md#svg).
 - The Worker does not repeat the Gateway's SVG pre-check. It relies on
   librsvg's own limits, the limits above and the container; the attack corpus
-  is run against exactly this (see [security.md](security.md)).
+  is run against exactly this (see [Security](security.md)).
 - Glyphs missing from a Template's fonts are dropped by LuaLaTeX with only a
   log warning, which the Worker does not turn into an error.
 
@@ -311,7 +311,7 @@ a deployment.
   hostile TeX, timeout, run count, debug log, cache); security layer 1.
 - Security layers 2 and 3 (`make test-sandbox`): the Worker image under the
   flags of the shipped Compose file, with hostile actions and resource bombs.
-  See [security.md](security.md).
+  See [Security](security.md).
 - Security layer 1 (`make test-security-layer1`): a corpus of hostile Documents,
   metadata values included, rendered through the real binary. Each payload
   class has one outcome, `literal`, `dropped` or `rejected`. A random canary

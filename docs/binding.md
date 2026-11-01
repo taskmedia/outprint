@@ -75,5 +75,5 @@ All problems are reported at once. A Collection the user cannot read answers
 
 The Document view shows the button where the Collection has a block (valid or
 not) or the installation has a default Binding, see the status endpoint in
-[architecture.md](architecture.md#status-endpoint). A block with a typo keeps
+[Architecture](architecture.md#status-endpoint). A block with a typo keeps
 the button visible so that the author sees the error on click.

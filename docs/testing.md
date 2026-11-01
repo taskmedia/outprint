@@ -6,15 +6,15 @@
 |------|---------|-------|--------|
 | 1 | `make test` | Go | Unit tests, the Gateway HTTP API with fakes, the Compose baseline check, the Gateway half of the SVG attack corpus |
 | 2 | `make test-golden` | Docker | PDF goldens, the Worker tests and security layer 1 inside the pinned outprint image |
-| 2 | `make test-sandbox` | Docker | Security layers 2 and 3: the Worker under the shipped container flags (see [security.md](security.md)) |
-| 3 | `make e2e` | Docker, Go, Node | Browser end-to-end tests (Playwright) against the seeded dev stack, see [development.md](development.md) |
+| 2 | `make test-sandbox` | Docker | Security layers 2 and 3: the Worker under the shipped container flags (see [Security](security.md)) |
+| 3 | `make e2e` | Docker, Go, Node | Browser end-to-end tests (Playwright) against the seeded dev stack, see [Development stack and end-to-end tests](development.md) |
 
 `make test-security` runs layers 1 to 3. No test of tier 2 skips: a missing
 tool, image or Docker daemon fails the run.
 
 ## Tier 3 in CI
 
-`.github/workflows/e2e.yml` runs tier 3 on pushes to `main`, on demand and on pull requests that touch the injector, the Outline client, the Gateway, the seed, `deploy/`, `web/` or `e2e/`. A weekly, non-blocking run (`e2e-latest-outline.yml`) uses the newest stable Outline release and opens an issue when it fails. Both upload the Playwright report, traces and compose logs on failure. Details: [development.md](development.md#ci).
+`.github/workflows/e2e.yml` runs tier 3 on pushes to `main`, on demand and on pull requests that touch the injector, the Outline client, the Gateway, the seed, `deploy/`, `web/` or `e2e/`. A weekly, non-blocking run (`e2e-latest-outline.yml`) uses the newest stable Outline release and opens an issue when it fails. Both upload the Playwright report, traces and compose logs on failure. Details: [Development stack and end-to-end tests](development.md#ci).
 
 ## CI
 
