@@ -1,11 +1,15 @@
 name: docs
 
+# The docs gates run on every pull request, unfiltered: the pages depend on the
+# source (error codes, Template packages), so a Go change can break them, and a
+# check that is skipped by a path filter cannot be a required check.
+#
+# Required checks (branch protection of main, set by hand):
+#   - docs consistency
+#   - docs build (strict)
+# The deploy runs only on pushes to main that touch the docs, and after both.
 on:
   pull_request:
-    paths:
-      - "docs/**"
-      - "website/**"
-      - ".github/workflows/docs.yml"
   push:
     branches: [main]
     paths:
@@ -16,12 +20,53 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  build:
-    name: build (strict)
+  consistency:
+    name: docs consistency
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+
+      - uses: go-task/setup-task@v2
+        with:
+          version: 3.54.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Test the docs gates
+        run: task docs:test-gates
+
+      # The generated Template pages match the packages.
+      - name: Catalogue is up to date
+        run: task docs:catalogue-check
+
+      # One entry per error code of the source in the error catalogue.
+      - name: Error catalogue matches the source
+        run: task docs:errors-check
+
+      # Builds outprint, then runs it on every marked YAML example.
+      - name: YAML examples validate
+        run: task docs:examples-check
+
+  build:
+    name: docs build (strict)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: go-task/setup-task@v2
+        with:
+          version: 3.54.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
@@ -38,6 +83,20 @@ jobs:
         working-directory: website
         run: npm run build
 
+      # The private denylist is an Actions secret. Secrets are not available to
+      # fork pull requests, so those runs only perform the generic checks.
+      - name: Sanitize the built site (generic and private denylist)
+        env:
+          PRIVATE_DENYLIST: ${{ secrets.SANITIZE_DENYLIST }}
+          IS_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          if [ "$IS_FORK" != "true" ] && [ -n "$PRIVATE_DENYLIST" ]; then
+            install -m 600 /dev/null "$RUNNER_TEMP/denylist.txt"
+            printf '%s\n' "$PRIVATE_DENYLIST" > "$RUNNER_TEMP/denylist.txt"
+            export SANITIZE_DENYLIST="$RUNNER_TEMP/denylist.txt"
+          fi
+          task docs:sanitize-site
+
       - uses: actions/configure-pages@v5
         if: github.event_name == 'push'
 
@@ -49,7 +108,7 @@ jobs:
   deploy:
     name: deploy to GitHub Pages
     if: github.event_name == 'push'
-    needs: build
+    needs: [consistency, build]
     runs-on: ubuntu-latest
     permissions:
       contents: read

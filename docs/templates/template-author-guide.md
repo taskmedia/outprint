@@ -55,6 +55,7 @@ resolving symlinks), and Git LFS pointer stubs are rejected.
 
 ## manifest.yaml
 
+<!-- validate: skip reduced manifest fragment, not a complete Template package -->
 ```yaml
 manifest_version: 1          # must be 1
 
@@ -200,6 +201,7 @@ a Standard Field that `neutral` does not declare.
 
 ## Configuration packages
 
+<!-- validate: configuration template=neutral configuration=example -->
 ```yaml
 manifest_version: 1
 
@@ -314,6 +316,7 @@ with `validate` and `render` against the image of this repository.
    `validate` warns that they are never used), then declare the new field and
    list it in the letter:
 
+   <!-- validate: skip fragment with ellipses, edits the derived mine Template of the worked example -->
    ```yaml
    fields:
      # ...existing fields...
@@ -356,6 +359,7 @@ with `validate` and `render` against the image of this repository.
 5. Render a Document that sets it. The Metadata Block of a Document is a
    `yaml` block at its start ([Metadata Block reference](metadata-reference.md)):
 
+   <!-- validate: skip Metadata Block for the derived mine Template of the worked example, which is not shipped -->
    ````markdown
    ```yaml
    subject: Opening hours

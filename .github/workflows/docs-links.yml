@@ -1,0 +1,91 @@
+name: docs external links
+
+# Weekly, and non-blocking: checks the external links of the built docs site.
+# Findings go into ONE issue ("docs: broken external links"), opened or updated
+# in place and closed when the links are fine again. The run never fails a pull
+# request and is not a required check; the internal links are already checked
+# by the strict build of the `docs` workflow.
+on:
+  schedule:
+    - cron: "43 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  links:
+    name: check external links
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: build the site
+        working-directory: website
+        run: |
+          npm ci
+          npm run build
+
+      # Remote links only (http, https). Retries and a long timeout keep flaky
+      # hosts quiet; 429 means "alive but busy". Local and reserved names are
+      # excluded.
+      - name: check
+        id: lychee
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          fail: false
+          output: lychee-report.md
+          format: markdown
+          args: >-
+            --no-progress
+            --scheme http --scheme https
+            --max-retries 3
+            --retry-wait-time 10
+            --timeout 30
+            --max-concurrency 8
+            --accept 200..=299,429
+            --exclude 'localhost'
+            --exclude '^https://outprint\.task\.media'
+            --exclude '127\.0\.0\.1'
+            --exclude '(^|\.)example\.invalid'
+            --exclude '^https?://example\.(com|org|net)'
+            'website/build/**/*.html'
+
+      - name: open, update or close the issue
+        env:
+          LYCHEE_EXIT: ${{ steps.lychee.outputs.exit_code }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title="docs: broken external links"
+          existing="$(gh issue list --state open --search "\"${title}\" in:title" --json number --jq '.[0].number // empty')"
+          if [ "${LYCHEE_EXIT}" = "0" ]; then
+            if [ -n "${existing}" ]; then
+              gh issue close "${existing}" --comment "All external links of the docs site are fine again. Run: ${RUN_URL}"
+            fi
+            exit 0
+          fi
+          {
+            echo "The weekly check of the external links in the docs site found problems."
+            echo
+            echo "Run: ${RUN_URL}"
+            echo
+            echo "This issue is rewritten by the next run and closed when the links are fine. Some failures are the other site's outage; re-run the workflow before changing a link."
+            echo
+            cat lychee-report.md
+          } > issue-body.md
+          if [ -n "${existing}" ]; then
+            gh issue edit "${existing}" --body-file issue-body.md
+          else
+            gh issue create --title "${title}" --body-file issue-body.md
+          fi

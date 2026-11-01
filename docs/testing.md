@@ -37,6 +37,38 @@ in the branch protection rule of `main`. The repository settings are not
 changed by the code or the workflow. The job name is the check name; keep it
 stable.
 
+### Docs gates
+
+`.github/workflows/docs.yml` runs on every pull request, with no path filter:
+the pages depend on the source (error codes, Template packages), so a Go change
+can break them, and a skipped check cannot be required. Two jobs run in parallel:
+
+| Job (check name) | Runs |
+|------------------|------|
+| **`docs consistency`** | `task docs:test-gates` (the gates' own tests), `docs:catalogue-check`, `docs:errors-check`, `docs:examples-check` |
+| **`docs build (strict)`** | `npm ci`, the strict build (broken links, anchors, Markdown links fail), then `docs:sanitize-site` over `website/build` |
+
+The maintainer must mark both as required status checks of `main`. A push to
+`main` that touches `docs/`, `website/` or the workflow also deploys to GitHub
+Pages, after both jobs.
+
+**YAML examples.** Every fenced `yaml` block under `docs/` (the generated
+catalogue excepted) has a marker line directly before it, an HTML comment that
+neither GitHub nor the site shows: `<!-- validate: MODE ... -->` runs the
+example through the real code, `<!-- validate: skip REASON -->` skips it on
+purpose. A block with neither fails `task docs:examples-check`. The modes and
+how to add one are in [website/README.md](../website/README.md#yaml-examples).
+The gate's tests are `scripts/docs_validate_examples_test.sh`.
+
+**Site scan.** `task docs:sanitize-site` applies the generic and the private
+denylist to the built site (see [sanitize.md](sanitize.md#the-built-site)). The
+test is `scripts/sanitize_site_test.sh`.
+
+**External links.** `.github/workflows/docs-links.yml` runs weekly and on
+demand (lychee over the built site). It is not required and never blocks a pull
+request: findings go into one issue, `docs: broken external links`, which the
+next run rewrites and closes when the links are fine.
+
 ### Cadence decision
 
 The specification asks for layers 2 and 3 on every push while the whole

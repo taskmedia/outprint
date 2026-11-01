@@ -24,6 +24,7 @@ Do not write the block from scratch. Copy one.
 The first Template that ships with Outprint is
 [neutral](../templates/catalogue/neutral.md). Its letter block looks like this:
 
+<!-- validate: metadata template=neutral configuration=example -->
 ````markdown
 ```yaml
 type: letter
@@ -105,6 +106,7 @@ text is expected is a mistake, and Outprint tells you.
 A colon followed by a space has a special meaning in the block. If your text
 contains one, put the whole value in quotation marks:
 
+<!-- validate: metadata template=neutral configuration=example -->
 ````markdown
 ```yaml
 type: letter

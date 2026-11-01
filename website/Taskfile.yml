@@ -65,3 +65,34 @@ tasks:
     dir: '{{.ROOT_DIR}}'
     cmds:
       - ./scripts/docs-error-codes.sh check
+
+  examples-check:
+    desc: Fail when a YAML example in docs/ does not validate or has no marker
+    summary: |
+      Every fenced yaml block under docs/ (the generated catalogue excepted)
+      must be preceded by `<!-- validate: MODE ... -->` or
+      `<!-- validate: skip REASON -->`. Marked blocks are checked by the
+      built `outprint validate` (package modes) or by the product's own
+      resolvers (Metadata Block, Binding). Modes: metadata, binding,
+      configuration, service-config, service-fragment. See website/README.md.
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - go build -o bin/outprint-docs ./cmd/outprint
+      - go run ./scripts/docs-validate-examples -bin bin/outprint-docs
+
+  sanitize-site:
+    desc: Scan the built site (website/build) with the generic and private denylists
+    summary: |
+      Run `task docs:build` first. Scans file contents (HTML, search index)
+      and file names. Set SANITIZE_DENYLIST to the private list; findings name
+      the file, never the pattern. See docs/sanitize.md.
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - ./scripts/sanitize-site.sh website/build
+
+  test-gates:
+    desc: Test the docs gates themselves (examples check, site scan)
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - ./scripts/docs_validate_examples_test.sh
+      - ./scripts/sanitize_site_test.sh

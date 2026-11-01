@@ -32,6 +32,29 @@ The `sanitize` workflow runs on every push and pull request. The private
 denylist comes from the `SANITIZE_DENYLIST` Actions secret; pull requests from
 forks run only the generic checks.
 
+The `docs` workflow also scans the built site (next section), with the same
+secret and the same fork rule.
+
+## The built site
+
+`task docs:sanitize-site` (`scripts/sanitize-site.sh [DIR]`, default
+`website/build`) runs the generic and the private denylist over the generated
+site: the content of every text file (HTML, the search index, scripts) and the
+name of every file and directory (copied images included), plus the forbidden
+paths. The source pages are already covered by `task sanitize`; this catches
+what only the build produces. Findings name the file and the list, never the
+pattern; an empty or missing directory exits 2, so a broken build step never
+looks clean.
+
+```sh
+task docs:build
+SANITIZE_DENYLIST=~/private/denylist.txt task docs:sanitize-site
+```
+
+In CI it runs in the job **`docs build (strict)`** right after the build. Fork
+pull requests have no secret and run the generic list only; the step prints a
+note. Its test is `scripts/sanitize_site_test.sh` (`task docs:test-gates`).
+
 ## Pre-publish audit
 
 `task audit` (`scripts/prepublish-audit.sh`) is the last check before the

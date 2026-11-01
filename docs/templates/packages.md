@@ -22,6 +22,7 @@ does not care which.
 The service configuration names the roots and the allow-list of Bindings, the
 only Template and Configuration pairings a Collection may select.
 
+<!-- validate: service-config -->
 ```yaml
 templatesRoot: /opt/outprint/templates
 configurationsRoot: /opt/outprint/configurations
@@ -65,6 +66,7 @@ its fonts with the fontspec option `Path=./fonts/`:
 
 ### manifest.yaml
 
+<!-- validate: skip reduced manifest fragment, not a complete Template package -->
 ```yaml
 manifest_version: 1
 
@@ -213,6 +215,7 @@ configurations/example/
   logo.svg
 ```
 
+<!-- validate: configuration template=neutral configuration=example -->
 ```yaml
 manifest_version: 1
 
