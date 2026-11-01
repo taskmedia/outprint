@@ -6,12 +6,17 @@ describes the roles, the contract between them, the request flow and how
 errors are mapped.
 
 ```
-browser --cookie--> Gateway --cookie--> Outline
-                       |
-                       | job bundle (no cookie, no URL, no secret)
-                       v
-                    Worker (no network, no secrets) --> PDF
+browser --> injector --> Outline          (adds the button script to HTML pages)
+   |           |
+   |           +-- /pdf/* --cookie--> Gateway --cookie--> Outline
+   |                                     |
+   |                                     | job bundle (no cookie, no URL, no secret)
+   |                                     v
+   |                                  Worker (no network, no secrets) --> PDF
 ```
+
+A third deployable, the **injector**, is a separate slim image
+([injector.md](injector.md)). It is not a role of the renderer image.
 
 ## Roles
 
@@ -31,7 +36,10 @@ them to render.
 is a GET with the id in the path so that the "Download PDF" button can be a
 plain link: the browser sends the user's cookie by itself and downloads the
 file. The endpoint changes nothing on the server, and the response is
-`Cache-Control: no-store`. `GET /healthz` answers 200.
+`Cache-Control: no-store`. `GET /healthz` answers 200. `GET /button.js` serves the button script (embedded
+from `web/button.js`; `text/javascript`, `nosniff`, `max-age=300`, no cookie
+needed). The Gateway sends no CORS headers: it is reached through the injector's
+`/pdf` prefix, on the origin of Outline ([injector.md](injector.md)).
 
 `GET /status/{documentId}` tells the button script whether to show the button
 (see [Status endpoint](#status-endpoint)). The Template and Configuration come
@@ -124,8 +132,9 @@ are named in one place, `internal/limits`; see [security.md](security.md).
 ## Request flow
 
 1. The browser calls `GET /render/{documentId}` with the user's cookie.
-2. The Gateway checks the id (`[A-Za-z0-9_-]`, at most 100 characters) and that
-   a cookie is present.
+2. The Gateway checks the id (`[A-Za-z0-9_-]`, at most 100 characters; an
+   Outline UUID or the urlId at the end of a `/doc/<title>-<urlId>` path) and
+   that a cookie is present.
 3. It calls Outline `documents.info` with that cookie and no other credential.
    Outline's own permissions decide whether the user may read the Document.
 4. It selects the Binding. It reads the overview of the Document's Collection

@@ -18,6 +18,11 @@ jobs:
         with:
           go-version-file: go.mod
 
+      # The button script tests run on Node's built-in test runner.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - run: make test
 
       - name: skip guard
@@ -25,6 +30,39 @@ jobs:
 
       - name: compose file is valid
         run: docker compose -f deploy/compose/compose.yaml config --quiet
+
+  injector:
+    name: injector image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: injector unit tests
+        run: go test -race -count=1 -cover ./internal/inject/...
+
+      - name: build the slim image
+        run: make image-injector
+
+      # The image has no shell, so the check runs from the outside.
+      - name: image runs as non-root, has no TeX, and answers
+        run: |
+          set -euo pipefail
+          test "$(docker image inspect -f '{{.Config.User}}' outline-latex-pdf-injector)" = "65532:65532"
+          if docker run --rm --entrypoint /usr/bin/lualatex outline-latex-pdf-injector 2>/dev/null; then
+            echo "injector image contains a TeX toolchain" >&2; exit 1
+          fi
+          id=$(docker run -d -p 8090:8090 -e INJECTOR_UPSTREAM=http://outline.example.invalid:3000 outline-latex-pdf-injector)
+          trap 'docker rm -f "$id" >/dev/null' EXIT
+          for _ in $(seq 1 20); do
+            curl -fsS http://127.0.0.1:8090/_injector/healthz && exit 0
+            sleep 0.5
+          done
+          docker logs "$id" >&2
+          exit 1
 
   golden:
     name: goldens (tier 2) and security layer 1

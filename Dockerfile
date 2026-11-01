@@ -4,7 +4,9 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY cmd ./cmd
 COPY internal ./internal
+COPY web ./web
 RUN CGO_ENABLED=0 go build -trimpath -o /out/renderer ./cmd/renderer \
+ && CGO_ENABLED=0 go build -trimpath -o /out/injector ./cmd/injector \
  && CGO_ENABLED=0 go test -c -tags golden -o /out/golden.test ./internal/golden \
  && CGO_ENABLED=0 go test -c -tags golden -o /out/worker.test ./internal/worker \
  && CGO_ENABLED=0 go build -trimpath -o /out/sandbox-probe ./cmd/sandbox-probe
@@ -67,6 +69,15 @@ RUN apt-get update \
 COPY --from=build /out/sandbox-probe /usr/local/bin/sandbox-probe
 COPY --from=build /out/sandbox-probe /usr/local/bin/lualatex
 USER render
+
+# The injector image: a reverse proxy in front of Outline. It carries no TeX
+# toolchain, no shell and no package manager, only the one static binary.
+# Build it with --target injector (make image-injector).
+FROM gcr.io/distroless/static-debian13:nonroot AS injector
+COPY --from=build /out/injector /injector
+USER 65532:65532
+EXPOSE 8090
+ENTRYPOINT ["/injector"]
 
 # The release image is the default target.
 FROM renderer

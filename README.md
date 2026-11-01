@@ -28,7 +28,8 @@ Work in progress. Tracked in the project issues.
 
 ```sh
 make build           # build bin/renderer
-make test            # tier 1: Go unit tests, no external tools
+make test            # tier 1: Go unit tests, and the button script tests when Node is installed
+make image-injector  # build the slim injector image
 make image           # build the renderer image
 make test-golden     # tier 2: PDF goldens, Worker and security tests, in the pinned image
 make test-security   # security layers 1-3: hostile payloads, sandbox, resource bombs
@@ -72,6 +73,8 @@ See [docs/architecture.md](docs/architecture.md) for the Gateway and Worker
 roles, the job bundle, the request flow and the error mapping, and
 [docs/deploy-compose.md](docs/deploy-compose.md) for running both with Docker
 Compose and the Worker security baseline.
+See [docs/injector.md](docs/injector.md) for the injector, the download button,
+compression and CSP handling, routing and the security notes.
 See [docs/security.md](docs/security.md) for the security layers, what each
 proves, the limits and how to run the suite, and
 [docs/testing.md](docs/testing.md) for the test tiers and the CI schedule.
