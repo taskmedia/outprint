@@ -199,7 +199,8 @@ by whether the editor is editable:
 
 With `collapse` an author opens the block with one click on the toggle and folds
 it again with a second. In Outline the toggle is called **PDF details**
-(**PDF-Details** in German); the docs call the block itself the metadata block. The state is not remembered: each document starts folded.
+(**PDF-Details** in German); the docs call the block itself the metadata block.
+The state is not remembered: each document starts folded.
 
 The operator decides with `OUTPRINT_BUTTON_METADATA_BLOCK`. For `hide` and `show`
 the injector adds `data-metadata-block="hide"` or `"show"` to the script tag; the

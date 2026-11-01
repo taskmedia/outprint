@@ -77,6 +77,22 @@ Three rules keep it working:
 A document without a block still works, as long as the Template does not need
 any detail that has no default.
 
+## Where did my block go?
+
+In a document that has a Template, Outline can keep the block out of the way.
+Your block is still there, and Outprint still reads it.
+
+- If you can edit the document, the block is folded behind a line above the
+  document called **PDF details** (**PDF-Details** in the German interface). Click
+  it to open the block and click it again to fold it. Each document starts
+  folded.
+- If you can only read the document, you do not see the block at all.
+
+Your Outprint admin can change this, so that the block is always shown to you
+([Injector and PDF action](../deploy/injector.md#hiding-the-metadata-block)).
+Two places still show the block: a link that you share from Outline, and
+Outline's own export and search.
+
 ## Lines that start with `#`
 
 A line that starts with `#` is a comment. Outprint ignores it. The ready-made
