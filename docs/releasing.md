@@ -23,6 +23,11 @@ For the maintainer. Repo-only: this page is not part of the published docs.
    Tags: `X.Y.Z`, `X.Y` and `latest`. A pre-release (a version with a `-`
    suffix) gets `X.Y.Z` only and never moves `X.Y` or `latest`.
 
+5. For a **new minor release** (`X.Y.0`) the `docs-snapshot` job calls
+   `.github/workflows/docs-snapshot.yml`, which opens a pull request
+   **`docs: snapshot X.Y`** (see "Docs snapshot" below). Patch releases and
+   pre-releases do not get one.
+
 Publishing lives in the same workflow on purpose: a tag or release created
 with the default `GITHUB_TOKEN` does not trigger other workflows, so a separate
 `on: push: tags` workflow would never run.
@@ -51,6 +56,78 @@ before merging the setup, if the changelog should start from a later commit.
 `0.1.0` again. After the v0.1.0 release has been published, delete the
 `"release-as": "0.1.0"` line from `release-please-config.json` in a
 `chore:` pull request.
+
+## Docs snapshot
+
+The site shows one docs version per **minor** release, plus `dev` (the docs on
+`main`). Old versions are frozen copies in the repository
+(`website/versioned_docs/`, `website/versioned_sidebars/`, `website/versions.json`);
+there is no backport process. Background: `website/README.md`, "Versions".
+
+### What happens at a minor release
+
+The `docs-snapshot` job of the release workflow runs when release-please created
+a release whose patch number is 0 and whose version has no `-` suffix (so
+`0.2.0` yes; `0.2.1` and `0.2.0-rc.1` no; the final `0.2.0` after an `-rc` does).
+It does not depend on the image jobs: a failing image build neither stops it nor
+is stopped by it. The called workflow
+
+1. checks out the tag `vX.Y.0` and runs `scripts/docs-snapshot.sh X.Y` there, so
+   the snapshot is the docs as released (and the tag's own script and site config),
+2. checks out `main`, adds only the snapshot folder, its sidebar file and `X.Y` in
+   `versions.json` on the branch `docs/snapshot-X.Y`,
+3. opens the pull request `docs: snapshot X.Y`, using the secret `PAT` (so the
+   required checks run) or `GITHUB_TOKEN` with a warning in the run log. With
+   `GITHUB_TOKEN` the checks do not start: close and reopen the pull request.
+
+If the branch or pull request already exists, the branch is replaced with a
+fresh snapshot and the pull request is updated. If `main` already has the
+snapshot, the run does nothing.
+
+What you do: merge the pull request when the checks are green. The diff is the
+released docs; there is nothing to review in detail.
+
+### What changes on the site when the first snapshot (0.1) lands
+
+- The site root switches from the current docs to the 0.1 docs.
+- The current docs (`main`) move to `/dev/`, with an "unreleased" banner.
+- The version dropdown appears in the navbar.
+- The redirects follow by themselves (`docusaurus.config.js` reads
+  `versions.json`): `/0.1/...` now redirects to `/...` (the newest release lives
+  at the root), `/dev/...` serves the real current docs. Links the product
+  prints (`/<minor>/...`, `/dev/...`) keep working. Each later minor moves the
+  previous one from the root to its own `/X.Y/` folder.
+
+### When it fails
+
+Read the failed run of the release workflow (job `docs snapshot`). Then either
+re-run the failed job, or start it by hand: Actions > **docs snapshot** > Run
+workflow > `version` = `X.Y` (or `gh workflow run docs-snapshot.yml -f version=X.Y`).
+It always builds from the tag `vX.Y.0`, so running it later gives the same
+content. Common causes: the tag has no `scripts/docs-snapshot.sh` (a release
+from before the script existed: create the snapshot locally from `main` with
+`task docs:snapshot VERSION=X.Y` on a clean tree after `npm ci` in `website/`,
+and open the pull request yourself), an expired `PAT`, or "Allow GitHub
+Actions to create and approve pull requests" switched off.
+
+### A patch release needs a docs correction
+
+Patch releases get no snapshot. Edit `website/versioned_docs/version-X.Y/` by
+hand in a normal pull request (and `docs/` as well when `main` has the same
+mistake). The snapshot is a frozen copy, not regenerated.
+
+### Locally
+
+```sh
+cd website && npm ci && cd ..
+task docs:snapshot VERSION=0.1    # clean tree required
+task docs:test-snapshot           # throwaway copy: lean, strict build, site scan
+```
+
+What cannot be tested before the first release: the `workflow_call` chain from
+`release-please.yml`, the `PAT` push and the pull request creation. Dry run them
+with a manual **docs snapshot** run once a tag `vX.Y.0` exists; the first real
+run is the v0.1.0 release.
 
 ## Immutable releases
 
