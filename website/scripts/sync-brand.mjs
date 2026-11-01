@@ -12,6 +12,8 @@ const out = join(dirname(fileURLToPath(import.meta.url)), '..', 'static', 'brand
 const files = [
   'svg/outprint-lockup.svg',
   'svg/outprint-lockup-dark.svg',
+  'svg/outprint-banner.svg',
+  'svg/outprint-banner-dark.svg',
   'favicon/favicon.svg',
   'favicon/favicon.ico',
   'favicon/apple-touch-icon.png',
