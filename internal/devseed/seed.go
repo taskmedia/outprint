@@ -48,6 +48,9 @@ type Result struct {
 	Password string `json:"password"`
 	Bound    Item   `json:"bound"`
 	Unbound  Item   `json:"unbound"`
+	// Invalid is a Document in the Bound Collection whose Metadata Block has
+	// mistakes; downloading it shows the author an error.
+	Invalid Item `json:"invalid"`
 	// Captions are the captions of the figures in the Unbound Document.
 	Captions []string `json:"captions"`
 }
@@ -90,7 +93,21 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 	}); err != nil {
 		return Result{}, err
 	}
+	if res.Invalid, err = s.ensureInvalid(ctx, res.Bound); err != nil {
+		return Result{}, err
+	}
 	return res, nil
+}
+
+// ensureInvalid creates the Document with the faulty Metadata Block in the
+// Bound Collection, if it is missing. It has no images.
+func (s *seeder) ensureInvalid(ctx context.Context, bound Item) (Item, error) {
+	doc, err := s.ensureDocument(ctx, bound.CollectionID, InvalidDocumentTitle, invalidBody())
+	if err != nil {
+		return Item{}, err
+	}
+	return Item{CollectionID: bound.CollectionID, CollectionName: bound.CollectionName,
+		DocumentID: doc.ID, DocumentTitle: doc.Title, DocumentPath: doc.URL}, nil
 }
 
 type seeder struct {
