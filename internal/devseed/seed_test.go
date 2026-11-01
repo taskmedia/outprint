@@ -28,6 +28,8 @@ type fakeStack struct {
 	uploads     []string
 	creates     int
 	viewerRole  string
+	teamAvatar  string
+	userAvatar  string
 }
 
 func newFakeStack(t *testing.T) *fakeStack {
@@ -130,6 +132,17 @@ func (f *fakeStack) serveAPI(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	case "auth.info":
+		reply(map[string]any{
+			"user": map[string]any{"id": "u-sam", "avatarUrl": f.userAvatar},
+			"team": map[string]any{"avatarUrl": f.teamAvatar},
+		})
+	case "teams.update":
+		f.teamAvatar = in["avatarUrl"].(string)
+		reply(map[string]any{})
+	case "users.update":
+		f.userAvatar = in["avatarUrl"].(string)
+		reply(map[string]any{})
 	case "users.list":
 		reply([]map[string]any{{"id": "u-viewer", "email": DefaultViewerEmail, "role": "member"}})
 	case "users.update_role":
@@ -298,5 +311,13 @@ func TestSeedMakesASecondUserAViewer(t *testing.T) {
 	}
 	if res.Viewer.Email != DefaultViewerEmail || res.Viewer.Password != DefaultPassword {
 		t.Errorf("viewer = %+v", res.Viewer)
+	}
+}
+
+func TestSeedGivesTheWorkspaceAndTheUserAnAvatar(t *testing.T) {
+	f := newFakeStack(t)
+	runSeed(t, f)
+	if f.teamAvatar == "" || f.userAvatar == "" {
+		t.Errorf("avatars: workspace %q, user %q", f.teamAvatar, f.userAvatar)
 	}
 }

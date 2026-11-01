@@ -87,14 +87,26 @@ type Attachment struct {
 // flow of the browser: attachments.create, then a multipart post to the
 // upload address it names.
 func (c *Client) Upload(ctx context.Context, documentID, name, contentType string, content []byte) (Attachment, error) {
+	return c.upload(ctx, map[string]any{"documentId": documentID}, name, contentType, content)
+}
+
+// UploadAvatar stores an image with the "avatar" preset, which belongs to no
+// document; teams.update and users.update take its URL as avatarUrl.
+func (c *Client) UploadAvatar(ctx context.Context, name string, content []byte) (Attachment, error) {
+	return c.upload(ctx, map[string]any{"preset": "avatar"}, name, "image/png", content)
+}
+
+func (c *Client) upload(ctx context.Context, extra map[string]any, name, contentType string, content []byte) (Attachment, error) {
 	var created struct {
 		UploadURL  string         `json:"uploadUrl"`
 		Form       map[string]any `json:"form"`
 		Attachment Attachment     `json:"attachment"`
 	}
-	err := c.Call(ctx, "attachments.create", map[string]any{
-		"documentId": documentID, "name": name, "contentType": contentType, "size": len(content),
-	}, &created)
+	params := map[string]any{"name": name, "contentType": contentType, "size": len(content)}
+	for k, v := range extra {
+		params[k] = v
+	}
+	err := c.Call(ctx, "attachments.create", params, &created)
 	if err != nil {
 		return Attachment{}, err
 	}

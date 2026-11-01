@@ -107,6 +107,9 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 	if res.Invalid, err = s.ensureInvalid(ctx, res.Bound); err != nil {
 		return Result{}, err
 	}
+	if err := s.ensureAvatars(ctx); err != nil {
+		return Result{}, err
+	}
 	if err := s.ensureViewer(ctx, cfg.BaseURL, DefaultViewerEmail, cfg.Password); err != nil {
 		return Result{}, err
 	}
