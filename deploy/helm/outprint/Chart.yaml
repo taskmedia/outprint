@@ -1,9 +1,0 @@
-apiVersion: v2
-name: outprint
-description: Outprint for Outline - Gateway, network-less Worker and injector
-type: application
-version: 0.1.0 # x-release-please-version
-appVersion: "0.1.0" # x-release-please-version
-home: https://github.com/taskmedia/outprint
-sources:
-  - https://github.com/taskmedia/outprint
