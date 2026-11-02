@@ -13,8 +13,8 @@ do not repeat it.
 1. **A self-hosted Outline.** Hosted Outline (the cloud service of the Outline
    company) cannot be used: you cannot control the address it is served on. The
    tested versions are listed in [Compatibility](operate/compatibility.md).
-2. **Docker and Docker Compose.** Other ways are
-   [planned](platforms/helm-kubernetes.md).
+2. **Docker and Docker Compose,** or a Kubernetes cluster with Helm
+   ([Helm and Kubernetes](platforms/helm-kubernetes.md)).
 3. **The `outprint` image**, for the Gateway and the Worker. The Compose file
    builds it from the repository checkout (`docker compose ... up --build`).
    The release workflow is meant to publish `ghcr.io/taskmedia/outprint`. Check
