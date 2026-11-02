@@ -248,7 +248,7 @@ the strict build in `docs.yml` ("docs build (strict)", a required check) fails
 on a broken one.
 
 `.github/workflows/docs-links.yml` checks the external links of the built site
-with lychee, weekly (Monday) and on demand. It is deliberately not a required
+with lychee, monthly (on the 1st) and on demand. It is deliberately not a required
 check and never fails a pull request: findings go into one issue, "docs: broken
 external links", which the next run rewrites and closes once the links are
 fine. Decision (#92): a third-party host that is down or rate-limiting must not
