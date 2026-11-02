@@ -6,8 +6,8 @@ sidebar_position: 4
 
 How the Gateway checks, converts and places images, and how SVG is handled.
 Authors find the short version in [Images and logos](../write/images-and-logos.md);
-operators find the settings in [Image fetching](../deploy/image-fetching.md).
-The limits are listed in [Limits and admission control](../deploy/limits-and-admission.md).
+operators find the settings in [Image fetching](../deploy/components/image-fetching.md).
+The limits are listed in [Limits and admission control](../deploy/components/limits-and-admission.md).
 
 ## SVG
 
@@ -120,7 +120,7 @@ directory of the input file (no `..`, no links out of it).
   names Outline by its public URL (the `URL` setting). When the Gateway reaches
   Outline at an internal address, that host is not the configured origin and
   would be refused, so set `OUTLINE_PUBLIC_URL` on the Gateway; see
-  [Image fetching](../deploy/image-fetching.md#outline-behind-an-internal-address).
+  [Image fetching](../deploy/components/image-fetching.md#outline-behind-an-internal-address).
 - SVG: the Gateway pre-check is in `internal/images/svg*.go`; the conversion is
   the first phase of the Worker (`internal/worker/svg.go`). The attack corpus
   that backs the table above is `internal/svgcorpus` (see

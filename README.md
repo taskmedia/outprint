@@ -109,10 +109,10 @@ the TeX deny-list, the drift guard and `validate`) and
 [Choose a Template and Configuration](docs/configure/choose-a-template.md) for the
 `binding:` block of a Collection admin; the [Worker pipeline](docs/internals/worker.md);
 [Architecture](docs/internals/architecture.md); [Deploy: which way fits you](docs/deploy/README.md) and the
-[common base](docs/deploy/common-base.md); [Docker Compose](docs/deploy/docker-compose.md)
-with the Worker security baseline; the [Injector and PDF action](docs/deploy/injector.md);
+[common base](docs/deploy/common-base.md); [Docker Compose](docs/deploy/platforms/docker-compose.md)
+with the Worker security baseline; the [Injector and PDF action](docs/deploy/components/injector.md);
 [Security](docs/internals/security.md) and [Testing](docs/testing.md) for the test tiers
-and the CI schedule; [Limits and admission control](docs/deploy/limits-and-admission.md);
+and the CI schedule; [Limits and admission control](docs/deploy/components/limits-and-admission.md);
 and, for the maintainer, the [Sanitisation gate](docs/sanitize.md) and the
 [Publishing checklist](docs/publishing.md).
 

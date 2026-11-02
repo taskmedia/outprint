@@ -32,6 +32,35 @@ function createRedirects(existingPath) {
   return [`/${rootAlias}${existingPath}`];
 }
 
+// Deploy pages that moved into folders (issue #97). The old address of each
+// page redirects to the new one. Only the current docs moved: a released
+// version keeps the layout it was tagged with, so its pages stay real pages
+// and are not redirected. The current docs live at /dev/ once a release exists,
+// at the root before; in that case /dev/... is also a redirect target the
+// product may link to, so both spellings are covered.
+const movedDeployPages = {
+  'way-menu': 'ways/export-menu',
+  'way-link': 'ways/pdf-by-link',
+  'way-cli': 'ways/command-line',
+  'docker-compose': 'platforms/docker-compose',
+  'helm-kubernetes': 'platforms/helm-kubernetes',
+  podman: 'platforms/podman',
+  injector: 'components/injector',
+  'image-fetching': 'components/image-fetching',
+  'limits-and-admission': 'components/limits-and-admission',
+  'reverse-proxy-recipes': 'components/reverse-proxy-recipes',
+  'security-for-operators': 'operate/security-for-operators',
+  upgrading: 'operate/upgrading',
+  compatibility: 'operate/compatibility',
+};
+const currentDocsPath = hasRelease ? '/dev' : '';
+const movedPageRedirects = Object.entries(movedDeployPages).flatMap(([from, to]) => {
+  const target = `${currentDocsPath}/deploy/${to}/`;
+  const sources = [`${currentDocsPath}/deploy/${from}/`];
+  if (!hasRelease) sources.push(`/dev/deploy/${from}/`);
+  return sources.map((source) => ({from: source, to: target}));
+});
+
 // The site has its own domain (GitHub Pages custom domain, see
 // website/README.md), so it lives at the root.
 const baseUrl = '/';
@@ -131,7 +160,12 @@ const config = {
     ],
   ],
 
-  plugins: [['@docusaurus/plugin-client-redirects', {createRedirects}]],
+  plugins: [
+    [
+      '@docusaurus/plugin-client-redirects',
+      {createRedirects, redirects: movedPageRedirects},
+    ],
+  ],
 
   themes: [
     '@docusaurus/theme-mermaid',
@@ -192,6 +226,18 @@ const config = {
         additionalLanguages: ['bash', 'yaml', 'json', 'latex', 'docker'],
       },
       tableOfContents: {minHeadingLevel: 2, maxHeadingLevel: 3},
+      // Diagrams are drawn at their natural size (16 px text, like the body)
+      // and scroll sideways when they are wider than the column. The default,
+      // useMaxWidth, shrinks the whole canvas to the column, which made the
+      // text 26 to 61 % of its size. The font is the site's, so Mermaid
+      // measures labels with the face that is shown.
+      mermaid: {
+        options: {
+          fontFamily: "Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif",
+          flowchart: {useMaxWidth: false, wrappingWidth: 160},
+          sequence: {useMaxWidth: false, wrap: true, width: 100, actorMargin: 16, mirrorActors: false},
+        },
+      },
     }),
 };
 

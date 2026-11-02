@@ -1,12 +1,12 @@
 ---
-sidebar_position: 12
+sidebar_position: 3
 ---
 
 # Compatibility with Outline
 
 The injector places the PDF action by reading Outline's page, because Outline
 has no extension point for its menus (see
-[Injector and PDF action](injector.md#the-pdf-action)). A new Outline release can
+[Injector and PDF action](../components/injector.md#the-pdf-action)). A new Outline release can
 change that markup. This page says which versions have been checked.
 
 | Outline | Outprint | Status |
@@ -58,4 +58,4 @@ over the pin file:
 OUTLINE_IMAGE=outlinewiki/outline:1.12.0 task dev:down-volumes dev e2e:run
 ```
 
-See [Development stack and end-to-end tests](../internals/development.md).
+See [Development stack and end-to-end tests](../../internals/development.md).

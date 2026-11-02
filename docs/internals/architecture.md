@@ -20,7 +20,7 @@ browser --> injector --> Outline          (adds the button script to HTML pages)
 ```
 
 A third deployable, the **injector**, is a separate slim image
-([Injector and PDF action](../deploy/injector.md)). It is not a role of the outprint image.
+([Injector and PDF action](../deploy/components/injector.md)). It is not a role of the outprint image.
 
 ## Roles
 
@@ -43,7 +43,7 @@ file. The endpoint changes nothing on the server, and the response is
 `Cache-Control: no-store`. `GET /healthz` answers 200. `GET /button.js` serves the button script (embedded
 from `web/button.js`; `text/javascript`, `nosniff`, `max-age=300`, no cookie
 needed). The Gateway sends no CORS headers: it is reached through the injector's
-`/pdf` prefix, on the origin of Outline ([Injector and PDF action](../deploy/injector.md)).
+`/pdf` prefix, on the origin of Outline ([Injector and PDF action](../deploy/components/injector.md)).
 
 `GET /status/{documentId}` tells the button script whether to show the button
 (see [Status endpoint](#status-endpoint)). The Template and Configuration come
@@ -55,13 +55,13 @@ Configuration (environment):
 | Variable | Meaning | Default |
 |----------|---------|---------|
 | `OUTLINE_URL` | base URL of Outline; the only origin the cookie is sent to | required |
-| `OUTLINE_PUBLIC_URL` | Outline's own `URL` setting, when `OUTLINE_URL` is an internal address; a redirect to this origin is fetched from `OUTLINE_URL` ([Image fetching](../deploy/image-fetching.md#outline-behind-an-internal-address)) | none |
+| `OUTLINE_PUBLIC_URL` | Outline's own `URL` setting, when `OUTLINE_URL` is an internal address; a redirect to this origin is fetched from `OUTLINE_URL` ([Image fetching](../deploy/components/image-fetching.md#outline-behind-an-internal-address)) | none |
 | `OUTPRINT_WORKER_URL` | base URL of the Worker | required |
 | `OUTPRINT_WORKER_TOKEN` | optional shared bearer token | none |
 | `OUTPRINT_LISTEN` | listen address | `:8080` |
 | `OUTPRINT_TIMEOUT` | render limit; the Gateway waits 30 s longer for the Worker | `60s` |
 | `OUTPRINT_SERVICE_CONFIG` | service configuration file | |
-| `OUTPRINT_ADMISSION_SLOTS`, `_QUEUE_DEPTH`, `_PER_USER`, `_MAX_WAIT` | override the `admission` keys of the service configuration, see [Limits and admission control](../deploy/limits-and-admission.md) | `1`, `4`, `1`, `60s` |
+| `OUTPRINT_ADMISSION_SLOTS`, `_QUEUE_DEPTH`, `_PER_USER`, `_MAX_WAIT` | override the `admission` keys of the service configuration, see [Limits and admission control](../deploy/components/limits-and-admission.md) | `1`, `4`, `1`, `60s` |
 | `OUTPRINT_LOG_LEVEL` | `debug`, `info`, `warn`, `error` | `info` |
 
 ### Worker
@@ -179,7 +179,7 @@ id, 401 without a cookie or when Outline answers 401, 403 and 404 when the
 user cannot read the Document or its Collection, 500 otherwise. A client must
 treat any non-200 answer as "do not decide" and may keep the button hidden.
 
-Admission control ([Limits and admission control](../deploy/limits-and-admission.md)) sits in `gateway.process`. After the
+Admission control ([Limits and admission control](../deploy/components/limits-and-admission.md)) sits in `gateway.process`. After the
 Binding is selected the Gateway asks Outline for the confirmed user id
 (`auth.info`) and counts the render against that user, before the images are
 fetched; a slot of the global limit is taken right before the Worker call. Both
@@ -245,7 +245,7 @@ fails when a code in the source has no anchor on the page
 | too many pages (`pages_exceeded`), PDF too large (`pdf_too_large`) | 413 | `phase: output` |
 | the job ran out of memory or scratch space (`resource`) | 413 | the Worker restarts |
 | Worker busy | 429 | with `Retry-After` |
-| renderer at capacity (`busy`), user already has a render (`user_limit`) | 429 | admission control, with `Retry-After`; error list with `source: service`, see [Limits and admission control](../deploy/limits-and-admission.md) |
+| renderer at capacity (`busy`), user already has a render (`user_limit`) | 429 | admission control, with `Retry-After`; error list with `source: service`, see [Limits and admission control](../deploy/components/limits-and-admission.md) |
 | Outline does not confirm the user | 401 / 403 / 500 | never counted by address |
 | Worker timeout | 504 | `phase: timeout` |
 | Outline or Worker unreachable, TeX error, any other failure | 500 | only phase and job id |

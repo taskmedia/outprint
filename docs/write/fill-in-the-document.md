@@ -89,7 +89,7 @@ Your block is still there, and Outprint still reads it.
 - If you can only read the document, you do not see the block at all.
 
 Your Outprint admin can change this, so that the block is always shown to you
-([Injector and PDF action](../deploy/injector.md#hiding-the-metadata-block)).
+([Injector and PDF action](../deploy/components/injector.md#hiding-the-metadata-block)).
 Two places still show the block: a link that you share from Outline, and
 Outline's own export and search.
 
