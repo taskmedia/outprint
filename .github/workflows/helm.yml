@@ -1,0 +1,75 @@
+name: helm
+
+# The Helm chart (docs/deploy/helm-kubernetes.md): lint, the Worker baseline
+# on the rendered manifests, and an install into a kind cluster that renders
+# one PDF. On pull requests only where the change can affect the chart or the
+# images it installs.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - deploy/helm/**
+      - config/**
+      - templates/**
+      - configurations/**
+      - cmd/**
+      - internal/**
+      - web/**
+      - Dockerfile
+      - go.mod
+      - go.sum
+      - .github/workflows/helm.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: helm-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    name: lint and baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: azure/setup-helm@v4
+
+      - name: helm lint
+        run: helm lint deploy/helm/outprint --strict --set outline.url=http://outline.example.invalid:3000
+
+      - name: Worker baseline on the rendered manifests
+        run: go test -tags helm -count=1 ./deploy/helm/...
+
+  kind:
+    name: install into kind and render a PDF
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+
+      - uses: ./.github/actions/docker-cache
+
+      - name: build the images
+        run: |
+          $DOCKER_BUILD -t outprint:latest .
+          $DOCKER_BUILD --target injector -t outprint-injector:latest .
+
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: outprint
+
+      - name: load the images into kind
+        run: kind load docker-image outprint:latest outprint-injector:latest --name outprint
+
+      - name: install and render
+        run: IMAGE=outprint:latest INJECTOR_IMAGE=outprint-injector:latest deploy/helm/kind-render.sh

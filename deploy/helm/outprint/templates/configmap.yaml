@@ -1,0 +1,11 @@
+{{- $cfg := deepCopy .Values.serviceConfig -}}
+{{- $_ := set $cfg "admission" (merge (dict "slots" (int .Values.worker.replicas)) (default (dict) $cfg.admission)) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "outprint.fullname" . }}-service
+  labels:
+    {{- include "outprint.labels" . | nindent 4 }}
+data:
+  service.yaml: |
+    {{- toYaml $cfg | nindent 4 }}

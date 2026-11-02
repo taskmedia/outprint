@@ -1,0 +1,131 @@
+{{- if .Values.injector.enabled -}}
+{{- $name := printf "%s-injector" (include "outprint.fullname" .) -}}
+{{- $sel := include "outprint.selector" (dict "root" . "component" "injector") -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "outprint.labels" . | nindent 4 }}
+    app.kubernetes.io/component: injector
+spec:
+  replicas: {{ .Values.injector.replicas }}
+  selector:
+    matchLabels:
+      {{- $sel | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "outprint.labels" . | nindent 8 }}
+        app.kubernetes.io/component: injector
+      {{- with .Values.injector.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- include "outprint.podSecurity" (dict "uid" 65532) | nindent 8 }}
+      containers:
+        - name: injector
+          image: {{ include "outprint.image" (dict "repository" .Values.injector.image.repository "tag" .Values.injector.image.tag "appVersion" .Chart.AppVersion) | quote }}
+          imagePullPolicy: {{ .Values.injector.image.pullPolicy }}
+          securityContext:
+            {{- include "outprint.containerSecurity" . | nindent 12 }}
+          env:
+            - name: OUTPRINT_INJECTOR_LISTEN
+              value: ":8090"
+            - name: OUTPRINT_INJECTOR_UPSTREAM
+              value: {{ required "outline.url (or injector.upstream) is required: where the injector reaches Outline" (default .Values.outline.url .Values.injector.upstream) | quote }}
+            - name: OUTPRINT_INJECTOR_GATEWAY_URL
+              value: {{ printf "http://%s-gateway:8080" (include "outprint.fullname" .) | quote }}
+            - name: OUTPRINT_INJECTOR_GATEWAY_PREFIX
+              value: /pdf
+            - name: OUTPRINT_INJECTOR_CSP_ALLOW_SELF
+              value: {{ .Values.injector.cspAllowSelf | quote }}
+            {{- include "outprint.extraEnv" .Values.injector.env | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: 8090
+          startupProbe:
+            httpGet: { path: /_injector/healthz, port: http }
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: { path: /_injector/healthz, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /_injector/healthz, port: http }
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.injector.resources | nindent 12 }}
+      {{- with .Values.injector.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.injector.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.injector.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "outprint.labels" . | nindent 4 }}
+    app.kubernetes.io/component: injector
+spec:
+  type: {{ .Values.injector.service.type }}
+  selector:
+    {{- $sel | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.injector.service.port }}
+      targetPort: http
+{{- if .Values.injector.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "outprint.labels" . | nindent 4 }}
+    app.kubernetes.io/component: injector
+  {{- with .Values.injector.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.injector.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.injector.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range .Values.injector.ingress.hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $name }}
+                port:
+                  name: http
+    {{- end }}
+{{- end }}
+{{- end }}

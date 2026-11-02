@@ -133,6 +133,12 @@ tasks:
       - '{{.DOCKER_BUILD}} --target golden -t {{.GOLDEN_IMAGE}} .'
       - docker run --rm {{.GOLDEN_IMAGE}}
 
+  test-helm:
+    desc: Lint the Helm chart and assert the Worker baseline on the rendered manifests (needs helm)
+    cmds:
+      - helm lint deploy/helm/outprint --strict --set outline.url=http://outline.example.invalid:3000
+      - go test -tags helm -count=1 ./deploy/helm/...
+
   test-security:
     desc: Security layers 1 to 3 (a skipped test counts as a failure)
     cmds:

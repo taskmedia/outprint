@@ -8,7 +8,13 @@
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": false,
       "release-as": "0.1.0",
-      "changelog-path": "CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "deploy/helm/outprint/Chart.yaml"
+        }
+      ]
     }
   }
 }

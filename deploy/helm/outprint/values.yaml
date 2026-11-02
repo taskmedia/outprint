@@ -1,0 +1,113 @@
+# Outprint chart (docs/deploy/helm-kubernetes.md). Gateway, Worker and injector
+# from the two release images. The Worker keeps the baseline of ADR 0001:
+# non-root, read-only root file system, no network, no secrets but an
+# optional shared token, resource limits.
+
+# Your self-hosted Outline. Required.
+outline:
+  # Base URL of Outline as the Gateway reaches it (an in-cluster address is fine).
+  url: ""
+  # Outline's own URL setting, when `url` is an internal address.
+  # See docs/deploy/image-fetching.md. Empty = not set.
+  publicUrl: ""
+
+image:
+  repository: ghcr.io/taskmedia/outprint
+  # Empty = the chart's appVersion.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# Service configuration (config/service.yaml in the image): the allow-list of
+# Bindings and the default Binding. The Template and Configuration roots point
+# at the packages baked into the image. To ship your own packages, build an
+# image on top of the release image and set image.repository / image.tag.
+serviceConfig:
+  templatesRoot: /opt/outprint/templates
+  configurationsRoot: /opt/outprint/configurations
+  bindings:
+    - template: neutral
+      configuration: example
+  defaultBinding:
+    template: neutral
+    configuration: example
+  # imageHosts: []
+  # Admission control. The number of slots follows worker.replicas.
+  admission:
+    queueDepth: 4
+    perUser: 1
+    maxWait: 60s
+
+# Bearer token shared by Gateway and Worker; the one secret the Worker may
+# hold. Use existingSecret (key: token) to bring your own; otherwise the chart
+# creates a Secret with a random token and keeps it across upgrades.
+# Set enabled: false for no token.
+workerToken:
+  enabled: true
+  existingSecret: ""
+
+worker:
+  # One job per replica. Throughput scales with replicas.
+  replicas: 1
+  resources:
+    requests: { cpu: 500m, memory: 512Mi }
+    limits: { cpu: "1", memory: 1Gi }
+  # Job directories (OUTPRINT_WORK_DIR) and scratch space; in memory, gone
+  # with the pod. Memory-backed volumes count against the memory limit.
+  workDirSize: 256Mi
+  tmpSize: 64Mi
+  # Extra environment, for example OUTPRINT_TIMEOUT, OUTPRINT_MAX_PAGES.
+  env: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  # Default-deny egress, ingress only from the Gateway. Needs a CNI that
+  # enforces NetworkPolicy. Turning this off weakens the Worker baseline.
+  networkPolicy:
+    enabled: true
+
+gateway:
+  replicas: 1
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits: { cpu: "1", memory: 256Mi }
+  # Extra environment, for example the OUTPRINT_BUTTON_* placement options.
+  env: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+
+# The injector sits between your edge proxy and Outline (Export menu way).
+# Disable it for the PDF by link way.
+injector:
+  enabled: true
+  image:
+    repository: ghcr.io/taskmedia/outprint-injector
+    tag: ""
+    pullPolicy: IfNotPresent
+  # Where the injector reaches Outline. Empty = outline.url.
+  upstream: ""
+  cspAllowSelf: false
+  replicas: 1
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { cpu: 500m, memory: 128Mi }
+  env: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  service:
+    type: ClusterIP
+    port: 80
+  # Optional. Many clusters route in their own way; then point your edge
+  # at the injector Service instead.
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts: []   # for example [wiki.example.test]
+    tls: []
