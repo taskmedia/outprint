@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/taskmedia/outprint/internal/binding"
+	"github.com/taskmedia/outprint/internal/button"
 	"github.com/taskmedia/outprint/internal/outline"
 	"github.com/taskmedia/outprint/internal/workerapi"
 )
@@ -23,6 +24,8 @@ type statusResponse struct {
 	// Language is the user's Outline language (for example "de_DE"), empty
 	// when unknown. The script picks its labels from it.
 	Language string `json:"language,omitempty"`
+	// Button holds the installation's non-default button options.
+	Button *button.Options `json:"button,omitempty"`
 }
 
 // status answers whether the button belongs on this Document: the
@@ -60,6 +63,9 @@ func (g *Gateway) statusOf(r *http.Request) (statusResponse, *failure) {
 	}
 	resp := statusFor(sel)
 	resp.Language = g.userLanguage(r, session)
+	if !g.cfg.Button.IsZero() {
+		resp.Button = &g.cfg.Button
+	}
 	return resp, nil
 }
 

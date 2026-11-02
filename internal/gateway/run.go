@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/taskmedia/outprint/internal/admission"
+	"github.com/taskmedia/outprint/internal/button"
 	"github.com/taskmedia/outprint/internal/outline"
 	"github.com/taskmedia/outprint/internal/packages"
 	"github.com/taskmedia/outprint/internal/worker"
@@ -47,6 +48,8 @@ type RunConfig struct {
 	// Admission sizes the slot limit, queue and per-user limit. The zero
 	// value means the defaults.
 	Admission admission.Config
+	// Button is the placement of the PDF action, sent with the status.
+	Button button.Config
 }
 
 // newAdmission builds the controller; a zero config means the defaults.
@@ -80,13 +83,17 @@ func Run(ctx context.Context, cfg RunConfig) error {
 	if err != nil {
 		return err
 	}
+	buttonOptions, err := cfg.Button.Options()
+	if err != nil {
+		return err
+	}
 	ln := cfg.Listener
 	if ln == nil {
 		if ln, err = net.Listen("tcp", cfg.Listen); err != nil {
 			return fmt.Errorf("listen: %w", err)
 		}
 	}
-	handler := New(Config{Registry: cfg.Registry, Outline: outlineClient, Worker: workerClient, Admission: admit, Logger: cfg.Logger}).Handler()
+	handler := New(Config{Registry: cfg.Registry, Outline: outlineClient, Worker: workerClient, Admission: admit, Button: buttonOptions, Logger: cfg.Logger}).Handler()
 	srv := &http.Server{
 		Handler:           handler,
 		ReadHeaderTimeout: readHeaderTimeout,

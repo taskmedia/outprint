@@ -450,6 +450,35 @@ test('parseOptions ignores unusable values', () => {
   assert.equal(b.parseOptions(attrs({ 'data-fallback-delay': '99999999' })).fallbackDelay, 60000);
 });
 
+test('parseOptions takes the options of the Gateway when the tag has no attributes', () => {
+  const o = b.parseOptions(attrs({}), {
+    placement: 'button', style: 'icon', fallback: 'off', fallbackDelayMs: 1500, metadataBlock: 'show',
+    labels: { menu: { de: 'PDF mit Briefkopf' } },
+  });
+  assert.equal(o.placement, 'button');
+  assert.equal(o.style, 'icon');
+  assert.equal(o.fallback, false);
+  assert.equal(o.fallbackDelay, 1500);
+  assert.equal(o.metadataBlock, 'show');
+  assert.deepEqual(o.labels, { menu: { de: 'PDF mit Briefkopf' } });
+});
+
+test('a data attribute overrides the option of the Gateway', () => {
+  const remote = { placement: 'button', style: 'icon', labels: { menu: { de: 'Aus dem Gateway' } } };
+  const o = b.parseOptions(attrs({ 'data-placement': 'menu', 'data-labels': '{"menu":{"de":"Aus dem Tag"}}' }), remote);
+  assert.equal(o.placement, 'menu');
+  assert.equal(o.style, 'icon');
+  assert.deepEqual(o.labels, { menu: { de: 'Aus dem Tag' } });
+});
+
+test('parseOptions ignores unusable options of the Gateway', () => {
+  const o = b.parseOptions(attrs({}), { placement: 'floating', fallbackDelayMs: -1, labels: { menu: { de: '' } } });
+  assert.equal(o.placement, 'menu');
+  assert.equal(o.fallbackDelay, 3000);
+  assert.deepEqual(o.labels, {});
+  assert.equal(b.parseOptions(attrs({}), 'nonsense').placement, 'menu');
+});
+
 test('resolveLanguage follows the Outline language, then the browser, then English', () => {
   assert.equal(b.resolveLanguage('de_DE', 'en-US'), 'de');
   assert.equal(b.resolveLanguage('en_US', 'de-DE'), 'en');

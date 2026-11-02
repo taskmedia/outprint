@@ -107,9 +107,9 @@ Throughput scales by Worker replicas: `worker.replicas`. The chart sets the
 Gateway's admission slots to the same number, as the
 [admission control](../components/limits-and-admission.md) expects. The queue depth, the
 per-user limit and the maximum wait are in `serviceConfig.admission`. Other
-settings, such as `OUTPRINT_TIMEOUT` or the `OUTPRINT_BUTTON_*` options of the
-[injector page](../components/injector.md#configuration), go into `worker.env`, `gateway.env`
-and `injector.env`. If `outline.url` is an internal address, also set
+settings, such as `OUTPRINT_TIMEOUT` or the `OUTPRINT_BUTTON_*` options of
+[The script tag](../components/script-tag.md#options-come-from-the-gateway), go into `worker.env`
+and `gateway.env` (`injector.env` for the injector's own settings). If `outline.url` is an internal address, also set
 `outline.publicUrl` ([Image fetching](../components/image-fetching.md)).
 
 ## Check that it works

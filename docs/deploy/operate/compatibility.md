@@ -25,6 +25,15 @@ Outline 1.12.0 too (`task e2e:run-template`); unlike the other ways it depends o
 the path and format of one file inside the Outline image, so it is the first to
 need a check after an Outline upgrade.
 
+| Way to load the action | Covered by |
+|------------------------|------------|
+| Injector | `task e2e:run`, the full browser suite |
+| Edge-proxy recipe, nginx | `task e2e:run-nginx` |
+| Edge-proxy recipe, Caddy and Traefik | not tested |
+| Mounted page template | `task e2e:run-template` |
+| Bare tag with options from the Gateway | `web/button.test.js` and the Gateway's status tests (`go test ./internal/gateway`) |
+| `data-` attributes of the injector's tag | `go test ./internal/inject` and `web/button.test.js` |
+
 "Tested" means the browser tests pass: the **Export → Formatted PDF** entry and
 the header button appear for a bound document, a click downloads a PDF, and the
 entry is not duplicated by opening the menu again.

@@ -248,21 +248,29 @@
     return allowed.indexOf(value) !== -1 ? value : fallback;
   }
 
-  // The data attributes of the script tag -> the options. get(name) returns
-  // the attribute value or null. Anything unusable falls back to the default.
-  function parseOptions(get) {
+  // The options of the script. The Gateway sends them with the status
+  // (remote, may be missing); a data attribute on the script tag overrides
+  // the matching one. get(name) returns the attribute value or null. Anything
+  // unusable falls back to the default.
+  function parseOptions(get, remote) {
+    remote = remote && typeof remote === 'object' ? remote : {};
+    function pick(attribute, key) {
+      var value = get(attribute);
+      return value !== null && value !== undefined ? value : remote[key];
+    }
     var labels = {};
     try {
-      labels = cleanLabels(JSON.parse(get('data-labels') || '{}'));
+      var attributeLabels = get('data-labels');
+      labels = cleanLabels(attributeLabels !== null && attributeLabels !== undefined ? JSON.parse(attributeLabels || '{}') : remote.labels || {});
     } catch (e) {
-      /* the injector validates the labels; ignore a damaged value */
+      /* the Gateway and the injector validate the labels; ignore a damaged value */
     }
-    var delay = parseInt(get('data-fallback-delay'), 10);
+    var delay = parseInt(pick('data-fallback-delay', 'fallbackDelayMs'), 10);
     return {
-      placement: oneOf(get('data-placement'), PLACEMENTS, 'menu'),
-      style: oneOf(get('data-style'), STYLES, 'icon-label'),
-      fallback: get('data-fallback') !== 'off',
-      metadataBlock: oneOf(get('data-metadata-block'), METADATA_BLOCK_MODES, 'collapse'),
+      placement: oneOf(pick('data-placement', 'placement'), PLACEMENTS, 'menu'),
+      style: oneOf(pick('data-style', 'style'), STYLES, 'icon-label'),
+      fallback: pick('data-fallback', 'fallback') !== 'off',
+      metadataBlock: oneOf(pick('data-metadata-block', 'metadataBlock'), METADATA_BLOCK_MODES, 'collapse'),
       fallbackDelay: delay >= 0 ? Math.min(delay, MAX_FALLBACK_DELAY_MS) : DEFAULT_FALLBACK_DELAY_MS,
       labels: labels
     };
@@ -350,6 +358,7 @@
     busy: false,
     busyId: null,
     base: DEFAULT_BASE,
+    attribute: function () { return null; },
     options: parseOptions(function () { return null; }),
     language: FALLBACK_LANGUAGE,
     texts: textsFor(FALLBACK_LANGUAGE, {}),
@@ -979,6 +988,7 @@
   // ---- availability and routing -------------------------------------------
 
   function show(body) {
+    state.options = parseOptions(state.attribute, body.button);
     state.language = resolveLanguage(body.language, root.navigator && root.navigator.language, Object.keys(languagesOf(state.options.labels)));
     state.texts = textsFor(state.language, state.options.labels);
     removeInjected();
@@ -1047,7 +1057,8 @@
     root.__olpPdfButton = true;
     var script = bootScript || document.querySelector('script[data-outline-pdf-injector]');
     state.base = basePathFromScriptSrc(script && script.src);
-    state.options = parseOptions(function (name) { return script ? script.getAttribute(name) : null; });
+    state.attribute = function (name) { return script ? script.getAttribute(name) : null; };
+    state.options = parseOptions(state.attribute);
     patchHistory();
     var onRoute = function () { sync(false); };
     root.addEventListener('popstate', onRoute);

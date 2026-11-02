@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/taskmedia/outprint/internal/button"
 	"github.com/taskmedia/outprint/internal/gateway"
 	"github.com/taskmedia/outprint/internal/limits"
 	"github.com/taskmedia/outprint/internal/startup"
@@ -110,12 +111,17 @@ func runGateway(args []string, getenv func(string) string, stderr io.Writer) int
 		fmt.Fprintf(stderr, "outprint: %v\n", err)
 		return 1
 	}
+	var buttonConfig button.Config
+	if err := buttonConfig.ReadEnv(getenv); err != nil {
+		fmt.Fprintf(stderr, "outprint: %v\n", err)
+		return 2
+	}
 	ctx, stop := signalContext()
 	defer stop()
 	err = gateway.Run(ctx, gateway.RunConfig{
 		Listen: o.Listen, Registry: started.Registry, ImageHosts: started.Service.ImageHosts,
 		OutlineURL: getenv(envOutlineURL), OutlinePublicURL: getenv(envOutlinePub), WorkerURL: getenv(envWorkerURL), WorkerToken: getenv(envWorkerToken),
-		RenderLimit: timeoutFromEnv(getenv), Admission: started.Service.Admission, Logger: log,
+		RenderLimit: timeoutFromEnv(getenv), Admission: started.Service.Admission, Button: buttonConfig, Logger: log,
 	})
 	if err != nil {
 		fmt.Fprintf(stderr, "outprint: gateway: %v\n", err)

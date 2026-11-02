@@ -46,7 +46,7 @@ partial responses and the content policy. A page that already has the tag has no
 | Page rewriting at runtime | yes | yes | no |
 | Compression, `304`, ranges, `HEAD` | handled by the injector | proxy specific, see each recipe | not an issue |
 | Outline's CSP | `OUTPRINT_INJECTOR_CSP_ALLOW_SELF` | by hand | usually nothing, see [CSP](#content-security-policy) |
-| Options (`OUTPRINT_BUTTON_*`) | environment variables | `data-` attributes | `data-` attributes |
+| Options (`OUTPRINT_BUTTON_*`) | Gateway (injector as override) | Gateway | Gateway |
 | After an Outline upgrade | nothing | nothing | **regenerate the file** |
 | Covered by the browser tests | yes | nginx only | yes |
 
