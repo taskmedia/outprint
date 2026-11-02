@@ -43,6 +43,7 @@ Outline; the chart refuses to render without it. Then point your edge proxy at
 the Service `outprint-injector` (port 80) instead of at Outline. If you use an
 ingress controller, the chart can create the Ingress:
 
+<!-- validate: skip Helm chart values, not an outprint configuration file -->
 ```yaml
 # values.yaml
 outline:
