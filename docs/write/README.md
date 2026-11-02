@@ -14,6 +14,7 @@ knowledge.
 |------|----------------|
 | [Download a PDF](download-a-pdf.md) | Get your first PDF in five minutes. |
 | [Fill in the document](fill-in-the-document.md) | Add the details a letter or report needs, such as the recipient or the subject. |
+| [Start new documents with the block filled in](start-from-an-outline-template.md) | Use an Outline template so that every new document begins with its metadata block. |
 | [Images and logos](images-and-logos.md) | Add pictures, and what to do when one is rejected. |
 | [When something goes wrong](when-something-goes-wrong.md) | Find your message and see what to do. |
 | [Limits you may hit](limits-you-may-hit.md) | How large a document can be. |
