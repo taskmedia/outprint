@@ -75,7 +75,7 @@ func ConfigFromEnv(getenv func(string) string) (Config, error) {
 	if cfg.Upstream == "" {
 		return Config{}, fmt.Errorf("%s is required: the base URL of Outline", envUpstream)
 	}
-	if err := cfg.Button.readEnv(getenv); err != nil {
+	if err := cfg.Button.ReadEnv(getenv); err != nil {
 		return Config{}, err
 	}
 	if v := getenv(envCSPAllowSelf); v != "" {
@@ -127,7 +127,7 @@ func (c Config) validate() (settings, error) {
 		return settings{}, err
 	}
 	s.scriptURL = firstNonEmpty(c.ScriptURL, s.prefix+scriptName)
-	if s.buttonAttrs, err = c.Button.attributes(); err != nil {
+	if s.buttonAttrs, err = c.Button.Attributes(); err != nil {
 		return settings{}, err
 	}
 	return s, nil

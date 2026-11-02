@@ -17,8 +17,8 @@ Collection without one show nothing.
 | `menu` | **Export → Formatted PDF**, in the **…** menu of the document | yes |
 | `button` | a button in the header, directly before **Share** | no |
 
-The person who runs the injector sets it with `OUTPRINT_BUTTON_PLACEMENT`. See
-[Injector and PDF action](../deploy/components/injector.md#the-pdf-action) for all options.
+The person who runs the Gateway sets it with `OUTPRINT_BUTTON_PLACEMENT`. See
+[The script tag](../deploy/components/script-tag.md#options-come-from-the-gateway) for all options.
 
 ## Export menu
 

@@ -26,6 +26,21 @@ Ask: how do you want to use Outprint?
 
 If you are unsure, take the first way. It is the one the browser tests cover.
 
+### The ways to load the action side by side
+
+The last three rows above differ only in how the
+[script tag](components/script-tag.md) gets into Outline's pages. The install has
+the same shape in all of them: route `/pdf` to the Gateway, add the bare tag,
+set the options on the Gateway, run the [shared check](components/script-tag.md#check).
+
+| | Injector | Edge-proxy recipe | Mounted template |
+|---|---|---|---|
+| What you run | one more container in front of Outline | nothing new, a rule in your nginx, Caddy or Traefik | nothing new, a file mounted into the Outline container |
+| What you must control | the route to Outline | the edge proxy, and it must rewrite HTML | the Outline container (not hosted Outline) |
+| Effort | lowest to set up | a rule per proxy | generate the file once per Outline version |
+| How fragile | handles compression, `304` and CSP for you | depends on the proxy; no CSP rewrite | tied to one file of one Outline version; regenerate after an upgrade |
+| Page | [Injector](components/injector.md) | [Recipes](components/reverse-proxy-recipes.md) | [Mounted template](components/mounted-template.md) |
+
 ```mermaid
 flowchart TB
     user([User in the browser])

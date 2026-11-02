@@ -3,6 +3,8 @@ package gateway
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/taskmedia/outprint/internal/button"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -250,6 +252,33 @@ func TestStatusSemantics(t *testing.T) {
 				t.Error("the status endpoint rendered")
 			}
 		})
+	}
+}
+
+func TestStatusCarriesTheButtonOptions(t *testing.T) {
+	options := button.Options{Placement: "button", Style: "icon", FallbackDelay: 1500, Labels: map[string]map[string]string{"menu": {"de": "PDF mit Briefkopf"}}}
+	e := newEnvConfigured(t, true, nil, nil, func(c *Config) { c.Button = options })
+	e.outline.add("d", 200, "T", docText)
+	e.outline.addCollection("c1", 200, "# Team\n")
+	_, body := e.getPath(t, "/status/d", cookieCanary)
+	var got struct {
+		Button button.Options `json:"button"`
+	}
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("body = %s (%v)", body, err)
+	}
+	if !reflect.DeepEqual(got.Button, options) {
+		t.Errorf("button = %+v, want %+v (body %s)", got.Button, options, body)
+	}
+}
+
+func TestStatusOmitsTheButtonWithoutSettings(t *testing.T) {
+	e := newEnv(t, true)
+	e.outline.add("d", 200, "T", docText)
+	e.outline.addCollection("c1", 200, "# Team\n")
+	_, body := e.getPath(t, "/status/d", cookieCanary)
+	if strings.Contains(string(body), "button") {
+		t.Errorf("body = %s, want no button key", body)
 	}
 }
 

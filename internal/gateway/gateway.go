@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"github.com/taskmedia/outprint/internal/button"
 	"log/slog"
 	"net/http"
 	"regexp"
@@ -62,7 +63,11 @@ type Config struct {
 	// Admission limits concurrent renders; nil means the defaults (one slot,
 	// a queue of four, one render per user).
 	Admission *admission.Controller
-	Logger    *slog.Logger
+	// Button is sent with every status answer; the script applies it unless
+	// the tag overrides it with data attributes. The zero value means the
+	// defaults.
+	Button button.Options
+	Logger *slog.Logger
 }
 
 // Gateway serves the render endpoint.

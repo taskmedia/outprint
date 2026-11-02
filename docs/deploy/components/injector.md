@@ -97,6 +97,13 @@ does not appear and the console reports a blocked script, this is the cause.
 These variables apply to the whole installation. They are not per Collection or
 per document: where the action sits is an operator decision.
 
+Set them on the **Gateway**: it sends them to the script
+([The script tag](script-tag.md#options-come-from-the-gateway)). The injector
+still reads the same variables and writes them as `data-` attributes on the
+tag, which win over the Gateway. That keeps an install that sets them on the
+injector working. Setting them on the Gateway only is enough and the tag stays
+bare.
+
 | Variable | Meaning | Default |
 |----------|---------|---------|
 | `OUTPRINT_BUTTON_PLACEMENT` | `menu`: Export → Formatted PDF in the document menu. `button`: a header button before Share | `menu` |
@@ -106,7 +113,7 @@ per document: where the action sits is an operator decision.
 | `OUTPRINT_BUTTON_METADATA_BLOCK` | `collapse`, `hide` or `show`: what readers and authors see of the [metadata block](#hiding-the-metadata-block) | `collapse` |
 | `OUTPRINT_BUTTON_LABELS` | override the texts, see below | built-in |
 
-A wrong value stops the injector at startup with a message naming the variable.
+A wrong value stops the Gateway (and the injector, if you set it there) at startup with a message naming the variable.
 
 `OUTPRINT_BUTTON_LABELS` is a JSON object. The keys are `menu` (the menu item),
 `button` (the text of the header button) and `tooltip` (the tooltip and

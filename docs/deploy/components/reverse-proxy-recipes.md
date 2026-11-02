@@ -18,8 +18,8 @@ does:
    <script src="/pdf/button.js" defer></script>
    ```
 
-A bare tag means the defaults ([Where the PDF action appears](../../configure/pdf-action.md)).
-Options go into `data-` attributes on the tag, see [Options](#options).
+The tag is the one in [The script tag](script-tag.md). Options come from the
+Gateway, see [Options](#options).
 
 ```mermaid
 flowchart TB
@@ -272,18 +272,14 @@ http:
 
 ## Options
 
-Options are installation-wide `data-` attributes on the tag. Take the name from
-the `OUTPRINT_BUTTON_*` variable of [Injector and PDF action](injector.md#placement-of-the-action),
-without the prefix, in lower case with dashes:
+The tag stays bare. Options (`OUTPRINT_BUTTON_*`) are settings of the Gateway
+and reach the script with the status answer; see
+[The script tag](script-tag.md#options-come-from-the-gateway). The Gateway
+checks the values at startup.
 
-```html
-<script src="/pdf/button.js" defer data-placement="button" data-style="icon"></script>
-```
-
-The injector checks the values at startup; a recipe does not. A wrong value is
-treated like the default or shows nothing. Put the tag text into the
-replacement of the recipe. A JSON `data-labels` value needs `&quot;` for its
-quotes.
+A `data-` attribute on the tag overrides the Gateway, for example
+`data-placement="button"`. You need that only to differ from the Gateway on one
+proxy. A JSON `data-labels` value needs `&quot;` for its quotes.
 
 ## Content-Security-Policy
 

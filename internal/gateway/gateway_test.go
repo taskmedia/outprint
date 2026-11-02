@@ -196,6 +196,12 @@ func newEnvWithAdmission(t *testing.T, defaultBinding bool, admit *admission.Con
 // newEnvFull also lets a test replace the HTTP Worker client with a stub.
 func newEnvFull(t *testing.T, defaultBinding bool, admit *admission.Controller, stub Worker) *env {
 	t.Helper()
+	return newEnvConfigured(t, defaultBinding, admit, stub, nil)
+}
+
+// newEnvConfigured also lets a test change the Gateway's Config.
+func newEnvConfigured(t *testing.T, defaultBinding bool, admit *admission.Controller, stub Worker, configure func(*Config)) *env {
+	t.Helper()
 	e := &env{outline: newFakeOutline(t), worker: newFakeWorker(t), logs: &bytes.Buffer{}}
 	svc := config.Service{
 		TemplatesRoot: "../../templates", ConfigurationsRoot: "../../configurations",
@@ -221,7 +227,11 @@ func newEnvFull(t *testing.T, defaultBinding bool, admit *admission.Controller, 
 		w = stub
 	}
 	log := slog.New(slog.NewTextHandler(e.logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	e.gw = httptest.NewServer(New(Config{Registry: started.Registry, Outline: oc, Worker: w, Admission: admit, Logger: log}).Handler())
+	gwConfig := Config{Registry: started.Registry, Outline: oc, Worker: w, Admission: admit, Logger: log}
+	if configure != nil {
+		configure(&gwConfig)
+	}
+	e.gw = httptest.NewServer(New(gwConfig).Handler())
 	t.Cleanup(e.gw.Close)
 	return e
 }

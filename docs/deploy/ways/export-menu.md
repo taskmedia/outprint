@@ -80,8 +80,9 @@ port 8090 (`OUTPRINT_INJECTOR_PORT`). Point your edge proxy at it instead of at
 Outline. Publish the injector only, not the Gateway's port.
 
 The Compose file already points the injector at the Gateway
-(`OUTPRINT_INJECTOR_GATEWAY_URL`, prefix `/pdf`). The other injector settings
-(`OUTPRINT_BUTTON_*`, the Content-Security-Policy switch, timeouts) are on
+(`OUTPRINT_INJECTOR_GATEWAY_URL`, prefix `/pdf`). The button options
+(`OUTPRINT_BUTTON_*`) are Gateway settings, see [The script tag](../components/script-tag.md#options-come-from-the-gateway).
+The other injector settings (the Content-Security-Policy switch, timeouts) are on
 [Injector and PDF action](../components/injector.md#configuration).
 
 ### Kubernetes
@@ -105,6 +106,9 @@ add the same script tag at the edge. They give less (no CSP rewrite, no option
 checks); the page has the comparison.
 
 ## Check that it works
+
+The shared check, with how to read the browser console, is on
+[The script tag](../components/script-tag.md#check). With the injector:
 
 1. `curl -i http://localhost:8090/_injector/healthz` answers `200`.
 2. Open Outline at the injector's address and sign in.
