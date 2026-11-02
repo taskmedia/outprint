@@ -8,10 +8,12 @@ version: '3.54'
 
 vars:
   # DEV_EDGE=nginx puts nginx in front of Outline instead of the injector
-  # (docs/deploy/components/reverse-proxy-recipes.md).
+  # (docs/deploy/components/reverse-proxy-recipes.md). DEV_EDGE=template
+  # mounts a patched page template into Outline and only routes /pdf in nginx
+  # (docs/deploy/components/mounted-template.md).
   DEV_EDGE: '{{.DEV_EDGE | default ""}}'
   DEV_URL: '{{.DEV_URL | default "http://localhost:8090"}}'
-  DEV_COMPOSE: docker compose --env-file deploy/dev/versions.env -f deploy/compose/compose.yaml -f deploy/dev/compose.yaml{{if eq .DEV_EDGE "nginx"}} -f deploy/dev/compose.nginx.yaml{{end}}
+  DEV_COMPOSE: docker compose --env-file deploy/dev/versions.env -f deploy/compose/compose.yaml -f deploy/dev/compose.yaml{{if eq .DEV_EDGE "nginx"}} -f deploy/dev/compose.nginx.yaml{{end}}{{if eq .DEV_EDGE "template"}} -f deploy/dev/compose.template.yaml{{end}}
 
 tasks:
   default:
@@ -30,10 +32,21 @@ tasks:
     cmds:
       - ./deploy/dev/gen-secrets.sh
 
+  template:
+    desc: Patch the page template of the pinned Outline image (for DEV_EDGE=template)
+    vars:
+      OUTLINE_IMAGE:
+        # A shell variable wins over the pin file, as it does for Compose.
+        sh: 'if [ -n "${OUTLINE_IMAGE:-}" ]; then echo "$OUTLINE_IMAGE"; else . deploy/dev/versions.env && echo "$OUTLINE_IMAGE"; fi'
+    cmds:
+      - ./scripts/patch-outline-template.sh {{.OUTLINE_IMAGE}} deploy/dev/.generated/outline-index.html
+
   up:
     desc: Build and start the dev stack (generates the secrets first)
     deps: [secrets]
     cmds:
+      - task: template
+        if: '{{eq .DEV_EDGE "template"}}'
       - '{{.DEV_COMPOSE}} up -d --build --wait'
 
   seed:

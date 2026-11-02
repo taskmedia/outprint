@@ -206,3 +206,8 @@ tasks:
     desc: Test the pre-publish audit with a fake gh
     cmds:
       - ./scripts/prepublish_audit_test.sh
+
+  test-patch-template:
+    desc: Test scripts/patch-outline-template.sh on a template file (no Docker)
+    cmds:
+      - ./scripts/patch_outline_template_test.sh
