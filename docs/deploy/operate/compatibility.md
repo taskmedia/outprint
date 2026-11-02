@@ -24,10 +24,22 @@ The browser tests also sign in as a second user with the viewer role, who cannot
 edit: the menu entry works for that user, and the header button sits before the
 **…** button because Outline shows no **Share**.
 
-Two things were not tested yet: the **PDF** entry that Outline adds itself when
-`PDF_EXPORT_ENABLED` is set, and Outline running in a language other than
-English (the menu structure is found by role and file type, but the tests ran in
-English).
+Two more cases are tested against Outline 1.12.0 (`e2e/tests/compatibility.spec.ts`):
+
+- **Outline's own PDF entry.** The community image of Outline 1.12.0 ignores the
+  `PDF_EXPORT_ENABLED` environment variable: the server does not read it, does
+  not pass it to the page, and answers a PDF export request with "not available
+  in the community edition". The browser shows Outline's **PDF** entry only
+  when the page sets `window.env.PDF_EXPORT_ENABLED`, so the test sets it there.
+  Result: both entries (**PDF** and **Formatted PDF**) are present and told apart
+  by their labels, ours is added once however often the menu is opened, it still
+  downloads the formatted PDF, the header button is unaffected, and clicking
+  Outline's entry is left to Outline. Whether Outline's entry works end to end
+  was not tested; it cannot in the community edition.
+- **A German Outline** (user language `de_DE`, set through `users.update`). The
+  **…** button, **Exportieren** submenu and **Teilen** button are found, the
+  entry is labelled **Formatiertes PDF**, the entry, the header button and the
+  floating fallback work as in English. Other languages were not tested.
 
 If a new Outline version breaks the placement, the floating button appears and
 the browser console says why. Nothing else stops working: the Gateway and the

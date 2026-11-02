@@ -54,6 +54,10 @@ cc:
 
 The text of your letter follows below the block, as in any Outline document.
 
+If every document in your Collection starts the same way, your admin can
+[prepare an Outline template](start-from-an-outline-template.md) that already
+holds the block.
+
 ![The metadata block at the top of a document in Outline](../assets/screens/document-metadata-block.png)
 
 The result is a letter with the recipient in the address window, the subject in
