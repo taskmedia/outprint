@@ -92,6 +92,7 @@ requirement.
 
 Mount the file read-only. Docker Compose:
 
+<!-- validate: skip Docker Compose file, a third-party format -->
 ```yaml
 services:
   outline:
