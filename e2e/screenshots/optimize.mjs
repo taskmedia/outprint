@@ -9,13 +9,19 @@
 //
 // A committed PNG whose pixels are (almost) the same as the new one is left
 // alone, so a rerun does not put an unchanged screenshot into the diff.
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+//
+// The screenshots that did change are listed at the end. With
+// SCREENSHOTS_DIFF_DIR set, copies of them are put there, and with
+// GITHUB_STEP_SUMMARY set (GitHub Actions) the list is added to the job
+// summary. CI uses this as an informational visual check.
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { losslessCompressPng } from '@napi-rs/image';
 import sharp from 'sharp';
 
 const RAW_DIR = resolve(process.env.SCREENSHOTS_RAW_DIR ?? 'test-results/screens-raw');
 const OUT_DIR = resolve(process.env.SCREENSHOTS_OUT_DIR ?? '../docs/assets/screens');
+const DIFF_DIR = process.env.SCREENSHOTS_DIFF_DIR ? resolve(process.env.SCREENSHOTS_DIFF_DIR) : undefined;
 const MAX_BYTES = 150 * 1024;
 const EXPECTED = [
   'bound-document-with-button.png',
@@ -59,6 +65,8 @@ if (missing.length > 0) {
 }
 
 mkdirSync(OUT_DIR, { recursive: true });
+if (DIFF_DIR) mkdirSync(DIFF_DIR, { recursive: true });
+const changed = [];
 let failed = false;
 for (const name of EXPECTED) {
   let input = join(RAW_DIR, name);
@@ -72,7 +80,11 @@ for (const name of EXPECTED) {
   const target = join(OUT_DIR, name);
   const unchanged = await samePixels(target, fresh);
   const data = unchanged ? readFileSync(target) : fresh;
-  if (!unchanged) writeFileSync(target, data);
+  if (!unchanged) {
+    writeFileSync(target, data);
+    changed.push(name);
+    if (DIFF_DIR) copyFileSync(target, join(DIFF_DIR, name));
+  }
   const { width, height } = await sharp(data).metadata();
   const kb = (statSync(target).size / 1024).toFixed(1);
   console.log(`${name.padEnd(34)} ${width}x${height}  ${kb} KB  ${unchanged ? 'unchanged' : 'written'}`);
@@ -81,4 +93,21 @@ for (const name of EXPECTED) {
     failed = true;
   }
 }
+
+if (process.env.GITHUB_STEP_SUMMARY) {
+  const lines = ['## Documentation screenshots', ''];
+  if (changed.length === 0) {
+    lines.push('All screenshots match the committed images.');
+  } else {
+    lines.push(
+      'These screenshots differ from the committed images:',
+      '',
+      ...changed.map((name) => `- \`${name}\``),
+      '',
+      'Review them in the `screenshots-changed` artifact. If the change is intended, run `task screenshots` locally and commit the result. Rendering differences between a developer machine and the runner (fonts) can also show up here.',
+    );
+  }
+  appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
+}
+console.log(changed.length === 0 ? 'all screenshots match the committed images' : `changed: ${changed.join(', ')}`);
 process.exit(failed ? 1 : 0);
