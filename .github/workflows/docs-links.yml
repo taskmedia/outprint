@@ -1,13 +1,13 @@
 name: docs external links
 
-# Weekly, and non-blocking: checks the external links of the built docs site.
+# Monthly, and non-blocking: checks the external links of the built docs site.
 # Findings go into ONE issue ("docs: broken external links"), opened or updated
 # in place and closed when the links are fine again. The run never fails a pull
 # request and is not a required check; the internal links are already checked
 # by the strict build of the `docs` workflow.
 on:
   schedule:
-    - cron: "43 5 * * 1"
+    - cron: "43 5 1 * *"
   workflow_dispatch:
 
 permissions:
@@ -76,7 +76,7 @@ jobs:
             exit 0
           fi
           {
-            echo "The weekly check of the external links in the docs site found problems."
+            echo "The monthly check of the external links in the docs site found problems."
             echo
             echo "Run: ${RUN_URL}"
             echo
