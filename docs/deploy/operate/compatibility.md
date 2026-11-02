@@ -19,7 +19,11 @@ change that markup. This page says which versions have been checked.
 The script is the same when an edge proxy adds the tag instead of the injector
 ([Reverse-proxy recipes](../components/reverse-proxy-recipes.md)). The browser
 tests run against the **nginx** recipe too (`task e2e:run-nginx`, Outline 1.12.0).
-The Caddy and Traefik recipes are **untested**.
+The Caddy and Traefik recipes are **untested**. The
+[mounted page template](../components/mounted-template.md) is tested against
+Outline 1.12.0 too (`task e2e:run-template`); unlike the other ways it depends on
+the path and format of one file inside the Outline image, so it is the first to
+need a check after an Outline upgrade.
 
 "Tested" means the browser tests pass: the **Export → Formatted PDF** entry and
 the header button appear for a bound document, a click downloads a PDF, and the

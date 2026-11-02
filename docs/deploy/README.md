@@ -21,6 +21,7 @@ Ask: how do you want to use Outprint?
 | click **Export → Formatted PDF** inside Outline | [Export menu in Outline](ways/export-menu.md) | Gateway, Worker and injector; the injector sits in front of Outline |
 | download a PDF from a link, and leave the way Outline is served as it is | [PDF by link](ways/pdf-by-link.md) | Gateway and Worker; `/pdf` on the address of Outline goes to the Gateway |
 | click **Export → Formatted PDF** and already run an nginx, Caddy or Traefik that can rewrite HTML | [Export menu](ways/export-menu.md) with [Reverse-proxy recipes](components/reverse-proxy-recipes.md) | Gateway and Worker; your edge proxy adds the script tag, no injector |
+| click **Export → Formatted PDF**, and can mount a file into the Outline container but cannot rewrite HTML | [Export menu](ways/export-menu.md) with [Mounted page template](components/mounted-template.md) | Gateway and Worker; a patched copy of Outline's page template carries the script tag, the proxy only routes `/pdf` |
 | make PDFs from Markdown files, without Outline | [Command line](ways/command-line.md) | the `outprint` image only |
 
 If you are unsure, take the first way. It is the one the browser tests cover.
