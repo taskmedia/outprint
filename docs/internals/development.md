@@ -214,23 +214,26 @@ stays flat) and recompressed with oxipng, through the npm packages `sharp` and
 `@napi-rs/image`. Each file stays under 150 KB or the task fails. Two runs
 produce byte-identical files.
 
-`.github/workflows/screenshots.yml` is the visual check. On pull requests that
-touch the injector, the button, the seed, the dev stack, the screenshot specs or
-the committed PNGs (and on demand) it regenerates the screenshots and compares
-them with the committed ones. The screenshots that differ are listed in the job
-summary and uploaded as the `screenshots-changed` artifact (14 days) for review.
-It is informational: the job is allowed to fail and is not a required check,
-because the committed images come from a developer machine and the runner's
-fonts may render slightly differently. A difference after an intended UI change
-means: run `task screenshots` and commit the result.
+`task screenshots` also reports what it changed: after the optimise step it
+lists the screenshots that differ from the committed ones. With
+`SCREENSHOTS_DIFF_DIR` set it copies them there, and in GitHub Actions it adds
+the list to the job summary.
+
+That is the visual check. `e2e.yml` runs `task screenshots` after the tests, on
+the stack that is already up, and uploads the changed images as the
+`screenshots-changed` artifact (14 days). The step is informational: it is
+`continue-on-error` and cannot fail the job, because the committed images come
+from a developer machine and the runner's fonts may render slightly
+differently. A difference after an intended UI change means: run
+`task screenshots` and commit the result.
 
 ## CI
 
 `.github/workflows/e2e.yml` runs the suite on every push to `main`, on
 `workflow_dispatch`, and on pull requests that touch the injector, the Outline
 client, the Gateway, the seed, `deploy/`, `web/`, `e2e/`, the Dockerfile or the
-`Taskfile.yml`. It uploads the Playwright report, the traces and the compose logs when
-it fails.
+`Taskfile.yml`, or the committed screenshots. It uploads the Playwright report,
+the traces and the compose logs when it fails.
 
 `.github/workflows/e2e-latest-outline.yml` runs weekly (Monday) and on demand
 with the newest stable Outline release instead of the pinned one (it exports
