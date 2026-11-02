@@ -106,6 +106,61 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  # The same tests with nginx instead of the injector: the recipe in
+  # docs/deploy/components/reverse-proxy-recipes.md.
+  e2e-nginx:
+    name: browser e2e, nginx recipe
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: go-task/setup-task@v2
+        with:
+          version: 3.54.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: install poppler
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
+
+      - name: install the browser
+        run: cd e2e && npm ci && npx playwright install --with-deps chromium
+
+      - name: seeded stack and tests
+        run: task e2e:run-nginx
+        env:
+          CI: "true"
+          DEV_EDGE: nginx
+
+      - name: compose logs
+        if: failure()
+        run: |
+          docker compose --env-file deploy/dev/versions.env \
+            -f deploy/compose/compose.yaml -f deploy/dev/compose.yaml \
+            -f deploy/dev/compose.nginx.yaml logs --no-color > compose-logs.txt || true
+
+      - name: upload the report, traces and logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-nginx-failure
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+            compose-logs.txt
+          if-no-files-found: warn
+          retention-days: 14
+
   # The same tests against the oldest Outline the placement is supported on
   # (OUTLINE_OLDEST_IMAGE in deploy/dev/versions.env). Skipped while it equals
   # the pinned version, which the job above already covers.

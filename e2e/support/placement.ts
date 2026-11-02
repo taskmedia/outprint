@@ -23,8 +23,9 @@ export async function useLocalScript(page: Page): Promise<void> {
   await page.route('**/pdf/button.js', (route) => route.fulfill({ path: file, contentType: 'text/javascript' }));
 }
 
-// Adds data attributes to the injected script tag, as the injector does for
-// OUTPRINT_BUTTON_*; the dev stack runs with the defaults.
+// Adds data attributes to the script tag, as the injector does for
+// OUTPRINT_BUTTON_*; the dev stack runs with the defaults. The injector marks
+// its tag with data-outline-pdf-injector, an edge proxy adds the bare tag.
 export async function setScriptAttributes(page: Page, attributes: Record<string, string>): Promise<void> {
   const extra = Object.entries(attributes)
     .map(([name, value]) => ` data-${name}="${value.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`)
@@ -34,7 +35,10 @@ export async function setScriptAttributes(page: Page, attributes: Record<string,
     async (route) => {
       if (route.request().resourceType() !== 'document') return route.fallback();
       const response = await route.fetch();
-      const body = (await response.text()).replace('data-outline-pdf-injector', `data-outline-pdf-injector${extra}`);
+      const body = (await response.text()).replace(
+        /(<script src="\/pdf\/button\.js" defer)( data-outline-pdf-injector)?/,
+        (_tag, start: string, marker = '') => `${start}${marker}${extra}`,
+      );
       return route.fulfill({ response, body });
     },
   );
