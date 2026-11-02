@@ -1,5 +1,5 @@
 ---
-sidebar_position: 11
+sidebar_position: 2
 ---
 
 # Upgrading
@@ -37,7 +37,7 @@ page lists what to check between versions. It will grow with later releases.
    ```
 
    `validate` reports every problem of a package. Fix them before you roll out.
-5. Check the [Compose file](docker-compose.md) of the new version against yours.
+5. Check the [Compose file](../platforms/docker-compose.md) of the new version against yours.
    The Worker keeps its security settings in that file. The build of Outprint
    checks them, so do not weaken them while you merge changes.
 
@@ -45,7 +45,7 @@ page lists what to check between versions. It will grow with later releases.
 
 1. Open a document in a Collection with a Binding and use **Export → Formatted PDF**.
 2. If an author reports a message you do not know, look up its code in
-   [When something goes wrong](../write/when-something-goes-wrong.md).
+   [When something goes wrong](../../write/when-something-goes-wrong.md).
    The codes are stable per version.
 
 ## Roll back

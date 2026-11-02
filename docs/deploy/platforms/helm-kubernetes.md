@@ -1,6 +1,6 @@
 ---
 sidebar_label: Helm and Kubernetes (coming soon)
-sidebar_position: 13
+sidebar_position: 2
 ---
 
 # Helm and Kubernetes
@@ -14,5 +14,5 @@ network route out, like the Worker of the [Compose file](docker-compose.md).
 Progress is tracked in [issue #51](https://github.com/taskmedia/outprint/issues/51).
 
 Until the chart exists, use [Docker Compose](docker-compose.md). The
-[security notes](security-for-operators.md) list the settings that any
+[security notes](../operate/security-for-operators.md) list the settings that any
 installation must keep.

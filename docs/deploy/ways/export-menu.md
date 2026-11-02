@@ -1,14 +1,14 @@
 ---
-sidebar_position: 3
+sidebar_position: 1
 ---
 
-# Way 1: Export menu in Outline
+# Export menu in Outline
 
 ## What it does
 
 Users get **Export → Formatted PDF** in the menu of a document, inside Outline.
 One click downloads the PDF. You can move the action to a header button
-([Where the PDF action appears](../configure/pdf-action.md)).
+([Where the PDF action appears](../../configure/pdf-action.md)).
 
 Outline has no plug-in point for menus. So a small reverse proxy, the
 **injector**, sits in front of Outline and adds one `<script>` tag to its pages.
@@ -47,14 +47,14 @@ sequenceDiagram
 - Authors should find the PDF where they already work.
 - You control the proxy in front of Outline, or can put one there.
 
-If you only need a link, [PDF by link](way-link.md) is smaller. The injector is
+If you only need a link, [PDF by link](pdf-by-link.md) is smaller. The injector is
 an addition to the Gateway and the Worker. **Without it, everything else keeps
 working**: the Gateway renders, the link way works, the command line works. Only
 the action in Outline's interface is missing.
 
 ## Prerequisites
 
-- The [common base](common-base.md): a self-hosted Outline, Docker, the
+- The [common base](../common-base.md): a self-hosted Outline, Docker, the
   `outprint` image, access from the Gateway to Outline.
 - The `outprint-injector` image. The Compose file builds it from the checkout
   (`injector` target of the Dockerfile).
@@ -82,42 +82,42 @@ Outline. Publish the injector only, not the Gateway's port.
 The Compose file already points the injector at the Gateway
 (`OUTPRINT_INJECTOR_GATEWAY_URL`, prefix `/pdf`). The other injector settings
 (`OUTPRINT_BUTTON_*`, the Content-Security-Policy switch, timeouts) are on
-[Injector and PDF action](injector.md#configuration).
+[Injector and PDF action](../components/injector.md#configuration).
 
 ### Kubernetes
 
 Not available. There is no Helm chart and there are no manifests yet; see
-[Helm and Kubernetes](helm-kubernetes.md).
+[Helm and Kubernetes](../platforms/helm-kubernetes.md).
 
 ### Edge proxy
 
 A worked example for Traefik is in
-[Injector and PDF action](injector.md#routing-example). Other proxies follow the
+[Injector and PDF action](../components/injector.md#routing-example). Other proxies follow the
 same shape: `edge proxy -> injector -> Outline`. Recipes for nginx and Caddy are
-[planned](reverse-proxy-recipes.md).
+[planned](../components/reverse-proxy-recipes.md).
 
 ## Check that it works
 
 1. `curl -i http://localhost:8090/_injector/healthz` answers `200`.
 2. Open Outline at the injector's address and sign in.
 3. Open a document in a Collection that has a Binding
-   ([Configure](../configure/README.md)).
+   ([Configure](../../configure/README.md)).
 4. Open **…** and then **Export**. **Formatted PDF** is listed after the file
    formats.
 5. Click it. A PDF downloads.
 
 Also check that the Gateway and the Worker cannot be reached from outside; the
-list is in [Security notes](security-for-operators.md#check-after-the-install).
+list is in [Security notes](../operate/security-for-operators.md#check-after-the-install).
 
 ## Typical problems
 
 | What you see | Cause | What to do |
 |--------------|-------|-----------|
-| No **Formatted PDF** anywhere | the Collection has no Binding | add the block in [Configure](../configure/choose-a-template.md); the action shows only on bound documents |
-| No action, and the console reports a blocked script | Outline's Content-Security-Policy | set `OUTPRINT_INJECTOR_CSP_ALLOW_SELF=true`; see [Content-Security-Policy](injector.md#content-security-policy) |
+| No **Formatted PDF** anywhere | the Collection has no Binding | add the block in [Configure](../../configure/choose-a-template.md); the action shows only on bound documents |
+| No action, and the console reports a blocked script | Outline's Content-Security-Policy | set `OUTPRINT_INJECTOR_CSP_ALLOW_SELF=true`; see [Content-Security-Policy](../components/injector.md#content-security-policy) |
 | Outline works, the action never appears | you reach Outline directly and not through the injector | open the injector's address |
-| A small floating button instead of the menu entry | the script did not find Outline's menu | the console says why; check [Compatibility](compatibility.md) |
-| Pages load without the action and the injector logs a warning | the page is compressed with `br` or `zstd` | compress at the edge proxy and not in Outline; see [Compression](injector.md#compression) |
+| A small floating button instead of the menu entry | the script did not find Outline's menu | the console says why; check [Compatibility](../operate/compatibility.md) |
+| Pages load without the action and the injector logs a warning | the page is compressed with `br` or `zstd` | compress at the edge proxy and not in Outline; see [Compression](../components/injector.md#compression) |
 | `401` or `403` on click | the Gateway is not on the host of Outline, so the cookie does not arrive | route `/pdf` through the injector |
 | `502` from the injector | corrupt gzip body from Outline, or Outline is unreachable | check `OUTPRINT_INJECTOR_UPSTREAM` and the injector log |
-| The action shows, a click fails with a message | the document is wrong, not the install | the panel shows what to fix; see [When something goes wrong](../write/when-something-goes-wrong.md) |
+| The action shows, a click fails with a message | the document is wrong, not the install | the panel shows what to fix; see [When something goes wrong](../../write/when-something-goes-wrong.md) |

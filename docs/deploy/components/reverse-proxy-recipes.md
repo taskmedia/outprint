@@ -1,6 +1,6 @@
 ---
 sidebar_label: Reverse-proxy recipes (coming soon)
-sidebar_position: 14
+sidebar_position: 4
 ---
 
 # Reverse-proxy recipes

@@ -1,17 +1,17 @@
 ---
-sidebar_position: 6
+sidebar_position: 1
 ---
 
 # Docker Compose
 
 This page describes the shipped Compose file. Which parts you need depends on
-the way you pick: see [Which way fits you?](README.md#which-way-fits-you) and the
-[common base](common-base.md).
+the way you pick: see [Which way fits you?](../README.md#which-way-fits-you) and the
+[common base](../common-base.md).
 
 `deploy/compose/compose.yaml` runs the Gateway and the Worker, and the injector
-for the [Export menu](way-menu.md). The
+for the [Export menu](../ways/export-menu.md). The
 Gateway and the Worker use the `outprint` image. The `worker` service is the shipped Worker baseline of
-[ADR 0001](../adr/0001-split-renderer-into-gateway-and-worker.md).
+[ADR 0001](../../adr/0001-split-renderer-into-gateway-and-worker.md).
 
 ## Run it
 
@@ -38,7 +38,7 @@ GET http://localhost:8080/render/<documentId>
 
 The browser must send the user's Outline session cookie, so in a real
 deployment the Gateway is served from the same site as Outline: the injector
-routes `/pdf` to it ([Injector and PDF action](injector.md)). Check the file with
+routes `/pdf` to it ([Injector and PDF action](../components/injector.md)). Check the file with
 `docker compose -f deploy/compose/compose.yaml config`.
 
 `./templates` and `./configurations` of the repository are mounted read-only
@@ -46,13 +46,13 @@ into both services at the paths of the shipped `service.yaml`. Replace the
 sources to install your own packages; the service configuration inside the
 image lists the allowed Bindings and the default Binding.
 
-For a local stack with Outline, a login and seeded content, see [Development stack and end-to-end tests](../internals/development.md); it layers its own file over this one.
+For a local stack with Outline, a login and seeded content, see [Development stack and end-to-end tests](../../internals/development.md); it layers its own file over this one.
 
 ## The injector (optional)
 
-The `injector` service is needed for the [Export menu](way-menu.md): without
+The `injector` service is needed for the [Export menu](../ways/export-menu.md): without
 it Outline shows no **Formatted PDF** action. The Gateway and the Worker work
-without it ([PDF by link](way-link.md)). It is built from the `injector` target of the Dockerfile
+without it ([PDF by link](../ways/pdf-by-link.md)). It is built from the `injector` target of the Dockerfile
 (`task image-injector`): a distroless, non-root image without TeX. It is not
 part of the Worker baseline and the sandbox tests do not read it. Point it at
 Outline and publish it instead of Outline. These commands set where Outline
@@ -88,7 +88,7 @@ Gateway sends no CORS headers and must stay same-origin.
 The baseline is enforced by the build: `internal/sandbox` reads this file,
 fails if any row above is weakened or if the service uses a key it does not
 know, and the security suite runs the Worker with exactly these settings
-([Security](../internals/security.md)).
+([Security](../../internals/security.md)).
 
 At start the Worker logs its posture (`worker security posture`); anything
 weaker than this table is logged as `worker posture is weaker than the shipped
@@ -104,5 +104,5 @@ without it.
 Throughput scales by Worker replicas, not by parallel jobs in one Worker. One
 slow render delays others; a busy Worker answers `429` with `Retry-After`
 through the Gateway. The Gateway's admission control (slots, a queue, a
-per-user limit) sits in front of the Workers, see [Limits and admission control](limits-and-admission.md); raise
+per-user limit) sits in front of the Workers, see [Limits and admission control](../components/limits-and-admission.md); raise
 its `slots` together with the number of Worker replicas.

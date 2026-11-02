@@ -1,8 +1,8 @@
 ---
-sidebar_position: 4
+sidebar_position: 2
 ---
 
-# Way 2: PDF by link
+# PDF by link
 
 ## What it does
 
@@ -19,7 +19,7 @@ https://wiki.example.test/pdf/render/<urlId>
 The script in Outline uses the same rule.
 
 ```mermaid
-flowchart LR
+flowchart TB
     user([User, signed in to Outline])
     edge[Edge proxy]
     outline[(Outline)]
@@ -41,25 +41,25 @@ flowchart LR
 - You want to try the Gateway before you add the injector.
 
 It does not fit when authors should find the PDF in Outline's menu. Take the
-[Export menu](way-menu.md) then. The two ways share the Gateway and the Worker,
+[Export menu](export-menu.md) then. The two ways share the Gateway and the Worker,
 so you can start here and add the injector later.
 
 ## Prerequisites
 
-- The [common base](common-base.md), including the Gateway and the Worker
+- The [common base](../common-base.md), including the Gateway and the Worker
   running and the checks passing.
 - An edge proxy that serves Outline, and that you can give one more route.
 - The route must keep **one host name**. The Gateway has no login of its own.
   The browser sends Outline's cookie only to the host of Outline, so the Gateway
   must be served there, below `/pdf`.
-- A Binding on the Collection of the document ([Configure](../configure/README.md)).
+- A Binding on the Collection of the document ([Configure](../../configure/README.md)).
 
 ## Install
 
 ### Docker Compose
 
 Start the Gateway and the Worker as in the
-[common base](common-base.md#start-gateway-and-worker). Then add the route at
+[common base](../common-base.md#start-gateway-and-worker). Then add the route at
 your edge proxy: requests below `/pdf/` go to the Gateway, with the prefix
 removed. The Gateway answers `/render/...`, `/status/...`, `/button.js` and
 `/healthz` and knows nothing of `/pdf`.
@@ -79,7 +79,7 @@ things out.
 
 ### Kubernetes
 
-Not available. See [Helm and Kubernetes](helm-kubernetes.md).
+Not available. See [Helm and Kubernetes](../platforms/helm-kubernetes.md).
 
 ## Check that it works
 
@@ -96,8 +96,8 @@ Not available. See [Helm and Kubernetes](helm-kubernetes.md).
 |--------------|-------|-----------|
 | `404` from the edge proxy or from Outline | the route is missing, or the prefix is not removed | the Gateway has no `/pdf` route; strip the prefix |
 | `401` in the browser although you are signed in | the Gateway is on another host name than Outline | serve it below `/pdf` on the host of Outline |
-| JSON error with a message about a Binding or the Metadata Block | the document or its Collection is not set up | see [When something goes wrong](../write/when-something-goes-wrong.md) |
-| `429` with `Retry-After` | the render queue is full | wait, or raise the limits ([Limits and admission control](limits-and-admission.md)) |
+| JSON error with a message about a Binding or the Metadata Block | the document or its Collection is not set up | see [When something goes wrong](../../write/when-something-goes-wrong.md) |
+| `429` with `Retry-After` | the render queue is full | wait, or raise the limits ([Limits and admission control](../components/limits-and-admission.md)) |
 
 ## Other ways to show an action without the injector
 

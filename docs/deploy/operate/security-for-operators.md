@@ -1,11 +1,11 @@
 ---
-sidebar_position: 10
+sidebar_position: 1
 ---
 
 # Security notes for operators
 
 What to expose, what to keep inside, and what to check after the install. The
-reasoning and the tests are in [Security](../internals/security.md). The
+reasoning and the tests are in [Security](../../internals/security.md). The
 Compose file already follows everything on this page.
 
 ## What to expose
@@ -41,7 +41,7 @@ Compose file already follows everything on this page.
   read. Nothing else gets the cookie.
 - **To image hosts:** nothing with the cookie. Images come from Outline. A
   redirect is followed only to hosts you list in `imageHosts`, and only to public
-  addresses. See [Image fetching](image-fetching.md).
+  addresses. See [Image fetching](../components/image-fetching.md).
 - **To the Worker:** the document, its images and its settings.
 
 The Gateway keeps no copy of a document or a PDF. Responses carry
@@ -62,4 +62,4 @@ and no internal addresses.
 3. Open Outline through the injector. The **Formatted PDF** action appears in a
    Collection with a Binding.
 4. Check the Content-Security-Policy of Outline if the button is missing. See
-   [Injector and PDF action](injector.md#content-security-policy).
+   [Injector and PDF action](../components/injector.md#content-security-policy).

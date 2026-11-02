@@ -34,7 +34,7 @@ type RunConfig struct {
 	// OutlineURL is the only origin the user's cookie is ever sent to.
 	OutlineURL string
 	// OutlinePublicURL is Outline's own URL setting when OutlineURL is an
-	// internal address (optional; see docs/deploy/image-fetching.md).
+	// internal address (optional; see docs/deploy/components/image-fetching.md).
 	OutlinePublicURL string
 	// ImageHosts are the hosts besides OutlineURL that an image redirect may
 	// lead to (service configuration imageHosts).

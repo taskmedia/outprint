@@ -1,8 +1,8 @@
 ---
-sidebar_position: 5
+sidebar_position: 3
 ---
 
-# Way 3: Command line
+# Command line
 
 ## What it does
 
@@ -25,7 +25,7 @@ action.
 ## Prerequisites
 
 - Docker, and the `outprint` image: `docker build -t outprint .` in the
-  repository. No other part of the [common base](common-base.md) is needed.
+  repository. No other part of the [common base](../common-base.md) is needed.
 
 ## Install
 
@@ -63,9 +63,9 @@ Not applicable.
 
 | What you see | Cause | What to do |
 |--------------|-------|-----------|
-| `validate` lists problems | a package breaks a rule | fix what it names; see [Packages](../templates/packages.md) |
+| `validate` lists problems | a package breaks a rule | fix what it names; see [Packages](../../templates/packages.md) |
 | `outprint: read input: open /data/...: no such file or directory` | the file is not mounted where the command looks | mount the directory with `-v "$PWD:/data"` and use the path inside the container |
 | `template/nope manifest.yaml: read: ... no such file or directory` | the Template name is not in the image | pick a name from `/opt/outprint/templates`, or mount your own packages as shown above |
 
-The [Template author guide](../templates/template-author-guide.md) covers the
+The [Template author guide](../../templates/template-author-guide.md) covers the
 rest of the workflow.
