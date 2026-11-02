@@ -7,8 +7,11 @@
 version: '3.54'
 
 vars:
+  # DEV_EDGE=nginx puts nginx in front of Outline instead of the injector
+  # (docs/deploy/components/reverse-proxy-recipes.md).
+  DEV_EDGE: '{{.DEV_EDGE | default ""}}'
   DEV_URL: '{{.DEV_URL | default "http://localhost:8090"}}'
-  DEV_COMPOSE: docker compose --env-file deploy/dev/versions.env -f deploy/compose/compose.yaml -f deploy/dev/compose.yaml
+  DEV_COMPOSE: docker compose --env-file deploy/dev/versions.env -f deploy/compose/compose.yaml -f deploy/dev/compose.yaml{{if eq .DEV_EDGE "nginx"}} -f deploy/dev/compose.nginx.yaml{{end}}
 
 tasks:
   default:

@@ -93,8 +93,12 @@ Not available. There is no Helm chart and there are no manifests yet; see
 
 A worked example for Traefik is in
 [Injector and PDF action](../components/injector.md#routing-example). Other proxies follow the
-same shape: `edge proxy -> injector -> Outline`. Recipes for nginx and Caddy are
-[planned](../components/reverse-proxy-recipes.md).
+same shape: `edge proxy -> injector -> Outline`.
+
+If you already run nginx, Caddy or Traefik in front of Outline and it can rewrite
+the HTML, you can skip the injector: [Reverse-proxy recipes](../components/reverse-proxy-recipes.md)
+add the same script tag at the edge. They give less (no CSP rewrite, no option
+checks); the page has the comparison.
 
 ## Check that it works
 

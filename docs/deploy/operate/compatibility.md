@@ -16,6 +16,11 @@ change that markup. This page says which versions have been checked.
 | 1.12.0 (`OUTLINE_OLDEST_IMAGE`) | development | the **oldest supported** version; the same tests run against it in CI once it differs from the pin |
 | older than 1.12.0 | | **untested** |
 
+The script is the same when an edge proxy adds the tag instead of the injector
+([Reverse-proxy recipes](../components/reverse-proxy-recipes.md)). The browser
+tests run against the **nginx** recipe too (`task e2e:run-nginx`, Outline 1.12.0).
+The Caddy and Traefik recipes are **untested**.
+
 "Tested" means the browser tests pass: the **Export → Formatted PDF** entry and
 the header button appear for a bound document, a click downloads a PDF, and the
 entry is not duplicated by opening the menu again.

@@ -25,6 +25,18 @@ tasks:
       - task: :dev:seed
       - npx playwright test
 
+  run-nginx:
+    desc: "Tier 3: the same browser tests with nginx instead of the injector"
+    summary: |
+      Loads the PDF action through the nginx recipe of
+      docs/deploy/components/reverse-proxy-recipes.md. Stop a running injector
+      stack first (task dev:down), they share port 8090.
+    cmds:
+      - task: :dev:up
+        vars: {DEV_EDGE: nginx}
+      - task: :dev:seed
+      - npx playwright test
+
   screenshots:
     desc: Regenerate the documentation screenshots in docs/assets/screens (needs `task dev`)
     summary: |
