@@ -73,6 +73,37 @@ export async function chooseFormattedPdf(page: Page): Promise<void> {
   await clickSubmenuItem(page, page.getByRole('menuitem', { name: MENU_LABEL }));
 }
 
+// Outline's own PDF entry in the Export submenu is switched on by
+// window.env.PDF_EXPORT_ENABLED in the page. The community image does not set
+// it from any environment variable (checked against 1.12.0: the server does not
+// read PDF_EXPORT_ENABLED), so the test sets it where the client reads it.
+export async function enableNativePdfExport(page: Page): Promise<void> {
+  await page.route(
+    (url) => url.origin === new URL(seed.baseUrl).origin,
+    async (route) => {
+      if (route.request().resourceType() !== 'document') return route.fallback();
+      const response = await route.fetch();
+      const body = (await response.text()).replace('window.env = {', 'window.env = {"PDF_EXPORT_ENABLED":true,');
+      return route.fulfill({ response, body });
+    },
+  );
+}
+
+// Sets the language of the signed-in Outline user (for example "de_DE") and
+// returns a function that puts the previous one back.
+export async function setOutlineLanguage(page: Page, language: string): Promise<() => Promise<void>> {
+  const token = (await page.context().cookies()).find((c) => c.name === 'accessToken')?.value;
+  expect(token, 'the sign-in left a session cookie').toBeTruthy();
+  const headers = { Authorization: `Bearer ${token}` };
+  const info = await page.request.post('/api/auth.info', { headers, data: {} });
+  const previous: string = (await info.json()).data.user.language ?? 'en_US';
+  const update = (value: string) => page.request.post('/api/users.update', { headers, data: { language: value } });
+  expect((await update(language)).ok()).toBeTruthy();
+  return async () => {
+    await update(previous);
+  };
+}
+
 // Simulates a markup change in Outline: the menu triggers lose the attribute
 // the script finds the "…" button by.
 export async function breakMenuAnchor(page: Page): Promise<void> {
