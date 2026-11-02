@@ -1,12 +1,12 @@
 ---
-sidebar_position: 7
+sidebar_position: 1
 ---
 
 # Injector and PDF action
 
 The injector is an optional part of the install: it is what puts the action into
-Outline's interface ([Export menu in Outline](way-menu.md)). Without it the
-Gateway and the Worker still work ([PDF by link](way-link.md)). Outline has no
+Outline's interface ([Export menu in Outline](../ways/export-menu.md)). Without it the
+Gateway and the Worker still work ([PDF by link](../ways/pdf-by-link.md)). Outline has no
 plug-in point for a toolbar button, and Outprint does not fork Outline. The **injector** is a small reverse proxy in front of Outline that adds
 one `<script>` tag to Outline's HTML pages. The script puts a **Formatted PDF**
 action into Outline's interface on document pages, but only where the Gateway
@@ -132,7 +132,7 @@ empty and set `OUTPRINT_INJECTOR_SCRIPT_URL` if the Gateway is reachable under a
 `web/button.js` is embedded in the outprint image and served by the Gateway at
 `GET /button.js` (`text/javascript`, `nosniff`, `Cache-Control: public, max-age=300`).
 Plain ES2019, no dependencies. For where the action appears and how it looks to
-users, see [Where the PDF action appears](../configure/pdf-action.md).
+users, see [Where the PDF action appears](../../configure/pdf-action.md).
 
 - It recognises `/doc/<title>-<urlId>` (and `/doc/<uuid>`, with `/edit` or
   `/history` after it) and follows Outline's client-side navigation.
@@ -181,12 +181,12 @@ Tests: `task test-web` runs `web/button.test.js` with Node's built-in runner (pu
 functions plus a small DOM stub). `task test` runs it when Node is installed and
 prints a note when it is not; CI always runs it. The placement against Outline's
 real markup is covered by the browser tests, see
-[Compatibility](compatibility.md).
+[Compatibility](../operate/compatibility.md).
 
 ## Hiding the metadata block
 
 On documents where a Binding applies, the script takes the [metadata
-block](../write/fill-in-the-document.md) (the `yaml` code block at the very
+block](../../write/fill-in-the-document.md) (the `yaml` code block at the very
 start of the document) out of sight. Outline opens a document for everyone who
 may edit it straight in the editor ("seamless editing"), so there is no separate
 reading view for authors. The script therefore tells two kinds of visitors apart
@@ -276,4 +276,4 @@ Outline keeps its public URL (`URL=https://wiki.example.invalid`) and its
 
 With Docker Compose, `deploy/compose/compose.yaml` has an `injector` service next
 to `gateway` and `worker`. It publishes port 8090 (`OUTPRINT_INJECTOR_PORT`) and needs
-`OUTPRINT_INJECTOR_UPSTREAM`; see [Deploying with Docker Compose](docker-compose.md).
+`OUTPRINT_INJECTOR_UPSTREAM`; see [Deploying with Docker Compose](../platforms/docker-compose.md).

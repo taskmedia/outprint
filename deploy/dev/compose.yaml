@@ -106,7 +106,7 @@ services:
     environment:
       OUTLINE_URL: http://outline:3000
       # Outline names itself http://localhost:8090 in the redirect to a
-      # stored file; the Gateway fetches that from OUTLINE_URL (docs/deploy/image-fetching.md).
+      # stored file; the Gateway fetches that from OUTLINE_URL (docs/deploy/components/image-fetching.md).
       OUTLINE_PUBLIC_URL: http://localhost:8090
       OUTPRINT_SERVICE_CONFIG: /opt/outprint/service-dev.yaml
     volumes:

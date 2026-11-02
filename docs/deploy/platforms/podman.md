@@ -1,6 +1,6 @@
 ---
 sidebar_label: Podman (coming soon)
-sidebar_position: 15
+sidebar_position: 3
 ---
 
 # Podman

@@ -149,6 +149,21 @@ The page `write/when-something-goes-wrong` and its headings are part of this
 contract: `go test ./internal/docslink` fails when a code in the source has no
 heading, or when the page moves or gets a `slug`.
 
+### Permalinks for readers
+
+On the newest release the address bar shows the unpinned `/...`, so a copied
+link would follow the docs to the next minor. Every docs page therefore ends with
+a "Copy link to this version" button (keyboard reachable, confirmed with a
+"Link copied" status message). It copies `https://outprint.task.media/<minor>/<path>#<anchor>`
+for the version shown (`/dev/...` on the unreleased docs), built from the
+version Docusaurus reports for the page (`useDocsVersion`), not from
+`window.location`. Clicking a heading's `#` link copies the same pinned form
+with that heading's anchor. The pinned form of the newest release is the
+redirect described above, and becomes a real folder with the next minor.
+
+The code is the swizzled `DocItem/Footer` in `src/theme/` and
+`src/lib/permalink.js`; no extra dependency.
+
 ### How the older versions are built
 
 The repository holds one copy of the docs, `docs/`. The older versions are

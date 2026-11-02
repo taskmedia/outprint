@@ -1,5 +1,5 @@
 ---
-sidebar_position: 8
+sidebar_position: 2
 ---
 
 # Image fetching
@@ -7,7 +7,7 @@ sidebar_position: 8
 Images in a document are files in Outline. The Gateway fetches them before a
 render. This page covers what an operator sets: which hosts a redirect may
 reach, and what to do when Outline runs behind an internal address. Authors
-find the rules for pictures in [Images and logos](../write/images-and-logos.md).
+find the rules for pictures in [Images and logos](../../write/images-and-logos.md).
 
 **Fetching images is the Gateway's only outbound request besides Outline's
 API.** The model:

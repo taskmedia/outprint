@@ -17,6 +17,7 @@ on:
       - web/**
       - deploy/**
       - e2e/**
+      - docs/assets/screens/**
       - Dockerfile
       - Taskfile.yml
       - "**/Taskfile.yml"
@@ -66,6 +67,26 @@ jobs:
         run: task e2e:run
         env:
           CI: "true"
+
+      # Visual check of the documentation screenshots on the stack that is
+      # already up. Informational: the committed PNGs come from a developer
+      # machine, so runner fonts may render slightly differently. The step can
+      # never fail the job; the changed images go to the job summary and the
+      # screenshots-changed artifact.
+      - name: documentation screenshots (visual check)
+        continue-on-error: true
+        run: task screenshots
+        env:
+          CI: "true"
+          SCREENSHOTS_DIFF_DIR: ${{ github.workspace }}/screenshot-diff
+
+      - name: upload the changed screenshots
+        if: hashFiles('screenshot-diff/*') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-changed
+          path: screenshot-diff
+          retention-days: 14
 
       - name: compose logs
         if: failure()

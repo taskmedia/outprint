@@ -4,17 +4,17 @@ sidebar_position: 2
 
 # Common base
 
-What the [Export menu](way-menu.md) and the [link](way-link.md) ways both need.
-The [command line](way-cli.md) needs none of this. The way pages refer here and
+What the [Export menu](ways/export-menu.md) and the [link](ways/pdf-by-link.md) ways both need.
+The [command line](ways/command-line.md) needs none of this. The way pages refer here and
 do not repeat it.
 
 ## What you need
 
 1. **A self-hosted Outline.** Hosted Outline (the cloud service of the Outline
    company) cannot be used: you cannot control the address it is served on. The
-   tested versions are listed in [Compatibility](compatibility.md).
-2. **Docker and Docker Compose.** Other ways are
-   [planned](helm-kubernetes.md).
+   tested versions are listed in [Compatibility](operate/compatibility.md).
+2. **Docker and Docker Compose,** or a Kubernetes cluster with Helm
+   ([Helm and Kubernetes](platforms/helm-kubernetes.md)).
 3. **The `outprint` image**, for the Gateway and the Worker. The Compose file
    builds it from the repository checkout (`docker compose ... up --build`).
    The release workflow is meant to publish `ghcr.io/taskmedia/outprint`. Check
@@ -23,7 +23,7 @@ do not repeat it.
    API. Use an internal address if you have one.
 5. **One address for the user.** The browser must send Outline's session cookie
    to the Gateway. That works when the Gateway is served on the host name of
-   Outline, below `/pdf`. See [Security notes](security-for-operators.md).
+   Outline, below `/pdf`. See [Security notes](operate/security-for-operators.md).
 
 There is no Outline API token to create. The Gateway forwards the cookie of the
 user who asks, so Outline's own permissions decide what is visible.
@@ -31,7 +31,7 @@ user who asks, so Outline's own permissions decide what is visible.
 ## What runs
 
 ```mermaid
-flowchart LR
+flowchart TB
     browser([Browser with Outline cookie])
     gw[Gateway :8080]
     wk[Worker :8081<br/>internal network, no route out]
@@ -55,7 +55,7 @@ them through from your shell.
 | Variable | Where | Meaning | Default |
 |----------|-------|---------|---------|
 | `OUTLINE_URL` | Gateway | base URL of Outline, as the Gateway reaches it; **required** | |
-| `OUTLINE_PUBLIC_URL` | Gateway | the URL Outline names itself, when `OUTLINE_URL` is an internal address; see [Image fetching](image-fetching.md) | none |
+| `OUTLINE_PUBLIC_URL` | Gateway | the URL Outline names itself, when `OUTLINE_URL` is an internal address; see [Image fetching](components/image-fetching.md) | none |
 | `OUTPRINT_WORKER_URL` | Gateway | base URL of the Worker; **required** (the Compose file sets it) | |
 | `OUTPRINT_WORKER_TOKEN` | Gateway, Worker | optional shared token; the same value on both | none |
 | `OUTPRINT_LISTEN` | both | listen address | `:8080` Gateway, `:8081` Worker |
@@ -64,7 +64,7 @@ them through from your shell.
 
 Templates, Configurations, the allowed Bindings and the image hosts are in the
 service configuration (`config/service.yaml`). Limits and the admission
-settings are on [Limits and admission control](limits-and-admission.md).
+settings are on [Limits and admission control](components/limits-and-admission.md).
 
 ## Start Gateway and Worker
 
@@ -78,7 +78,7 @@ docker compose -f deploy/compose/compose.yaml up --build gateway worker
 
 The Compose file also has an `injector` service. Naming only `gateway` and
 `worker` leaves it out. What the file sets for the Worker is explained in
-[Docker Compose](docker-compose.md).
+[Docker Compose](platforms/docker-compose.md).
 
 ## Check the base
 
