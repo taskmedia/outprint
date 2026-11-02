@@ -98,7 +98,7 @@ working.
 |-------|-------|
 | Start here | [Common base](common-base.md): what every way needs, images, Outline access, settings. |
 | [Install ways](ways/README.md) | [Export menu in Outline](ways/export-menu.md), [PDF by link](ways/pdf-by-link.md), [Command line](ways/command-line.md). |
-| Platforms | [Docker Compose](platforms/docker-compose.md), the shipped Compose file and the Worker baseline. [Helm and Kubernetes](platforms/helm-kubernetes.md), the chart from taskmedia/helm. Planned: [Podman](platforms/podman.md). |
+| Platforms | [Docker Compose](platforms/docker-compose.md), the shipped Compose file and the Worker baseline. [Helm and Kubernetes](platforms/helm-kubernetes.md), the chart from taskmedia/helm. |
 | Components | [Injector and PDF action](components/injector.md), [Image fetching](components/image-fetching.md), [Limits and admission control](components/limits-and-admission.md). [Reverse-proxy recipes](components/reverse-proxy-recipes.md): nginx, Caddy and Traefik instead of the injector. |
 | Operate | [Security notes for operators](operate/security-for-operators.md), [Upgrading](operate/upgrading.md), [Compatibility with Outline](operate/compatibility.md). |
 

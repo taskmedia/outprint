@@ -44,7 +44,6 @@ const movedDeployPages = {
   'way-cli': 'ways/command-line',
   'docker-compose': 'platforms/docker-compose',
   'helm-kubernetes': 'platforms/helm-kubernetes',
-  podman: 'platforms/podman',
   injector: 'components/injector',
   'image-fetching': 'components/image-fetching',
   'limits-and-admission': 'components/limits-and-admission',
