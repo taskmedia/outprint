@@ -2,7 +2,9 @@
 sidebar_position: 3
 ---
 
-# Compatibility with Outline
+# Check compatibility with Outline
+
+**How-to.** Check which Outline releases the injector and the PDF action work with.
 
 The injector places the PDF action by reading Outline's page, because Outline
 has no extension point for its menus (see
@@ -83,4 +85,4 @@ over the pin file:
 OUTLINE_IMAGE=outlinewiki/outline:1.12.0 task dev:down-volumes dev e2e:run
 ```
 
-See [Development stack and end-to-end tests](../../internals/development.md).
+See [Development stack and end-to-end tests](https://github.com/taskmedia/outprint/blob/main/docs/internals/development.md).

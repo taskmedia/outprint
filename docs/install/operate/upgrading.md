@@ -2,7 +2,9 @@
 sidebar_position: 2
 ---
 
-# Upgrading
+# Upgrade Outprint
+
+**How-to.** Check what changes between versions before you upgrade.
 
 There is one release (0.1.0), so there is no upgrade path to describe yet. This
 page lists what to check between versions. It will grow with later releases.

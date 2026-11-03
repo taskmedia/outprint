@@ -4,6 +4,8 @@ sidebar_position: 3
 
 # Where the PDF action appears
 
+**How-to.** Choose where the PDF action appears in Outline.
+
 Outprint adds its action to Outline's own interface. By default it is an item in
 the **Export** menu of a document. You can move it to a button in the document
 header. The choice is global: it applies to every Collection and every document,
@@ -18,7 +20,7 @@ Collection without one show nothing.
 | `button` | a button in the header, directly before **Share** | no |
 
 The person who runs the Gateway sets it with `OUTPRINT_BUTTON_PLACEMENT`. See
-[The script tag](../deploy/components/script-tag.md#options-come-from-the-gateway) for all options.
+[The script tag](../install/components/script-tag.md#options-come-from-the-gateway) for all options.
 
 ## Export menu
 
@@ -56,7 +58,7 @@ of a document, and authors see it folded behind a **PDF details** toggle (**PDF-
 can open with a click. Set `OUTPRINT_BUTTON_METADATA_BLOCK` to change this:
 `hide` shows the block to authors as is, `show` shows it to everyone. The limits
 of hiding (Outline's markup, share links, exports, search) are listed under [Hiding the metadata
-block](../deploy/components/injector.md#hiding-the-metadata-block).
+block](../install/components/injector.md#hiding-the-metadata-block).
 
 ## Not the same as Outline's own PDF
 

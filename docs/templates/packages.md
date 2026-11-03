@@ -4,6 +4,8 @@ sidebar_position: 3
 
 # Packages
 
+**Reference.** The layout of a Template package and a Configuration package.
+
 The renderer reads two kinds of packages, each from its own root directory:
 
 - a **Template** package, one directory per Template under the templates root;
@@ -55,7 +57,7 @@ templates/neutral/
 ```
 
 Fonts are loaded by file path, never by name: the Worker's TeX engine cannot
-use the system font database (see [Worker pipeline](../internals/worker.md)). A Template loads
+use the system font database (see [Worker pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/worker.md)). A Template loads
 its fonts with the fontspec option `Path=./fonts/`:
 
 ```tex

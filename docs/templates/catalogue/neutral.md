@@ -7,6 +7,8 @@ sidebar_position: 1
 
 # The neutral Template
 
+**Reference.** The neutral Template: its document types, fields and errors.
+
 Document types: `letter`, `report`.
 
 ![First page of a letter set with the neutral Template and the example configuration](../../assets/screens/template-neutral.png)

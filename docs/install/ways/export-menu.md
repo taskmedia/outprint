@@ -2,7 +2,9 @@
 sidebar_position: 1
 ---
 
-# Export menu in Outline
+# Add the Export menu to Outline
+
+**How-to.** Put **Export → Formatted PDF** into Outline with the injector or an edge-proxy recipe.
 
 ## What it does
 
@@ -47,10 +49,9 @@ sequenceDiagram
 - Authors should find the PDF where they already work.
 - You control the proxy in front of Outline, or can put one there.
 
-If you only need a link, [PDF by link](pdf-by-link.md) is smaller. The injector is
-an addition to the Gateway and the Worker. **Without it, everything else keeps
-working**: the Gateway renders, the link way works, the command line works. Only
-the action in Outline's interface is missing.
+The injector is an addition to the Gateway and the Worker. **Without it,
+everything else keeps working**: the Gateway renders and `/pdf/render/<id>`
+returns a PDF. Only the action in Outline's interface is missing.
 
 ## Prerequisites
 

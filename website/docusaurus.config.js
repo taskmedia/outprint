@@ -22,6 +22,14 @@ const hasRelease = releasedVersions.length > 0;
 const rootAlias = hasRelease ? releasedVersions[0] : 'dev';
 const versionFolders = ['dev', ...releasedVersions];
 
+// The Install section was called Deploy until the release that is served at the
+// site root has it (issue #114). The navbar and the landing page link to the
+// section under the name the root version has.
+const rootHasInstall =
+  !hasRelease ||
+  fs.existsSync(path.join(__dirname, 'versioned_docs', `version-${releasedVersions[0]}`, 'install'));
+const installPath = rootHasInstall ? '/install/' : '/deploy/';
+
 /** @param {string} existingPath */
 function createRedirects(existingPath) {
   if (existingPath.endsWith('.html')) return undefined;
@@ -32,16 +40,16 @@ function createRedirects(existingPath) {
   return [`/${rootAlias}${existingPath}`];
 }
 
-// Deploy pages that moved into folders (issue #97). The old address of each
-// page redirects to the new one. Only the current docs moved: a released
+// Deploy pages that moved into folders (issue #97) and then into the Install
+// section (issue #114). The old address of each page redirects to the new one.
+// The PDF-by-link and command-line pages are gone and have no redirect.
+// Only the current docs moved: a released
 // version keeps the layout it was tagged with, so its pages stay real pages
 // and are not redirected. The current docs live at /dev/ once a release exists,
 // at the root before; in that case /dev/... is also a redirect target the
 // product may link to, so both spellings are covered.
 const movedDeployPages = {
   'way-menu': 'ways/export-menu',
-  'way-link': 'ways/pdf-by-link',
-  'way-cli': 'ways/command-line',
   'docker-compose': 'platforms/docker-compose',
   'helm-kubernetes': 'platforms/helm-kubernetes',
   injector: 'components/injector',
@@ -54,7 +62,7 @@ const movedDeployPages = {
 };
 const currentDocsPath = hasRelease ? '/dev' : '';
 const movedPageRedirects = Object.entries(movedDeployPages).flatMap(([from, to]) => {
-  const target = `${currentDocsPath}/deploy/${to}/`;
+  const target = `${currentDocsPath}/install/${to}/`;
   const sources = [`${currentDocsPath}/deploy/${from}/`];
   if (!hasRelease) sources.push(`/dev/deploy/${from}/`);
   return sources.map((source) => ({from: source, to: target}));
@@ -70,6 +78,7 @@ const config = {
   tagline:
     'Outprint for Outline: turn Outline documents into typeset PDFs (letters, reports, custom LaTeX templates) with a Download PDF button. Self-hosted, no Outline fork.',
   favicon: 'brand/favicon.ico',
+  customFields: {installPath},
 
   url: 'https://outprint.task.media',
   baseUrl,
@@ -200,10 +209,9 @@ const config = {
         },
         items: [
           {to: '/write/', label: 'Write', position: 'left', activeBaseRegex: '^/write/'},
+          {to: installPath, label: 'Install', position: 'left', activeBaseRegex: `^${installPath}`},
           {to: '/configure/', label: 'Configure', position: 'left', activeBaseRegex: '^/configure/'},
-          {to: '/deploy/', label: 'Deploy', position: 'left', activeBaseRegex: '^/deploy/'},
           {to: '/templates/', label: 'Templates', position: 'left', activeBaseRegex: '^/templates/'},
-          {to: '/internals/', label: 'Internals', position: 'left', activeBaseRegex: '^/(internals|adr)/'},
           ...(hasRelease ? [{type: 'docsVersionDropdown', position: 'right'}] : []),
           {
             href: 'https://github.com/taskmedia/outprint',

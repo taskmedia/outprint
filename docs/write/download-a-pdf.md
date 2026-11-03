@@ -4,6 +4,8 @@ sidebar_position: 2
 
 # Download a PDF
 
+**How-to.** Get a PDF of a document in Outline.
+
 This takes about five minutes. You need an Outline account and a document in a
 Collection that has a PDF look.
 

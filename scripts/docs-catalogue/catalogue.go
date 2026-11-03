@@ -66,6 +66,7 @@ func (c *catalogue) indexPage(names []string) string {
 	b.WriteString("---\ntitle: Template catalogue\n---\n\n")
 	b.WriteString(header("the packages under templates/"))
 	b.WriteString("# Template catalogue\n\n")
+	b.WriteString("**Reference.** The Templates that ship with Outprint.\n\n")
 	b.WriteString("One page for every Template that ships with Outprint. Each page shows what the\n")
 	b.WriteString("result looks like, a block you can copy into a document, every field, and the\n")
 	b.WriteString("errors you can expect.\n\n")
@@ -100,6 +101,7 @@ func (c *catalogue) templatePage(name string, position int, out string) (string,
 	fmt.Fprintf(&b, "---\ntitle: %s\nsidebar_position: %d\n---\n\n", name, position)
 	b.WriteString(header(fmt.Sprintf("templates/%s/manifest.yaml and configurations/%s", name, c.opts.configuration)))
 	fmt.Fprintf(&b, "# The %s Template\n\n", name)
+	fmt.Fprintf(&b, "**Reference.** The %s Template: its document types, fields and errors.\n\n", name)
 	if len(intro) > 0 {
 		b.Write(intro)
 		b.WriteString("\n")

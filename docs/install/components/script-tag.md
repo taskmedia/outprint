@@ -1,9 +1,10 @@
 ---
-sidebar_label: The script tag
 sidebar_position: 0
 ---
 
-# The script tag
+# Load the script tag
+
+**How-to.** Put the one script tag that draws the PDF action into Outline and check it.
 
 Every way to the **Formatted PDF** action in Outline's interface does the same
 two things. Only the last step differs: who puts the tag into Outline's pages.
@@ -76,8 +77,7 @@ Every way ends with this check:
 
    `1` is right. `0` means the page was not changed (the injector or proxy is
    not in the path, the page came from a cache, or the template mount is
-   missing). Ways without a changed page (command line, PDF by link) skip this
-   step.
+   missing).
 2. `curl -i https://wiki.example.test/pdf/healthz` answers `200`.
 3. Sign in and open a document of a Collection that has a Binding. **Export →
    Formatted PDF** is listed after the file formats (or the header button

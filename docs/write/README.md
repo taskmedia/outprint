@@ -4,6 +4,8 @@ sidebar_position: 1
 
 # Write
 
+**How-to.** Write documents in Outline and get them as PDFs.
+
 You write documents in Outline. Outprint turns a document into a PDF with a
 letterhead, a footer and a fixed layout. You do not need to design anything.
 

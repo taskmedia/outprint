@@ -4,6 +4,8 @@ sidebar_position: 1
 
 # Templates
 
+**Background.** What Templates are and where to find or make one.
+
 This section is for people who make or choose Templates.
 
 A **Template** is a page design: layout, fonts and the kinds of document it

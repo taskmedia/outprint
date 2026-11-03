@@ -4,6 +4,8 @@ sidebar_position: 4
 
 # Start new documents with the block filled in
 
+**How-to.** Start every new document in a Collection with the block already filled in.
+
 Typing the [metadata block](fill-in-the-document.md) by hand is tedious when
 every document in a Collection starts the same way. Outline's own **templates**
 solve this. A template that starts with the block gives every new document the

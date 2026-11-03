@@ -4,6 +4,8 @@ sidebar_position: 1
 
 # Configure
 
+**How-to.** Give a Collection its PDF look.
+
 You look after a Collection in Outline. This section shows how to give it a PDF
 look.
 
@@ -23,6 +25,6 @@ look. The authors do not choose it.
 | [Choose a Template and Configuration](choose-a-template.md) | The block to copy, the rules for it, and the errors you may see. |
 | [Where the PDF action appears](pdf-action.md) | Export menu or header button, the labels, and how it differs from Outline's own PDF. |
 
-Before you start, check that someone has [deployed Outprint](../deploy/README.md)
+Before you start, check that someone has [deployed Outprint](../install/README.md)
 for your Outline. If a document shows no **Formatted PDF** action in a Collection
 that has a block, ask that person.

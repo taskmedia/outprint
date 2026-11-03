@@ -4,6 +4,8 @@ sidebar_position: 5
 
 # Images and logos
 
+**How-to.** Add pictures to a document and fix a refused picture.
+
 Pictures you add to a document in Outline appear in the PDF. This page tells
 you what works and what to do when a picture is refused.
 

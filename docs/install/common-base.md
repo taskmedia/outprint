@@ -2,11 +2,12 @@
 sidebar_position: 2
 ---
 
-# Common base
+# Prepare the common base
 
-What the [Export menu](ways/export-menu.md) and the [link](ways/pdf-by-link.md) ways both need.
-The [command line](ways/command-line.md) needs none of this. The way pages refer here and
-do not repeat it.
+**How-to.** Set up what every install needs: images, access to Outline and settings.
+
+What the [Export menu](ways/export-menu.md) needs, however the action gets into Outline.
+The pages of the install refer here and do not repeat it.
 
 ## What you need
 
@@ -45,7 +46,7 @@ flowchart TB
 ```
 
 The Worker has no network and no secrets. The Gateway is the only part that
-talks to Outline. Why they are split: [ADR 0001](../adr/0001-split-renderer-into-gateway-and-worker.md).
+talks to Outline. Why they are split: [ADR 0001](https://github.com/taskmedia/outprint/blob/main/docs/adr/0001-split-renderer-into-gateway-and-worker.md).
 
 ## Settings
 
@@ -89,7 +90,7 @@ The Compose file also has an `injector` service. Naming only `gateway` and
 3. `docker compose -f deploy/compose/compose.yaml ps` shows `gateway` and
    `worker` as `healthy`.
 
-A real PDF needs a signed-in browser. The next step depends on the way you pick.
+A real PDF needs a signed-in browser. The next step is adding the action to Outline.
 
 ## Typical problems
 

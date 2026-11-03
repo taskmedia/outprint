@@ -1,13 +1,14 @@
 ---
-sidebar_label: Helm and Kubernetes
 sidebar_position: 2
 ---
 
-# Helm and Kubernetes
+# Run Outprint with Helm
+
+**How-to.** Run Outprint on Kubernetes with the Helm chart.
 
 The Helm chart runs the Gateway, the Worker and, if you want the
 [Export menu](../ways/export-menu.md), the injector. The Worker keeps the
-baseline of [ADR 0001](../../adr/0001-split-renderer-into-gateway-and-worker.md)
+baseline of [ADR 0001](https://github.com/taskmedia/outprint/blob/main/docs/adr/0001-split-renderer-into-gateway-and-worker.md)
 as it is set in the [Compose file](docker-compose.md).
 
 The chart is not part of this repository. It is released from
@@ -24,9 +25,10 @@ every option.
 - **The injector sits between your edge proxy and Outline.** The edge proxy (your
   ingress controller, a load balancer) sends all traffic for the Outline host
   name to the injector Service, and the injector forwards to Outline. That keeps
-  the browser on one address, so Outline's cookie reaches the Gateway. If you
-  only want [PDF by link](../ways/pdf-by-link.md), set `injector.enabled=false` and route
-  `/pdf` on Outline's address to the Gateway Service instead.
+  the browser on one address, so Outline's cookie reaches the Gateway. If an edge
+  proxy adds the script tag ([recipes](../components/reverse-proxy-recipes.md)), set
+  `injector.enabled=false` and route `/pdf` on Outline's address to the Gateway
+  Service instead.
 - **Helm 3** and a cluster.
 - **The images** `ghcr.io/taskmedia/outprint` and
   `ghcr.io/taskmedia/outprint-injector`, which the release workflow builds. The
@@ -122,5 +124,5 @@ kubectl -n outprint logs deploy/outprint-worker # "worker security posture", no 
 Then follow [Check that it works](../ways/export-menu.md#check-that-it-works) of the Export
 menu way. The chart's CI installs it into a kind cluster. That does not sign in
 to Outline, so the Gateway's path through Outline is covered by the
-[browser tests](../../internals/development.md) of the Compose stack, not by the
+[browser tests](https://github.com/taskmedia/outprint/blob/main/docs/internals/development.md) of the Compose stack, not by the
 chart test. It also does not check that a cluster's CNI enforces the NetworkPolicy.

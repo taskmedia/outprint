@@ -2,7 +2,9 @@
 sidebar_position: 2
 ---
 
-# Image fetching
+# Set up image fetching
+
+**How-to.** Choose which hosts the Gateway may fetch images from.
 
 Images in a document are files in Outline. The Gateway fetches them before a
 render. This page covers what an operator sets: which hosts a redirect may
