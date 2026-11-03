@@ -220,6 +220,73 @@ http:
 ```
 
 </TabItem>
+<TabItem value="traefik-kubernetes" label="Traefik on Kubernetes">
+
+**Untested.** The same plugin and rules as the Traefik tab, written as Traefik's
+Kubernetes custom resources instead of file configuration. Load the plugin in
+Traefik's static configuration (the Helm chart's `experimental.plugins` value);
+the rest is applied with `kubectl`. The `Service` names and ports are examples.
+
+{/* validate: skip Traefik Kubernetes custom resources, a third-party format */}
+```yaml
+# static configuration (Helm values of the Traefik chart)
+experimental:
+  plugins:
+    rewrite-body:
+      moduleName: github.com/packruler/rewrite-body
+      version: v1.1.0   # pin the version you tested
+
+---
+# resources, in the namespace of Outline
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: outprint-tag
+spec:
+  plugin:
+    rewrite-body:
+      rewrites:
+        - regex: "</body>"
+          replacement: '<script src="/pdf/button.js" defer></script></body>'
+      monitoring:
+        methods: [GET]
+        types: [text/html]
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: outprint-strip-pdf
+spec:
+  stripPrefix:
+    prefixes: [/pdf]
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: wiki
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`wiki.example.test`) && PathPrefix(`/pdf/`)
+      kind: Rule
+      priority: 20
+      middlewares:
+        - name: outprint-strip-pdf
+      services:
+        - name: outprint-gateway
+          port: 8080
+    - match: Host(`wiki.example.test`)
+      kind: Rule
+      priority: 10
+      middlewares:
+        - name: outprint-tag
+      services:
+        - name: outline
+          port: 3000
+  tls: {}
+```
+
+</TabItem>
 </Tabs>
 
 The rules every recipe follows, what each proxy does and does not do, and the
