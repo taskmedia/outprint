@@ -20,8 +20,9 @@ The title of the document is the title of the PDF, and the date is the day the
 document was last changed. The PDF shows the document as saved now, nothing is
 stored, and you can only download documents you may read.
 
-No **Formatted PDF** item means the Collection has no PDF look yet. Ask its
-admin to [bind a Template](../configure/README.md).
+No **Formatted PDF** item means the [Collection](../reference/glossary.md#collection)
+has no [Binding](../reference/glossary.md#binding) yet. Ask its admin to
+[bind a Template](../configure/README.md).
 
 ![A document in a Collection without a PDF look: there is no PDF action](../assets/screens/unbound-document-no-button.png)
 
@@ -34,7 +35,8 @@ detail in the right place.
 
 1. Open the page of your Template in the
    [Template catalogue](../templates/catalogue/README.md) and copy the block of
-   the kind of document you want, for example `letter`.
+   the [Document Type](../reference/glossary.md#document-type) you want, for
+   example `letter`.
 2. Paste it at the very start of your document and replace the example values.
 
 <!-- validate: metadata template=neutral configuration=example -->
@@ -65,7 +67,7 @@ block counts. A line that starts with `#` is a comment. Put a value that contain
 a colon, such as `"Re: sale"`, in quotation marks.
 
 Fixed details such as the organisation name, logo and colour come from the
-Collection's Configuration. You cannot set them in a document. Every field, its
+Collection's [Configuration](../reference/glossary.md#configuration). You cannot set them in a document. Every field, its
 type and the order of the defaults are in the
 [Metadata Block](../reference/metadata-block.md) reference and the catalogue.
 

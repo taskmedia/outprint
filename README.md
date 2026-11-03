@@ -10,9 +10,11 @@ Turn [Outline](https://www.getoutline.com/) documents into typeset PDFs
 (letters, reports, your own LaTeX design) with a **Formatted PDF** action in the
 Export menu. Self-hosted, and Outline is not forked.
 
-A Template provides the look. A Configuration adds the name, logo and colours of
-an organisation. A Collection admin binds the two to a Collection, and authors
-fill in a few fields at the top of a document and download the PDF.
+A [Template](docs/reference/glossary.md#template) provides the look. A
+[Configuration](docs/reference/glossary.md#configuration) adds the name, logo and
+colours of an organisation. A [Collection](docs/reference/glossary.md#collection)
+admin binds the two to a Collection, and authors fill in a few fields at the top
+of a document and download the PDF.
 
 ![A document in Outline with the Export menu open and Formatted PDF in it](docs/assets/screens/bound-document-with-button.png)
 

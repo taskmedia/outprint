@@ -6,7 +6,7 @@ sidebar_position: 5
 
 **Reference.** The files of a Template and the keys of its `manifest.yaml`.
 
-A Template is one folder under the templates root. The folder name matches
+A [Template](glossary.md#template) is one folder under the templates root. The folder name matches
 `^[a-z0-9][a-z0-9-]*$`. A package is self-contained: nothing is shared between
 packages. To write one, start with the
 [Template author guide](../templates/template-author-guide.md).

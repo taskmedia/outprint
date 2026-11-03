@@ -9,13 +9,13 @@ sidebar_position: 1
 
 **Reference.** The neutral Template: its document types, fields and errors.
 
-Document types: `letter`, `report`.
+[Document Types](../../reference/glossary.md#document-type): `letter`, `report`.
 
 ![First page of a letter set with the neutral Template and the example configuration](../../assets/screens/template-neutral.png)
 
 The picture is the first page of the `letter` example below, typeset with the real pipeline and the `example` configuration.
 
-To use the Template, a Collection admin binds it to a Collection; see [Configure](../../configure/README.md). An author then starts a document with the block below.
+To use the Template, a Collection admin binds it to a [Collection](../../reference/glossary.md#collection); see [Configure](../../configure/README.md). An author then starts a document with the block below.
 
 ## Document type `letter`
 

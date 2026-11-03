@@ -6,8 +6,8 @@ sidebar_position: 4
 
 **Reference.** The block in a Collection description that chooses a Template and a Configuration.
 
-A Collection admin adds the block to the description of a Collection in
-Outline. How to do it, step by step, is in
+A [Collection](glossary.md#collection) admin adds the block to the description
+of a Collection in Outline. The block makes the [Binding](glossary.md#binding). How to do it, step by step, is in
 [Bind a Template to a Collection](../configure/README.md).
 
 <!-- validate: binding -->
@@ -53,7 +53,7 @@ binding:
 
 **Type:** `string`. **Required:** yes. **Default:** none.
 
-The name of an installed Template Configuration. A name that is not installed
+The name of an installed Configuration. A name that is not installed
 is [`binding_unknown`](error-messages.md#binding_unknown). If both names exist
 but the pair is not in the `bindings` list of the
 [service configuration](service-configuration.md#bindings), the error is

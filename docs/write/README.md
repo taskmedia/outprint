@@ -7,8 +7,10 @@ sidebar_position: 1
 **How-to.** Write documents in Outline and get them as PDFs.
 
 You write documents in Outline. Outprint turns a document into a PDF with a
-letterhead, a footer and a fixed layout. You do not need to design anything or to
-know anything technical.
+letterhead, a footer and a fixed layout. The look comes from the
+[Template](../reference/glossary.md#template) that the admin of your
+[Collection](../reference/glossary.md#collection) has chosen. You do not need to
+design anything or to know anything technical.
 
 | Page | What you learn |
 |------|----------------|
