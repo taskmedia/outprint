@@ -291,7 +291,7 @@ test('a failed render shows an escaped, dismissible error list and re-enables th
 // ---- links to the docs ----------------------------------------------------
 
 const DOCS = 'https://outprint.task.media';
-const PAGE = '/write/when-something-goes-wrong/';
+const PAGE = '/reference/error-messages/';
 
 test('safeDocsUrl accepts only https links to the docs site', () => {
   const ok = [
@@ -304,14 +304,14 @@ test('safeDocsUrl accepts only https links to the docs site', () => {
     'javascript:alert(1)',
     'JaVaScRiPt:alert(1)',
     'data:text/html,<script>alert(1)</script>',
-    'http://outprint.task.media/write/',
-    'https://evil.example/write/',
-    'https://outprint.task.media.evil.example/write/',
-    'https://outprint.task.media@evil.example/write/',
-    'https://user:pw@outprint.task.media/write/',
-    'https://outprint.task.media:8443/write/',
-    '//outprint.task.media/write/',
-    '/write/when-something-goes-wrong/',
+    'http://outprint.task.media/reference/',
+    'https://evil.example/reference/',
+    'https://outprint.task.media.evil.example/reference/',
+    'https://outprint.task.media@evil.example/reference/',
+    'https://user:pw@outprint.task.media/reference/',
+    'https://outprint.task.media:8443/reference/',
+    '//outprint.task.media/reference/',
+    '/reference/error-messages/',
     'not a url',
     '',
     null,
@@ -391,7 +391,7 @@ test('each error with a docs link gets a "How to fix" link that opens safely in 
 test('a hostile docs_url is shown as no link at all', async () => {
   const panel = await renderFailure({ errors: [
     { message: 'first', docs_url: 'javascript:alert(1)' },
-    { message: 'second', docs_url: 'https://evil.example/write/when-something-goes-wrong/#enum' },
+    { message: 'second', docs_url: 'https://evil.example/reference/error-messages/#enum' },
   ] });
   assert.deepEqual(linksOf(panel), []);
   assert.ok(panel.text().includes('first'));

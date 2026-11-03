@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Compares the error codes in the source with the entries of the error
-# catalogue, docs/write/when-something-goes-wrong.md (one `### `code``
+# catalogue, docs/reference/error-messages.md (one `### `code``
 # heading, and so one anchor, per code).
 #
 #   scripts/docs-error-codes.sh list     print the codes found in the source
@@ -21,7 +21,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-page=docs/write/when-something-goes-wrong.md
+page=docs/reference/error-messages.md
 
 consts() { # file, constant-name pattern
   grep -hoE "^[[:space:]]*$2[A-Za-z]*[[:space:]]+([A-Za-z]+[[:space:]]+)?=[[:space:]]*\"[a-z_]+\"" "$1" | grep -oE '"[a-z_]+"' | tr -d '"' || true

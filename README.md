@@ -102,10 +102,10 @@ docker run --rm outprint validate                  # the packages shipped in the
 outprint validate --templates-root ./templates --configs-root ./configurations
 ```
 
-The reference for each part is in the docs: the [Metadata Block reference](docs/templates/metadata-reference.md),
-[Packages](docs/templates/packages.md) (format, field types, typed patterns,
+The reference for each part is in the docs: the [Metadata Block](docs/reference/metadata-block.md),
+[Template package](docs/reference/template-package.md) (format, field types, typed patterns,
 the TeX deny-list, the drift guard and `validate`) and
-[Standard Fields](docs/templates/standard-fields.md); [Images in the pipeline](docs/internals/images.md);
+[Standard Fields](docs/reference/standard-fields.md); [Images in the pipeline](docs/internals/images.md);
 [Choose a Template and Configuration](docs/configure/choose-a-template.md) for the
 `binding:` block of a Collection admin; the [Worker pipeline](docs/internals/worker.md);
 [Architecture](docs/internals/architecture.md); [Install: which way fits you](docs/install/README.md) and the

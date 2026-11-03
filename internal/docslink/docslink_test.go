@@ -61,7 +61,7 @@ func TestHome(t *testing.T) {
 }
 
 func TestErrorURL(t *testing.T) {
-	const page = "/write/when-something-goes-wrong/"
+	const page = "/reference/error-messages/"
 	tests := []struct{ name, version, code, want string }{
 		{"release", "0.3.2", "no_binding", "https://outprint.task.media/0.3" + page + "#no_binding"},
 		{"v prefix", "v0.3.2", "enum", "https://outprint.task.media/0.3" + page + "#enum"},

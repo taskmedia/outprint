@@ -26,8 +26,8 @@ const (
 	BaseURL = "https://outprint.task.media"
 
 	// ErrorsPage is the docs page with one heading, and so one anchor, per
-	// error code: docs/write/when-something-goes-wrong.md.
-	ErrorsPage = "write/when-something-goes-wrong"
+	// error code: docs/reference/error-messages.md.
+	ErrorsPage = "reference/error-messages"
 
 	devPath = "dev"
 )

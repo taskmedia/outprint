@@ -328,4 +328,4 @@ back; see [Injector and PDF action](injector.md#content-security-policy).
 | real-time editing hangs | the WebSocket upgrade is not passed | check the `Upgrade` headers |
 | `401` from `/pdf/render/...` | the Gateway is on another host name | one host name for Outline and `/pdf` |
 
-For the Gateway side see [When something goes wrong](../../write/when-something-goes-wrong.md).
+For the Gateway side see [Error messages](../../reference/error-messages.md).

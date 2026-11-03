@@ -171,7 +171,7 @@ in production, so a write through a link fails.
 
 The `neutral` fonts show the consequence. The luaotfload font name database
 cannot be built under paranoid reads, so a Template must load its fonts by
-file (`Path=./fonts/`, see [Packages](../templates/packages.md)). The default Latin
+file (`Path=./fonts/`, see [Template package](../reference/template-package.md)). The default Latin
 Modern fonts that LaTeX loads for code and math are found by file name and
 work.
 

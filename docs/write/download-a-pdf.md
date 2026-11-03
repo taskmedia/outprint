@@ -52,7 +52,7 @@ download. It says what to fix and where.
 ![The message an author sees when the details at the top of the document are wrong](../assets/screens/error-shown-to-author.png)
 
 Fix the problem and click **Formatted PDF** again. Find your message in
-[When something goes wrong](when-something-goes-wrong.md).
+[Error messages](../reference/error-messages.md).
 
 ## Good to know
 

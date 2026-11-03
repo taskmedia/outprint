@@ -1,8 +1,8 @@
 ---
-sidebar_position: 6
+sidebar_position: 9
 ---
 
-# When something goes wrong
+# Error messages
 
 **Reference.** The messages Outprint shows when it cannot make a PDF, and what each one means.
 
@@ -71,7 +71,7 @@ name appears twice.
 
 **What to do:** Check the lines the message points to. Close the block with
 three backticks on a line of their own. Put a value that contains a colon and a
-space in quotation marks. See [Fill in the document](fill-in-the-document.md).
+space in quotation marks. See [Fill in the document](../write/fill-in-the-document.md).
 
 ### `required`
 
@@ -108,7 +108,7 @@ the allowed format.
 
 **What to do:** Write the value the way the field expects. The page of your
 Template shows the kind of each field. See
-[what each kind of field looks like](fill-in-the-document.md#what-each-kind-of-field-looks-like).
+[what each kind of field looks like](../write/fill-in-the-document.md#what-each-kind-of-field-looks-like).
 
 ### `enum`
 
@@ -127,7 +127,7 @@ or `the attachment id is not valid`.
 Outline.
 
 **What to do:** Delete the image and upload it again. See
-[Images and logos](images-and-logos.md).
+[Images and logos](../write/images-and-logos.md).
 
 ### `forbidden`
 
@@ -149,7 +149,7 @@ access.
 **Message:** `the image is larger than 10 MiB`, `the document has more than 50 images`,
 `the images of this document together exceed 50 MiB`, or `the document is too large to render`.
 
-**Cause:** A limit was passed. See [Limits you may hit](limits-you-may-hit.md).
+**Cause:** A limit was passed. See [Limits](limits.md).
 
 **What to do:** Shrink the image, use fewer images, or split the document in two.
 The message says which limit it is.

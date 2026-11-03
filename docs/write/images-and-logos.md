@@ -49,12 +49,9 @@ removed. PNG stays sharp, and JPEG stays at high quality.
 
 ## Limits
 
-- 50 pictures in one document.
-- 10 MiB for one picture (an SVG: 2 MiB).
-- 50 MiB for all pictures together.
-- 40 megapixels in one picture. That is, for example, 8000 by 5000 pixels.
-
-See [Limits you may hit](limits-you-may-hit.md) for the other limits.
+A document can hold up to 50 pictures. One picture may have up to 10 MiB (an
+SVG: 2 MiB) and 40 megapixels. See [Limits](../reference/limits.md) for all
+sizes.
 
 ## Drawings and diagrams (SVG)
 
@@ -77,18 +74,18 @@ Collection sets it once. You cannot change it in a document. See
 ## When a picture is refused
 
 The message lists every picture that has a problem, with its line. Find the
-code of the message in [When something goes wrong](when-something-goes-wrong.md).
+code of the message in [Error messages](../reference/error-messages.md).
 
 | Code | What it means | What to do |
 |------|---------------|------------|
-| [`missing`](when-something-goes-wrong.md#missing) | The picture has no address, or it was deleted | Upload it again |
-| [`forbidden`](when-something-goes-wrong.md#forbidden) | The picture comes from another website, or you may not read it | Upload your own copy |
-| [`too_large`](when-something-goes-wrong.md#too_large) | A size or count limit was passed | Shrink it or use fewer pictures |
-| [`format`](when-something-goes-wrong.md#format) | The format is not supported, or the picture is an animation | Export a PNG or JPEG |
-| [`decode`](when-something-goes-wrong.md#decode) | The file is damaged | Save it again and upload the new file |
-| [`pixels`](when-something-goes-wrong.md#pixels) | The picture has too many pixels | Scale it down |
-| [`svg_rejected`](when-something-goes-wrong.md#svg_rejected) | The SVG holds something not allowed | Export a plain SVG, or a PNG |
-| [`syntax`](when-something-goes-wrong.md#syntax) | The picture is written across several lines | Put it on a line of its own |
+| [`missing`](../reference/error-messages.md#missing) | The picture has no address, or it was deleted | Upload it again |
+| [`forbidden`](../reference/error-messages.md#forbidden) | The picture comes from another website, or you may not read it | Upload your own copy |
+| [`too_large`](../reference/error-messages.md#too_large) | A size or count limit was passed | Shrink it or use fewer pictures |
+| [`format`](../reference/error-messages.md#format) | The format is not supported, or the picture is an animation | Export a PNG or JPEG |
+| [`decode`](../reference/error-messages.md#decode) | The file is damaged | Save it again and upload the new file |
+| [`pixels`](../reference/error-messages.md#pixels) | The picture has too many pixels | Scale it down |
+| [`svg_rejected`](../reference/error-messages.md#svg_rejected) | The SVG holds something not allowed | Export a plain SVG, or a PNG |
+| [`syntax`](../reference/error-messages.md#syntax) | The picture is written across several lines | Put it on a line of its own |
 
 Do not add curly-bracket settings such as `{width=50%}` after a picture. They
 are ignored. Use the size handles in Outline.
