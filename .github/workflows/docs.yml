@@ -58,6 +58,10 @@ jobs:
       - name: Catalogue is up to date
         run: task docs:catalogue-check
 
+      # The generated settings page matches the registry of settings.
+      - name: Settings page is up to date
+        run: task docs:settings-check
+
       # One entry per error code of the source in the error catalogue.
       - name: Error catalogue matches the source
         run: task docs:errors-check

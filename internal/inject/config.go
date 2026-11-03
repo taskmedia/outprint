@@ -7,6 +7,8 @@ import (
 	"path"
 	"strconv"
 	"strings"
+
+	registry "github.com/taskmedia/outprint/internal/settings"
 )
 
 const (
@@ -24,13 +26,13 @@ const (
 
 // Environment variables of the injector binary.
 const (
-	envUpstream     = "OUTPRINT_INJECTOR_UPSTREAM"
-	envListen       = "OUTPRINT_INJECTOR_LISTEN"
-	envScriptURL    = "OUTPRINT_INJECTOR_SCRIPT_URL"
-	envGatewayURL   = "OUTPRINT_INJECTOR_GATEWAY_URL"
-	envGatewayPref  = "OUTPRINT_INJECTOR_GATEWAY_PREFIX"
-	envCSPAllowSelf = "OUTPRINT_INJECTOR_CSP_ALLOW_SELF"
-	envLogLevel     = "OUTPRINT_INJECTOR_LOG_LEVEL"
+	envUpstream     = registry.EnvInjectorUpstream
+	envListen       = registry.EnvInjectorListen
+	envScriptURL    = registry.EnvInjectorScriptURL
+	envGatewayURL   = registry.EnvInjectorGatewayURL
+	envGatewayPref  = registry.EnvInjectorGatewayPref
+	envCSPAllowSelf = registry.EnvInjectorCSPAllowSelf
+	envLogLevel     = registry.EnvInjectorLogLevel
 )
 
 // Config wires the injector.

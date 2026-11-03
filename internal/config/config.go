@@ -17,14 +17,15 @@ import (
 
 	"github.com/taskmedia/outprint/internal/admission"
 	"github.com/taskmedia/outprint/internal/limits"
+	"github.com/taskmedia/outprint/internal/settings"
 )
 
 // Environment variables. The roots override the file so that an image can
 // ship one configuration and a deployment relocates the packages.
 const (
-	EnvTemplatesRoot      = "OUTPRINT_TEMPLATES_ROOT"
-	EnvConfigurationsRoot = "OUTPRINT_CONFIGURATIONS_ROOT"
-	EnvServiceConfig      = "OUTPRINT_SERVICE_CONFIG"
+	EnvTemplatesRoot      = settings.EnvTemplatesRoot
+	EnvConfigurationsRoot = settings.EnvConfigsRoot
+	EnvServiceConfig      = settings.EnvServiceConfig
 )
 
 // imageHostPattern is a lower-case host name or IPv4 address, with an

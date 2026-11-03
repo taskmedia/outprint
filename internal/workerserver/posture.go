@@ -10,13 +10,15 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/taskmedia/outprint/internal/settings"
 )
 
 const unknown = "unknown"
 
 // TokenEnv names the optional shared bearer token. It is the one secret the
 // Worker may hold.
-const TokenEnv = "OUTPRINT_WORKER_TOKEN"
+const TokenEnv = settings.EnvWorkerToken
 
 var secretNameRE = regexp.MustCompile(`(?i)(token|secret|password|passwd|cookie|credential|api_?key|private_?key)`)
 

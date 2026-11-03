@@ -16,6 +16,7 @@ import (
 	"github.com/taskmedia/outprint/internal/images"
 	"github.com/taskmedia/outprint/internal/metadata"
 	"github.com/taskmedia/outprint/internal/packages"
+	"github.com/taskmedia/outprint/internal/settings"
 	"github.com/taskmedia/outprint/internal/version"
 	"github.com/taskmedia/outprint/internal/worker"
 )
@@ -39,11 +40,11 @@ const (
 	defaultTemplatesRoot = "./templates"
 	defaultConfigsRoot   = "./configurations"
 
-	envTimeout     = "OUTPRINT_TIMEOUT"
-	envDebugTeXLog = "OUTPRINT_DEBUG_TEX_LOG"
-	envWorkDir     = "OUTPRINT_WORK_DIR"
-	envLogLevel    = "OUTPRINT_LOG_LEVEL"
-	envCacheDir    = "OUTPRINT_TEXCACHE_DIR"
+	envTimeout     = settings.EnvTimeout
+	envDebugTeXLog = settings.EnvDebugTeXLog
+	envWorkDir     = settings.EnvWorkDir
+	envLogLevel    = settings.EnvLogLevel
+	envCacheDir    = settings.EnvTeXCacheDir
 
 	defaultCacheDir = "/opt/outprint/texcache"
 

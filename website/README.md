@@ -26,6 +26,10 @@ Reference pages are nouns.
   `docs/assets/screens/template-<name>.png` are rendered by
   `task docs:catalogue-preview` (needs Docker) and committed; the site build
   never renders.
+- **Settings reference.** `docs/reference/settings.md` is generated from
+  `internal/settings`, the registry of environment variables that the
+  packages use too: `task docs:settings` writes it, `task docs:settings-check`
+  fails when it is out of date. A setting of the internal tier is not listed.
 - **Error catalogue.** `docs/reference/error-messages.md` has one
   heading per error code. `task docs:errors-check` fails when the headings and the
   codes in the source differ.
@@ -52,6 +56,7 @@ repository root:
 |------|--------|
 | `task docs:build` | strict build: broken links, anchors, Markdown links |
 | `task docs:catalogue-check` | generated Template pages match the packages |
+| `task docs:settings-check` | settings reference matches the registry |
 | `task docs:errors-check` | error catalogue and error codes in the source agree |
 | `task docs:examples-check` | every YAML example is validated or consciously skipped |
 | `task docs:sanitize-site` | denylist scan over `website/build` (build first) |

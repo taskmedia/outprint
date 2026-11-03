@@ -20,3 +20,4 @@ type, whether it is required, its default, what it does and an example.
 | [Service configuration](service-configuration.md) | The keys of the file that names the packages and the allowed Bindings. |
 | [Error messages](error-messages.md) | One entry for every message code. |
 | [Limits](limits.md) | The size and time limits of a PDF. |
+| [Settings](settings.md) | The environment variables that configure Outprint, with type and default. |
