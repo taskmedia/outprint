@@ -11,7 +11,7 @@ Document authors find a plain-language version in
 Template offers are in its [catalogue](../templates/catalogue/README.md) page;
 common names are in [Standard Fields](standard-fields.md).
 
-A Document author sets field values, and picks the Document Type, in a
+A Document author sets field values, and picks the [Document Type](glossary.md#document-type), in a
 **Metadata Block** at the very start of the Document. The block is removed
 from the rendered body. Every problem found is reported at once, with the line
 it is on.

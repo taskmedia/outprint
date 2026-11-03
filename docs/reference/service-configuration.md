@@ -4,7 +4,7 @@ sidebar_position: 8
 
 # Service configuration
 
-**Reference.** The file that names the package folders and the Bindings a Collection may choose.
+**Reference.** The file that names the package folders and the [Bindings](glossary.md#binding) a [Collection](glossary.md#collection) may choose.
 
 The file is YAML. `OUTPRINT_SERVICE_CONFIG` names it; the shipped image sets it
 to `/opt/outprint/service.yaml`. Unknown keys are errors. This page lists the keys that name packages and

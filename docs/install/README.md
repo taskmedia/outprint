@@ -17,8 +17,11 @@ Outline whose address you control; hosted Outline cannot be used.
    Docker Compose or Helm.
 2. **[Add the button](add-the-button.mdx).** Make **Export → Formatted PDF**
    appear in Outline, with the injector or an edge-proxy recipe.
-3. **[Bind a Template to a Collection](../configure/README.md).** A Collection
-   admin picks the look. This step is in Configure, not here.
+3. **[Bind a Template to a Collection](../configure/README.md).** A
+   [Collection](../reference/glossary.md#collection) admin picks the look: one
+   [Template](../reference/glossary.md#template) and one
+   [Configuration](../reference/glossary.md#configuration), together a
+   [Binding](../reference/glossary.md#binding). This step is in Configure, not here.
 
 ## Two decisions
 

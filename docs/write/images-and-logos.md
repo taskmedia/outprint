@@ -67,25 +67,30 @@ An SVG stays sharp at every size. Two things help.
 
 ## The logo
 
-The logo on your letterhead is not part of your document. The admin of the
-Collection sets it once. You cannot change it in a document. See
+The logo on your letterhead is not part of your document. It comes from the
+[Configuration](../reference/glossary.md#configuration) of the
+[Collection](../reference/glossary.md#collection), so you cannot change it in a
+document. See
 [Get a PDF](get-a-pdf.md#fill-in-the-details-at-the-top).
 
 ## When a picture is refused
 
-The message lists every picture that has a problem, with its line. Find the
-code of the message in [Error messages](../reference/error-messages.md).
+The message lists every picture that has a problem, with its line. Each code has
+an entry in [Error messages](../reference/error-messages.md) that says what to
+do. The usual fixes:
 
-| Code | What it means | What to do |
-|------|---------------|------------|
-| [`missing`](../reference/error-messages.md#missing) | The picture has no address, or it was deleted | Upload it again |
-| [`forbidden`](../reference/error-messages.md#forbidden) | The picture comes from another website, or you may not read it | Upload your own copy |
-| [`too_large`](../reference/error-messages.md#too_large) | A size or count limit was passed | Shrink it or use fewer pictures |
-| [`format`](../reference/error-messages.md#format) | The format is not supported, or the picture is an animation | Export a PNG or JPEG |
-| [`decode`](../reference/error-messages.md#decode) | The file is damaged | Save it again and upload the new file |
-| [`pixels`](../reference/error-messages.md#pixels) | The picture has too many pixels | Scale it down |
-| [`svg_rejected`](../reference/error-messages.md#svg_rejected) | The SVG holds something not allowed | Export a plain SVG, or a PNG |
-| [`syntax`](../reference/error-messages.md#syntax) | The picture is written across several lines | Put it on a line of its own |
+- Upload the picture again: [`missing`](../reference/error-messages.md#missing),
+  [`decode`](../reference/error-messages.md#decode). Upload your own copy if it
+  came from another website:
+  [`forbidden`](../reference/error-messages.md#forbidden).
+- Make it smaller or use fewer pictures:
+  [`too_large`](../reference/error-messages.md#too_large),
+  [`pixels`](../reference/error-messages.md#pixels).
+- Export a PNG, a JPEG or a plain SVG:
+  [`format`](../reference/error-messages.md#format),
+  [`svg_rejected`](../reference/error-messages.md#svg_rejected).
+- Put the picture on a line of its own:
+  [`syntax`](../reference/error-messages.md#syntax).
 
 Do not add curly-bracket settings such as `{width=50%}` after a picture. They
 are ignored. Use the size handles in Outline.

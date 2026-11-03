@@ -29,7 +29,7 @@ a test keeps it and this page in step.
 
 ## Configuration fields
 
-These are normally supplied by a Template Configuration (as Fixed Values or
+These are normally supplied by a Configuration (as Fixed Values or
 Defaults) and therefore declared by every Template that uses them.
 
 | Field          | Type   | Meaning                              |

@@ -4,12 +4,15 @@ sidebar_position: 2
 
 # Template author guide
 
-**How-to.** Write a Template or a Template Configuration.
+**How-to.** Write a Template or a Configuration.
 
-This guide is for people who write a **Template** (a style family such as a
-letter or a report) or a **Template Configuration** (the values that adapt a
-Template to an organisation). It ties together the reference pages and walks
-through one complete example. Terms are defined in [Vocabulary](https://github.com/taskmedia/outprint/blob/main/CONTEXT.md).
+This guide is for people who write a [Template](../reference/glossary.md#template)
+(a style family with one or more
+[Document Types](../reference/glossary.md#document-type), such as a letter or a
+report) or a [Configuration](../reference/glossary.md#configuration) (the values
+that adapt a Template to an organisation). It ties together the reference pages
+and walks through one complete example. Terms are in the
+[Glossary](../reference/glossary.md).
 
 It builds on the [Reference](../reference/README.md) pages and the
 [Template catalogue](catalogue/README.md). Background on the engine:

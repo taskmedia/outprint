@@ -6,9 +6,11 @@ sidebar_position: 1
 
 **How-to.** Give a Collection its PDF look by adding a short block to its description in Outline.
 
-The block names one **Template** (page design and kinds of document) and one
-**Configuration** (the name, logo and colour of your organisation). The pair is
-the **Binding**. Write it once; every document in the Collection, including
+The block names one [Template](../reference/glossary.md#template) (page design
+and kinds of document) and one
+[Configuration](../reference/glossary.md#configuration) (the name, logo and
+colour of your organisation). The pair is the
+[Binding](../reference/glossary.md#binding). Write it once; every document in the Collection, including
 documents in folders below it, then offers **Export → Formatted PDF**. Authors
 cannot change it.
 
@@ -78,3 +80,5 @@ and [`OUTPRINT_BUTTON_LABELS`](../reference/settings.md#outprint_button_labels).
 
 Authors write the details of a document, such as the recipient, in the metadata
 block of the document itself; see [Get a PDF](../write/get-a-pdf.md).
+
+No Template fits? [Templates](../templates/README.md) shows how to choose or write one.

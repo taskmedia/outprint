@@ -4,12 +4,13 @@ sidebar_position: 3
 
 # Try your Template
 
-**How-to.** Render a Document and validate your packages before you roll them out.
+**How-to.** Render a document and validate your packages before you roll them out.
 
 The `outprint` image has two commands that run the same pipeline as the Worker,
 without Outline and without a Gateway. They do not connect to Outline.
 
-- `validate` checks Templates and Configurations.
+- `validate` checks [Templates](../reference/glossary.md#template) and
+  [Configurations](../reference/glossary.md#configuration).
 - `render` turns one Markdown file into a PDF with a Template and a
   Configuration.
 

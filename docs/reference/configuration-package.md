@@ -4,9 +4,9 @@ sidebar_position: 7
 
 # Configuration package
 
-**Reference.** The files of a Template Configuration and the keys of its `configuration.yaml`.
+**Reference.** The files of a Configuration and the keys of its `configuration.yaml`.
 
-A Configuration is one folder under the configurations root. The folder name
+A [Configuration](glossary.md#configuration) is one folder under the configurations root. The folder name
 matches `^[a-z0-9][a-z0-9-]*$`. It adapts a Template to an organisation.
 
 ```

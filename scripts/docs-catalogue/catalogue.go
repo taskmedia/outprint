@@ -67,10 +67,10 @@ func (c *catalogue) indexPage(names []string) string {
 	b.WriteString(header("the packages under templates/"))
 	b.WriteString("# Template catalogue\n\n")
 	b.WriteString("**Reference.** The Templates that ship with Outprint.\n\n")
-	b.WriteString("One page for every Template that ships with Outprint. Each page shows what the\n")
+	b.WriteString("One page for every [Template](../../reference/glossary.md#template) that ships with Outprint. Each page shows what the\n")
 	b.WriteString("result looks like, a block you can copy into a document, every field, and the\n")
 	b.WriteString("errors you can expect.\n\n")
-	b.WriteString("| Template | Document types |\n|---|---|\n")
+	b.WriteString("| Template | [Document Types](../../reference/glossary.md#document-type) |\n|---|---|\n")
 	for _, name := range names {
 		t, _ := c.reg.Template(name)
 		fmt.Fprintf(&b, "| [%s](%s.md) | %s |\n", name, name, codeList(sortedTypes(t)))
@@ -106,10 +106,10 @@ func (c *catalogue) templatePage(name string, position int, out string) (string,
 		b.Write(intro)
 		b.WriteString("\n")
 	}
-	fmt.Fprintf(&b, "Document types: %s.\n\n", codeList(types))
+	fmt.Fprintf(&b, "[Document Types](../../reference/glossary.md#document-type): %s.\n\n", codeList(types))
 	fmt.Fprintf(&b, "![First page of a %s set with the %s Template and the example configuration](%s)\n\n", previewType, name, filepath.ToSlash(rel))
 	fmt.Fprintf(&b, "The picture is the first page of the `%s` example below, typeset with the real pipeline and the `%s` configuration.\n\n", previewType, c.opts.configuration)
-	b.WriteString("To use the Template, a Collection admin binds it to a Collection; see [Configure](../../configure/README.md). ")
+	b.WriteString("To use the Template, a Collection admin binds it to a [Collection](../../reference/glossary.md#collection); see [Configure](../../configure/README.md). ")
 	b.WriteString("An author then starts a document with the block below.\n\n")
 
 	for _, typeName := range types {

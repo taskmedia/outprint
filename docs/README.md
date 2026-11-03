@@ -9,7 +9,7 @@ your job. The same files make up the [documentation site](https://outprint.task.
 | [Install](install/README.md) | people who run Outline | three steps: run Outprint (Docker Compose or Helm), add the button (injector or edge-proxy recipe), bind a Template; then security, compatibility, limits, upgrading |
 | [Configure](configure/README.md) | admins of a Collection | bind a Template to a Collection |
 | [Templates](templates/README.md) | people who make Templates | the catalogue, the author guide and how to try a Template before you roll it out |
-| [Reference](reference/README.md) | everyone | the Metadata Block, Binding block, package files, Standard Fields, error messages, limits and settings, key by key |
+| [Reference](reference/README.md) | everyone | the Metadata Block, Binding block, package files, Standard Fields, error messages, limits, settings and the [Glossary](reference/glossary.md), key by key |
 
 ## Only on GitHub
 
@@ -24,5 +24,5 @@ These pages are for the maintainers and are not part of the site.
 | [Internals](internals/README.md) | architecture, the Worker, images, security, the local stack, decision records |
 | [Decision records](adr/README.md) | why the design is the way it is |
 | [Research notes](research/README.md) | the research behind the design |
-| [Vocabulary](../CONTEXT.md) | the words with a fixed meaning |
+| [Vocabulary](../CONTEXT.md) | the full vocabulary for contributors, with the words to avoid |
 | [Third-party notices](../THIRD_PARTY_NOTICES) | third-party licences and the Pandoc source offer |

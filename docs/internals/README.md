@@ -24,11 +24,11 @@ Outprint.
 
 ## Vocabulary
 
-The words **Template**, **Configuration**, **Collection**, **Binding**,
-**Document Type** and the rest have a fixed meaning. The vocabulary lives in
-`CONTEXT.md` at the root of the repository, so that the code and the docs share
-one source. It is not copied into this site. Read
-[the vocabulary on GitHub](https://github.com/taskmedia/outprint/blob/main/CONTEXT.md).
+The words **Template**, **Configuration**, **Collection**, **Binding** and
+**Document Type** have a fixed meaning; see the
+[Glossary](../reference/glossary.md). The full vocabulary for contributors,
+with the words to avoid, is `CONTEXT.md` at the root of the repository; read
+[it on GitHub](https://github.com/taskmedia/outprint/blob/main/CONTEXT.md).
 
 ## Repo-only pages
 

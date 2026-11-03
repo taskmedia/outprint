@@ -6,9 +6,10 @@ sidebar_position: 1
 
 **Background.** An advanced section for people who choose or make Templates.
 
-A **Template** is a page design: layout, fonts and the kinds of document it
-offers. A **Configuration** adapts a Template to an organisation with a name, a
-logo and colours. Both are folders of files. You do not need this section to
+A [Template](../reference/glossary.md#template) is a page design: layout, fonts
+and the [Document Types](../reference/glossary.md#document-type) it offers. A
+[Configuration](../reference/glossary.md#configuration) adapts a Template to an
+organisation with a name, a logo and colours. Both are folders of files. You do not need this section to
 write documents or bind a Template to a Collection.
 
 | Page | What it covers |
