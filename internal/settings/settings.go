@@ -140,7 +140,7 @@ var registry = []Setting{
 		Description: "Where the PDF action sits. `menu` puts it in the Export submenu of the document menu, `button` in a header button before Share."},
 	{Name: EnvButtonLabels, Component: PDFAction, Type: "`JSON object`", Default: "the built-in texts", Tier: Tuning,
 		Description: "Replaces the texts of the action. Keys are `menu`, `button` and `tooltip`, each a map from a language such as `de` to a text of 1 to 80 characters."},
-	{Name: EnvButtonStyle, Component: PDFAction, Type: "one of `icon-label`, `icon`", Default: "`icon-label`", Tier: Advanced,
+	{Name: EnvButtonStyle, Component: PDFAction, Type: "one of `icon-label`, `icon`", Default: "`icon-label`", Tier: Tuning,
 		Description: "Whether the header button shows its label."},
 	{Name: EnvButtonFallback, Component: PDFAction, Type: "one of `on`, `off`", Default: "`on`", Tier: Advanced,
 		Description: "Whether a floating button appears when the anchor for the placement is missing."},

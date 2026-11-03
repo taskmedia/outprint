@@ -41,9 +41,10 @@ The button options are settings of the Gateway. Set them where you set
 | Variable | Meaning | Default |
 |----------|---------|---------|
 | `OUTPRINT_BUTTON_PLACEMENT` | `menu`: Export → Formatted PDF in the document menu. `button`: a header button before Share | `menu` |
+| `OUTPRINT_BUTTON_STYLE` | `icon-label` or `icon`; applies to the header button | `icon-label` |
 | `OUTPRINT_BUTTON_LABELS` | override the texts, see [Injector and PDF action](injector.md#placement-of-the-action) | built-in |
 
-More options exist for rare cases, such as the style of the button; they are
+More options exist for rare cases, such as the wait before the floating button; they are
 listed under [Advanced](../reference/settings.md#advanced) in the Reference.
 
 The values apply to the whole installation. They are not per Collection or per

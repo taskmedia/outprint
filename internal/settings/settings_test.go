@@ -45,7 +45,7 @@ func TestRegistryEntriesAreComplete(t *testing.T) {
 func TestAdvancedTierIsExactlyTheDecidedList(t *testing.T) {
 	want := []string{
 		"OUTPRINT_BUTTON_FALLBACK", "OUTPRINT_BUTTON_FALLBACK_DELAY", "OUTPRINT_BUTTON_METADATA_BLOCK",
-		"OUTPRINT_BUTTON_STYLE", "OUTPRINT_DEBUG_TEX_LOG", "OUTPRINT_INJECTOR_GATEWAY_PREFIX",
+		"OUTPRINT_DEBUG_TEX_LOG", "OUTPRINT_INJECTOR_GATEWAY_PREFIX",
 		"OUTPRINT_INJECTOR_SCRIPT_URL", "OUTPRINT_TEXCACHE_DIR", "OUTPRINT_WORK_DIR",
 	}
 	if got := namesOf(settings.Advanced); !equal(got, want) {

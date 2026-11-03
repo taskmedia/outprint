@@ -132,6 +132,12 @@ Where the PDF action sits. `menu` puts it in the Export submenu of the document 
 
 Replaces the texts of the action. Keys are `menu`, `button` and `tooltip`, each a map from a language such as `de` to a text of 1 to 80 characters.
 
+### `OUTPRINT_BUTTON_STYLE`
+
+**Type:** one of `icon-label`, `icon`. **Required:** no. **Default:** `icon-label`.
+
+Whether the header button shows its label.
+
 ## Injector
 
 ### `OUTPRINT_INJECTOR_UPSTREAM`
@@ -180,12 +186,6 @@ The folder for the files of one job. The Compose file sets `/work`, and the sand
 **Type:** `path`. **Required:** no. **Default:** `/opt/outprint/texcache`. **Read by:** Worker.
 
 The cache of the TeX engine. The image sets it.
-
-### `OUTPRINT_BUTTON_STYLE`
-
-**Type:** one of `icon-label`, `icon`. **Required:** no. **Default:** `icon-label`. **Read by:** PDF action.
-
-Whether the header button shows its label.
 
 ### `OUTPRINT_BUTTON_FALLBACK`
 

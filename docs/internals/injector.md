@@ -107,6 +107,7 @@ bare.
 | Variable | Meaning | Default |
 |----------|---------|---------|
 | `OUTPRINT_BUTTON_PLACEMENT` | `menu`: Export → Formatted PDF in the document menu. `button`: a header button before Share | `menu` |
+| `OUTPRINT_BUTTON_STYLE` | `icon-label` or `icon`; applies to the header button | `icon-label` |
 | `OUTPRINT_BUTTON_LABELS` | override the texts, see below | built-in |
 
 More options exist for rare cases; the [Reference](../reference/settings.md#advanced)
