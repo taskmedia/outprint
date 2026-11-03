@@ -8,7 +8,7 @@ sidebar_position: 6
 
 Both use the same loader. All findings are collected, not just the first. An
 error stops a package from loading; a warning does not. To run the checks, see
-the [author guide](../templates/template-author-guide.md#validate-and-render).
+[Try your Template](../templates/try-your-template.md).
 
 ## Typed patterns
 

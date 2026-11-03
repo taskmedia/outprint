@@ -11,18 +11,10 @@ letter or a report) or a **Template Configuration** (the values that adapt a
 Template to an organisation). It ties together the reference pages and walks
 through one complete example. Terms are defined in [Vocabulary](https://github.com/taskmedia/outprint/blob/main/CONTEXT.md).
 
-Reference pages this guide builds on:
-
-- [Template package](../reference/template-package.md): the files and the keys of `manifest.yaml`
-- [Template checks](../reference/template-checks.md): typed patterns, drift guard, TeX deny-list, `validate`
-- [Configuration package](../reference/configuration-package.md): the keys of `configuration.yaml`
-- [Standard Fields](../reference/standard-fields.md): the Standard Fields
-- [Metadata Block](../reference/metadata-block.md): what a Document author can write
-  and how values are layered
-- [Template catalogue](catalogue/README.md): the shipped Templates, as the
-  authors see them
-- [Worker pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/worker.md): what the engine allows, and why
-- [Images in the pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/images.md): how images are checked and placed
+It builds on the [Reference](../reference/README.md) pages and the
+[Template catalogue](catalogue/README.md). Background on the engine:
+[Worker pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/worker.md) and
+[Images in the pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/images.md).
 
 ## The model in one minute
 
@@ -79,17 +71,12 @@ document_types:
           required: true     # override for this Document Type only
 ```
 
-A field has a `type`, and optionally `required`, `description`, `default`,
-`pattern` and (for `enum`) `values`. Field names match `^[a-z][a-z0-9_]*$`.
-Unknown keys anywhere are errors. Every key is listed in [Template package](../reference/template-package.md).
+Every key is listed in [Template package](../reference/template-package.md).
 
 ### Field types and typed patterns
 
-The types are listed under [`fields.<name>.type`](../reference/template-package.md#fieldsnametype).
-Text values are escaped by Pandoc's LaTeX writer. Values in **non-text
-positions** (the argument of `\definecolor`, `\includegraphics`, `\setlength`,
-`\usepackage`, `\setmainfont`, any option list in square brackets, and so on)
-are not escaped for you, so they need a strict pattern. The rules are in
+Text values are escaped by Pandoc's LaTeX writer. Values in non-text positions
+(a colour, a path, a length) are not, so they need a strict pattern: see
 [Typed patterns](../reference/template-checks.md#typed-patterns). Prefer the
 narrowest pattern that does the job. In `neutral`, the accent colour is
 `'^[0-9A-Fa-f]{6}$'` and the logo is a path ending in `.svg`.
@@ -147,70 +134,20 @@ keeps the figure in place on one page, with the same caption style and
 numbering as the report. A Template that shows Document images
 must do the same.
 
-## The TeX deny-list
+## Safety checks and reuse
 
-Every TeX file of a Template is scanned for constructs that run code or touch
-files. The full list is in [TeX deny-list](../reference/template-checks.md#tex-deny-list).
-It is a safety net against accidents, not a sandbox: the Worker still runs
-without network or secrets and with shell escape off
+Every TeX file is scanned for constructs that run code or touch files
+([TeX deny-list](../reference/template-checks.md#tex-deny-list)). It is a safety
+net against accidents, not a sandbox: the Worker still runs without network or
+secrets and with shell escape off
 ([Security](https://github.com/taskmedia/outprint/blob/main/docs/internals/security.md)).
+Reuse the names in [Standard Fields](../reference/standard-fields.md) so that
+Configurations stay portable between Templates. A Configuration's Defaults and
+Fixed Values are in [Configuration package](../reference/configuration-package.md).
 
-## Standard Fields
+## Try it
 
-Reuse the names in [Standard Fields](../reference/standard-fields.md) with the
-listed types so that Configurations stay portable between Templates.
-`validate` warns, never fails, when a Template uses one of them with another
-type.
-
-## Configuration packages
-
-A Configuration holds Defaults a Document may override and Fixed Values it
-cannot change. The keys are in
-[Configuration package](../reference/configuration-package.md).
-
-## validate and render
-
-Both commands are subcommands of the `outprint` binary (or the container
-image, whose entrypoint it is). The usage is printed by `outprint --help`.
-
-```text
-outprint validate [--service-config FILE]
-                  [--templates-root DIR] [--configs-root DIR]
-                  [--template NAME] [--config NAME]
-
-outprint render --template NAME --config NAME [--title TEXT] [--date YYYY-MM-DD]
-                [--json-errors] [--templates-root DIR] [--configs-root DIR]
-                [--timeout DURATION] [--debug-tex-log]
-                -o OUTPUT.pdf INPUT.md
-```
-
-**`validate`** runs the same loader as service startup and the checks in
-[Template checks](../reference/template-checks.md), and (with `--template` and
-`--config`) the pair checks. All findings are collected, one per line; errors
-give exit code 1, warnings alone are success.
-
-```sh
-task build
-bin/outprint validate --templates-root ./templates --configs-root ./configurations
-bin/outprint validate --templates-root ./templates --configs-root ./configurations \
-  --template mine --config example
-```
-
-**`render`** runs the real pipeline (Pandoc and LuaLaTeX) on a Markdown file.
-It needs the toolchain, so use the image, which is also what the golden tests
-use:
-
-```sh
-docker build -t outprint .
-docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" outprint render \
-  --templates-root /data/templates --configs-root /data/configurations \
-  --template mine --config example --date 2026-03-02 \
-  -o /data/out.pdf /data/input.md
-```
-
-`--debug-tex-log` prints the full TeX log (it may contain document content;
-see [Worker pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/worker.md)); `--json-errors` prints the JSON error body on
-stdout ([Metadata Block](../reference/metadata-block.md)).
+Run `validate` and `render` as described in [Try your Template](try-your-template.md).
 
 ## Goldens for Template authors
 
@@ -307,12 +244,8 @@ with `validate` and `render` against the image of this repository.
    Our office is open from Monday to Friday.
    ````
 
-   ```sh
-   docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" outprint render \
-     --templates-root /data/templates --configs-root /data/configurations \
-     --template mine --config example --date 2026-03-02 \
-     -o /data/out.pdf /data/input.md
-   ```
+   Save it as `input.md` and render it with the command in
+   [Try your Template](try-your-template.md#render).
 
 6. To offer it to Collections, add the pair to `bindings` in the service
    configuration ([Template package](../reference/service-configuration.md)) and bake
