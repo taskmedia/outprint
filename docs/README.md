@@ -9,7 +9,7 @@ your job. The same files make up the [documentation site](https://outprint.task.
 | [Install](install/README.md) | people who run Outline | the common base, Docker Compose, Helm, the injector, edge-proxy recipes, limits, security notes, upgrading |
 | [Configure](configure/README.md) | admins of a Collection | choose a Template and a Configuration for a Collection |
 | [Templates](templates/README.md) | people who make Templates | the catalogue and the author guide |
-| [Reference](reference/README.md) | everyone | the Metadata Block, Binding block, package files, Standard Fields, error messages and limits, key by key |
+| [Reference](reference/README.md) | everyone | the Metadata Block, Binding block, package files, Standard Fields, error messages, limits and settings, key by key |
 
 ## Only on GitHub
 

@@ -43,6 +43,28 @@ tasks:
     cmds:
       - go run ./scripts/docs-catalogue -check
 
+  settings:
+    desc: Generate the settings page of the Reference (docs/reference/settings.md) from the registry
+    summary: |
+      Writes docs/reference/settings.md from internal/settings, the one list of
+      environment variables that the packages use as well. Settings of the
+      internal tier are left out. Run it after changing the registry and
+      commit the result.
+    dir: '{{.ROOT_DIR}}'
+    sources:
+      - internal/settings/*.go
+      - scripts/docs-settings/*.go
+    generates:
+      - docs/reference/settings.md
+    cmds:
+      - go run ./scripts/docs-settings
+
+  settings-check:
+    desc: Fail when the settings page differs from the registry (no Docker)
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - go run ./scripts/docs-settings -check
+
   catalogue-preview:
     desc: Render the catalogue preview images with the real pipeline (needs Docker)
     summary: |

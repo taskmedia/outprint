@@ -125,6 +125,8 @@ task docs:build              # strict build of the site (broken links fail)
 task docs:catalogue          # regenerate the Template catalogue pages from the packages
 task docs:catalogue-check    # fail if the generated catalogue pages are out of date
 task docs:catalogue-preview  # re-render the catalogue preview images (needs Docker)
+task docs:settings          # regenerate the settings reference from the registry in internal/settings
+task docs:settings-check    # fail if the settings reference is out of date
 task docs:errors-check       # fail if the error catalogue and the source codes differ
 ```
 

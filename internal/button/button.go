@@ -11,17 +11,19 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/taskmedia/outprint/internal/settings"
 )
 
 // Environment variables of the button options. They are global to the
 // installation: where the action sits is the operator's decision.
 const (
-	envButtonPlacement     = "OUTPRINT_BUTTON_PLACEMENT"
-	envButtonStyle         = "OUTPRINT_BUTTON_STYLE"
-	envButtonFallback      = "OUTPRINT_BUTTON_FALLBACK"
-	envButtonFallbackDelay = "OUTPRINT_BUTTON_FALLBACK_DELAY"
-	envButtonLabels        = "OUTPRINT_BUTTON_LABELS"
-	envButtonMetadataBlock = "OUTPRINT_BUTTON_METADATA_BLOCK"
+	envButtonPlacement     = settings.EnvButtonPlacement
+	envButtonStyle         = settings.EnvButtonStyle
+	envButtonFallback      = settings.EnvButtonFallback
+	envButtonFallbackDelay = settings.EnvButtonFallbackDelay
+	envButtonLabels        = settings.EnvButtonLabels
+	envButtonMetadataBlock = settings.EnvButtonMetadataBlock
 )
 
 const (

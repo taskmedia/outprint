@@ -15,17 +15,18 @@ import (
 	"github.com/taskmedia/outprint/internal/button"
 	"github.com/taskmedia/outprint/internal/gateway"
 	"github.com/taskmedia/outprint/internal/limits"
+	"github.com/taskmedia/outprint/internal/settings"
 	"github.com/taskmedia/outprint/internal/startup"
 	"github.com/taskmedia/outprint/internal/version"
 	"github.com/taskmedia/outprint/internal/workerserver"
 )
 
 const (
-	envListen      = "OUTPRINT_LISTEN"
-	envOutlineURL  = "OUTLINE_URL"
-	envOutlinePub  = "OUTLINE_PUBLIC_URL"
-	envWorkerURL   = "OUTPRINT_WORKER_URL"
-	envWorkerToken = workerserver.TokenEnv
+	envListen      = settings.EnvListen
+	envOutlineURL  = settings.EnvOutlineURL
+	envOutlinePub  = settings.EnvOutlinePublicURL
+	envWorkerURL   = settings.EnvWorkerURL
+	envWorkerToken = settings.EnvWorkerToken
 
 	defaultGatewayListen = ":8080"
 	defaultWorkerListen  = ":8081"
