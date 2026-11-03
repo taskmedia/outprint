@@ -4,7 +4,8 @@
 // therefore not drift from the code: `-check` regenerates in memory and fails
 // if the file on disk differs.
 //
-// Settings of the internal tier are left out on purpose.
+// Settings of the advanced tier are listed in a section of their own at the
+// end, so the guides and the main part of the page stay short.
 //
 // Run it from the repository root through `task docs:settings` and
 // `task docs:settings-check`.
@@ -60,18 +61,31 @@ func checkDrift(path string, want []byte) error {
 }
 
 // render writes the page. Components appear in the order of their first
-// setting; a component whose settings are all internal does not appear.
+// setting; the advanced settings follow in a section of their own.
 func render(all []settings.Setting) string {
 	var b strings.Builder
 	b.WriteString(header)
 	for _, group := range groupByComponent(all) {
 		fmt.Fprintf(&b, "\n## %s\n", group.component)
 		for _, s := range group.settings {
-			writeSetting(&b, s)
+			writeSetting(&b, s, false)
+		}
+	}
+	if advanced := advancedSettings(all); len(advanced) > 0 {
+		b.WriteString(advancedIntro)
+		for _, s := range advanced {
+			writeSetting(&b, s, true)
 		}
 	}
 	return b.String()
 }
+
+const advancedIntro = `
+## Advanced
+
+These settings work, but few installations need them. The image and the Compose
+file set what the defaults cannot. Change one only for a reason you can name.
+`
 
 const header = `---
 sidebar_position: 11
@@ -101,7 +115,7 @@ func groupByComponent(all []settings.Setting) []group {
 	var groups []group
 	index := map[string]int{}
 	for _, s := range all {
-		if s.Tier == settings.Internal {
+		if s.Tier == settings.Advanced {
 			continue
 		}
 		i, ok := index[s.Component]
@@ -115,7 +129,17 @@ func groupByComponent(all []settings.Setting) []group {
 	return groups
 }
 
-func writeSetting(b *strings.Builder, s settings.Setting) {
+func advancedSettings(all []settings.Setting) []settings.Setting {
+	var out []settings.Setting
+	for _, s := range all {
+		if s.Tier == settings.Advanced {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+func writeSetting(b *strings.Builder, s settings.Setting, showComponent bool) {
 	required := "no"
 	if s.Tier == settings.MustSet {
 		required = "yes"
@@ -124,6 +148,10 @@ func writeSetting(b *strings.Builder, s settings.Setting) {
 	if def == "" {
 		def = "none"
 	}
-	fmt.Fprintf(b, "\n### `%s`\n\n**Type:** %s. **Required:** %s. **Default:** %s.\n\n%s\n",
-		s.Name, s.Type, required, def, s.Description)
+	part := ""
+	if showComponent {
+		part = fmt.Sprintf(" **Read by:** %s.", s.Component)
+	}
+	fmt.Fprintf(b, "\n### `%s`\n\n**Type:** %s. **Required:** %s. **Default:** %s.%s\n\n%s\n",
+		s.Name, s.Type, required, def, part, s.Description)
 }

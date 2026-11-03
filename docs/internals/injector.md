@@ -89,8 +89,6 @@ does not appear and the console reports a blocked script, this is the cause.
 | `OUTPRINT_INJECTOR_UPSTREAM` | base URL of Outline (the only place requests go, besides the Gateway); required | |
 | `OUTPRINT_INJECTOR_LISTEN` | listen address | `:8090` |
 | `OUTPRINT_INJECTOR_GATEWAY_URL` | base URL of the Gateway; empty disables the prefix route | none |
-| `OUTPRINT_INJECTOR_GATEWAY_PREFIX` | path prefix routed to the Gateway | `/pdf` |
-| `OUTPRINT_INJECTOR_SCRIPT_URL` | `src` of the injected script | `<prefix>/button.js` |
 | `OUTPRINT_INJECTOR_CSP_ALLOW_SELF` | add `'self'` to Outline's script policy | `false` |
 | `OUTPRINT_INJECTOR_LOG_LEVEL` | `debug`, `info`, `warn`, `error` | `info` |
 
@@ -110,10 +108,10 @@ bare.
 |----------|---------|---------|
 | `OUTPRINT_BUTTON_PLACEMENT` | `menu`: Export → Formatted PDF in the document menu. `button`: a header button before Share | `menu` |
 | `OUTPRINT_BUTTON_STYLE` | `icon-label` or `icon`; applies to the header button | `icon-label` |
-| `OUTPRINT_BUTTON_FALLBACK` | `on` or `off`: show a floating button when the anchor is missing | `on` |
-| `OUTPRINT_BUTTON_FALLBACK_DELAY` | how long to wait for the anchor before the fallback, for example `3s` | `3s` |
-| `OUTPRINT_BUTTON_METADATA_BLOCK` | `collapse`, `hide` or `show`: what readers and authors see of the [metadata block](#hiding-the-metadata-block) | `collapse` |
 | `OUTPRINT_BUTTON_LABELS` | override the texts, see below | built-in |
+
+More options exist for rare cases; the [Reference](../reference/settings.md#advanced)
+lists them under Advanced.
 
 A wrong value stops the Gateway (and the injector, if you set it there) at startup with a message naming the variable.
 
@@ -134,7 +132,8 @@ needs your text for every label you care about.
 shell, so the container health check runs `/outprint-injector healthcheck <url>`.
 
 If an edge proxy already routes `/pdf` to the Gateway, leave `OUTPRINT_INJECTOR_GATEWAY_URL`
-empty and set `OUTPRINT_INJECTOR_SCRIPT_URL` if the Gateway is reachable under another path.
+empty. If the Gateway is reachable under another path, see the advanced settings in the
+[Reference](../reference/settings.md#advanced).
 
 ## The PDF action
 
@@ -201,21 +200,18 @@ may edit it straight in the editor ("seamless editing"), so there is no separate
 reading view for authors. The script therefore tells two kinds of visitors apart
 by whether the editor is editable:
 
-| Visitor | `collapse` (default) | `hide` | `show` |
-|---------|----------------------|--------|--------|
-| Reader (no edit permission) | block hidden | block hidden | block shown |
-| Author (can edit) | block folded behind a **PDF details** toggle above the document | block shown | block shown |
+| Visitor | What they see |
+|---------|---------------|
+| Reader (no edit permission) | block hidden |
+| Author (can edit) | block folded behind a **PDF details** toggle above the document |
 
-With `collapse` an author opens the block with one click on the toggle and folds
+An author opens the block with one click on the toggle and folds
 it again with a second. In Outline the toggle is called **PDF details**
 (**PDF-Details** in German); the docs call the block itself the metadata block.
 The state is not remembered: each document starts folded.
 
-The operator decides with `OUTPRINT_BUTTON_METADATA_BLOCK`. For `hide` and `show`
-the injector adds `data-metadata-block="hide"` or `"show"` to the script tag; the
-default adds nothing. Like the other `OUTPRINT_BUTTON_*` options it applies to the
-whole installation, not per Collection or Document, and a wrong value stops the
-injector at startup.
+An operator can change this installation-wide with an advanced setting, see the
+[Reference](../reference/settings.md#advanced).
 
 This is a cosmetic convenience, not access control:
 

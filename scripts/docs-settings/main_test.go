@@ -12,7 +12,7 @@ import (
 var sample = []settings.Setting{
 	{Name: "OUTPRINT_A", Component: "Gateway", Type: "`integer`", Default: "`1`", Tier: settings.Tuning, Description: "First."},
 	{Name: "OUTPRINT_B", Component: "Gateway", Type: "`URL`", Tier: settings.MustSet, Description: "Second."},
-	{Name: "OUTPRINT_C", Component: "Worker", Type: "`path`", Default: "/x", Tier: settings.Internal, Description: "Hidden."},
+	{Name: "OUTPRINT_C", Component: "Worker", Type: "`path`", Default: "/x", Tier: settings.Advanced, Description: "Seldom needed."},
 }
 
 func TestRenderStatesTheTypeInTheFirstLine(t *testing.T) {
@@ -41,32 +41,41 @@ func TestRenderShowsTypeRequiredAndDefault(t *testing.T) {
 	}
 }
 
-func TestRenderLeavesOutInternalSettings(t *testing.T) {
+func TestRenderListsAdvancedSettingsInTheirOwnSectionAtTheEnd(t *testing.T) {
 	page := render(sample)
-	if strings.Contains(page, "OUTPRINT_C") || strings.Contains(page, "Hidden.") {
-		t.Errorf("an internal setting was rendered:\n%s", page)
+	advanced := strings.Index(page, "\n## Advanced\n")
+	if advanced < 0 {
+		t.Fatalf("Advanced section missing:\n%s", page)
+	}
+	if c := strings.Index(page, "### `OUTPRINT_C`"); c < advanced {
+		t.Errorf("OUTPRINT_C is not below the Advanced heading:\n%s", page)
+	}
+	if !strings.Contains(page, "**Read by:** Worker.") {
+		t.Errorf("an advanced entry does not name its component:\n%s", page)
 	}
 }
 
-func TestRenderGroupsByComponentAndSkipsEmptyGroups(t *testing.T) {
+func TestRenderOmitsTheAdvancedSectionWithoutAdvancedSettings(t *testing.T) {
+	if page := render(sample[:2]); strings.Contains(page, "## Advanced") {
+		t.Errorf("empty Advanced section:\n%s", page)
+	}
+}
+
+func TestRenderGroupsByComponent(t *testing.T) {
 	page := render(sample)
 	if !strings.Contains(page, "## Gateway\n") {
 		t.Errorf("Gateway group missing:\n%s", page)
 	}
 	if strings.Contains(page, "## Worker\n") {
-		t.Errorf("a group with only internal settings was rendered:\n%s", page)
+		t.Errorf("a component with only advanced settings got its own group:\n%s", page)
 	}
 }
 
-func TestRealRegistryRendersEveryDocumentedSetting(t *testing.T) {
+func TestRealRegistryRendersEverySetting(t *testing.T) {
 	page := render(settings.All())
 	for _, s := range settings.All() {
-		has := strings.Contains(page, "### `"+s.Name+"`")
-		if s.Tier == settings.Internal && has {
-			t.Errorf("%s is internal but rendered", s.Name)
-		}
-		if s.Tier != settings.Internal && !has {
-			t.Errorf("%s is documented but missing", s.Name)
+		if !strings.Contains(page, "### `"+s.Name+"`") {
+			t.Errorf("%s is missing from the page", s.Name)
 		}
 	}
 }

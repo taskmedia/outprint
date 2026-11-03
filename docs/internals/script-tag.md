@@ -42,10 +42,10 @@ The button options are settings of the Gateway. Set them where you set
 |----------|---------|---------|
 | `OUTPRINT_BUTTON_PLACEMENT` | `menu`: Export → Formatted PDF in the document menu. `button`: a header button before Share | `menu` |
 | `OUTPRINT_BUTTON_STYLE` | `icon-label` or `icon`; applies to the header button | `icon-label` |
-| `OUTPRINT_BUTTON_FALLBACK` | `on` or `off`: show a floating button when the anchor is missing | `on` |
-| `OUTPRINT_BUTTON_FALLBACK_DELAY` | how long to wait for the anchor before the fallback, for example `3s` | `3s` |
-| `OUTPRINT_BUTTON_METADATA_BLOCK` | `collapse`, `hide` or `show`: what readers and authors see of the [metadata block](injector.md#hiding-the-metadata-block) | `collapse` |
 | `OUTPRINT_BUTTON_LABELS` | override the texts, see [Injector and PDF action](injector.md#placement-of-the-action) | built-in |
+
+More options exist for rare cases, such as the wait before the floating button; they are
+listed under [Advanced](../reference/settings.md#advanced) in the Reference.
 
 The values apply to the whole installation. They are not per Collection or per
 document. A wrong value stops the Gateway at startup with a message naming the
