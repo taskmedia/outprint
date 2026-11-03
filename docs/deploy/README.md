@@ -21,25 +21,24 @@ Ask: how do you want to use Outprint?
 | click **Export → Formatted PDF** inside Outline | [Export menu in Outline](ways/export-menu.md) | Gateway, Worker and injector; the injector sits in front of Outline |
 | download a PDF from a link, and leave the way Outline is served as it is | [PDF by link](ways/pdf-by-link.md) | Gateway and Worker; `/pdf` on the address of Outline goes to the Gateway |
 | click **Export → Formatted PDF** and already run an nginx, Caddy or Traefik that can rewrite HTML | [Export menu](ways/export-menu.md) with [Reverse-proxy recipes](components/reverse-proxy-recipes.md) | Gateway and Worker; your edge proxy adds the script tag, no injector |
-| click **Export → Formatted PDF**, and can mount a file into the Outline container but cannot rewrite HTML | [Export menu](ways/export-menu.md) with [Mounted page template](components/mounted-template.md) | Gateway and Worker; a patched copy of Outline's page template carries the script tag, the proxy only routes `/pdf` |
 | make PDFs from Markdown files, without Outline | [Command line](ways/command-line.md) | the `outprint` image only |
 
 If you are unsure, take the first way. It is the one the browser tests cover.
 
 ### The ways to load the action side by side
 
-The last three rows above differ only in how the
+The Export-menu rows above differ only in how the
 [script tag](components/script-tag.md) gets into Outline's pages. The install has
 the same shape in all of them: route `/pdf` to the Gateway, add the bare tag,
 set the options on the Gateway, run the [shared check](components/script-tag.md#check).
 
-| | Injector | Edge-proxy recipe | Mounted template |
-|---|---|---|---|
-| What you run | one more container in front of Outline | nothing new, a rule in your nginx, Caddy or Traefik | nothing new, a file mounted into the Outline container |
-| What you must control | the route to Outline | the edge proxy, and it must rewrite HTML | the Outline container (not hosted Outline) |
-| Effort | lowest to set up | a rule per proxy | generate the file once per Outline version |
-| How fragile | handles compression, `304` and CSP for you | depends on the proxy; no CSP rewrite | tied to one file of one Outline version; regenerate after an upgrade |
-| Page | [Injector](components/injector.md) | [Recipes](components/reverse-proxy-recipes.md) | [Mounted template](components/mounted-template.md) |
+| | Injector | Edge-proxy recipe |
+|---|---|---|
+| What you run | one more container in front of Outline | nothing new, a rule in your nginx, Caddy or Traefik |
+| What you must control | the route to Outline | the edge proxy, and it must rewrite HTML |
+| Effort | lowest to set up | a rule per proxy |
+| How fragile | handles compression, `304` and CSP for you | depends on the proxy; no CSP rewrite |
+| Page | [Injector](components/injector.md) | [Recipes](components/reverse-proxy-recipes.md) |
 
 ```mermaid
 flowchart TB

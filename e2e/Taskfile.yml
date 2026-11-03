@@ -37,18 +37,6 @@ tasks:
       - task: :dev:seed
       - npx playwright test
 
-  run-template:
-    desc: "Tier 3: the same browser tests with the PDF action in a mounted page template"
-    summary: |
-      Patches the page template of the pinned Outline image, mounts it into
-      Outline and routes /pdf with nginx (docs/deploy/components/mounted-template.md).
-      Stop a running injector stack first (task dev:down), they share port 8090.
-    cmds:
-      # DEV_EDGE is read when the Taskfile loads, so it goes in the environment.
-      - cd .. && DEV_EDGE=template task dev:up
-      - task: :dev:seed
-      - npx playwright test
-
   screenshots:
     desc: Regenerate the documentation screenshots in docs/assets/screens (needs `task dev`)
     summary: |

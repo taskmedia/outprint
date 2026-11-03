@@ -38,7 +38,6 @@ listens on `127.0.0.1` only.
 | `task dev:clean` | delete the generated secrets and the seed output (stop with `dev:down-volumes` first) |
 | `task e2e:install` | `npm ci` and the Playwright Chromium in `e2e/` |
 | `task e2e:run` | start the stack if needed, seed, run the browser tests |
-| `task e2e:run-template` | the same tests with the tag in a patched page template mounted into Outline (`task dev:template`, `deploy/dev/compose.template.yaml`); stop the other stack first, both use port 8090 |
 | `task e2e:run-nginx` | the same tests with nginx (`deploy/dev/nginx/nginx.conf`) instead of the injector; stop the other stack first, both use port 8090 |
 
 ## What runs
