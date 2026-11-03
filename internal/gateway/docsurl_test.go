@@ -12,7 +12,7 @@ import (
 	"github.com/taskmedia/outprint/internal/workerapi"
 )
 
-const errorsPage = "https://outprint.task.media/0.3/write/when-something-goes-wrong/"
+const errorsPage = "https://outprint.task.media/0.3/reference/error-messages/"
 
 func setVersion(t *testing.T, v string) {
 	t.Helper()
@@ -81,8 +81,8 @@ func TestDocsURLFollowsTheVersion(t *testing.T) {
 	tests := []struct{ version, prefix string }{
 		{"dev", "https://outprint.task.media/dev/"},
 		{"v1.4.0", "https://outprint.task.media/1.4/"},
-		{"", "https://outprint.task.media/write/"},
-		{"banana", "https://outprint.task.media/write/"},
+		{"", "https://outprint.task.media/reference/"},
+		{"banana", "https://outprint.task.media/reference/"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.version, func(t *testing.T) {

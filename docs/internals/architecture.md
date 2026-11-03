@@ -201,19 +201,19 @@ Content-Disposition: attachment; filename="Gruesse aus Koeln.pdf"; filename*=UTF
 
 ## Error mapping
 
-Validation problems are the structured body of [Metadata Block reference](../templates/metadata-reference.md):
+Validation problems are the structured body of [Metadata Block](../reference/metadata-block.md):
 `{"errors":[{"field","source","code","message","line"}]}`. Every other error is
 `{"message", "phase", "job_id"}`, where the message is a fixed sentence. No
 response carries a log excerpt, TeX output, Document content or a cause.
 
 Every error also carries `docs_url`: a ready-made link to its entry in
-[When something goes wrong](../write/when-something-goes-wrong.md), in the docs of
+[Error messages](../reference/error-messages.md), in the docs of
 the version that is running. The Gateway adds it to each entry of the error
 list (from `code`) and to the other bodies (from the failure kind), so the
 button needs no URL logic. A response without a code or kind has none. The
 `render --json-errors` output of the CLI does not carry it.
 
-The link is `https://outprint.task.media/<path>/write/when-something-goes-wrong/#<code>`.
+The link is `https://outprint.task.media/<path>/reference/error-messages/#<code>`.
 The base address is a constant (`internal/docslink`), not a setting. `<path>`
 comes from the embedded version:
 

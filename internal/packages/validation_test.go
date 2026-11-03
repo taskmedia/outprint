@@ -190,7 +190,7 @@ func TestStandardFieldLintIsScopedToDocumentType(t *testing.T) {
 }
 
 func TestStandardFieldTableMatchesDocs(t *testing.T) {
-	doc, err := os.ReadFile("../../docs/templates/standard-fields.md")
+	doc, err := os.ReadFile("../../docs/reference/standard-fields.md")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,7 +208,7 @@ func TestStandardFieldTableMatchesDocs(t *testing.T) {
 	}
 	for name := range names {
 		if !strings.Contains(string(doc), "`"+name+"`") {
-			t.Errorf("standard field %q is not documented in docs/templates/standard-fields.md", name)
+			t.Errorf("standard field %q is not documented in docs/reference/standard-fields.md", name)
 		}
 	}
 	for _, want := range []string{"title", "date", "language", "author", "recipient", "sender", "subject", "opening", "closing", "reference", "enclosures", "cc", "subtitle", "version", "abstract", "toc", "name", "logo", "accent_color", "font"} {

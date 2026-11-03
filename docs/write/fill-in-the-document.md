@@ -137,7 +137,7 @@ subject: "Re: spring plant sale"
 ````
 
 Without the quotation marks, the block is broken and Outprint reports a
-[`block`](when-something-goes-wrong.md#block) problem. Quotation marks are also
+[`block`](../reference/error-messages.md#block) problem. Quotation marks are also
 a good idea for a value that starts with a special character such as `#`, `*`,
 `&`, `[` or `{`.
 
@@ -197,4 +197,4 @@ Template.
 Click **Formatted PDF**. Outprint checks the whole block and reports all problems
 at once, each with its line. A name that is almost right gets a hint, such as
 `did you mean "recipient"?`. Find the message in
-[When something goes wrong](when-something-goes-wrong.md).
+[Error messages](../reference/error-messages.md).

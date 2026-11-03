@@ -59,6 +59,7 @@ const SECTIONS = [
   {to: '/install/', title: 'Install', line: 'Install Outprint next to your own Outline.'},
   {to: '/configure/', title: 'Configure', line: 'Give a Collection its PDF look.'},
   {to: '/templates/', title: 'Templates', line: 'Browse the catalogue, or make your own.'},
+  {to: '/reference/', title: 'Reference', line: 'Every key, field and message, one by one.'},
 ];
 
 function DocumentCard() {
@@ -87,7 +88,9 @@ function DocumentCard() {
 
 export default function Home() {
   const {siteConfig} = useDocusaurusContext();
-  const sections = SECTIONS.map((section) =>
+  const sections = SECTIONS.filter(
+    (section) => section.title !== 'Reference' || siteConfig.customFields.rootHasReference,
+  ).map((section) =>
     section.title === 'Install' ? {...section, to: siteConfig.customFields.installPath} : section,
   );
   return (

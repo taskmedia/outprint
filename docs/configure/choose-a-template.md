@@ -44,18 +44,11 @@ in folders below it, now offers **Formatted PDF** in its Export menu.
 
 ## The rules
 
-- The block has exactly one key, `binding`. Below it, exactly two keys:
-  `template` and `configuration`. Both hold a name.
-- The names must match an installed Template and Configuration. Spell them
-  exactly.
-- The pair must be one that the person who runs Outprint allows. If you choose
-  another pair, you get the error [`binding_not_allowed`](../write/when-something-goes-wrong.md#binding_not_allowed).
-- The language of the block must be `yaml`, nothing else.
-- Use one block per Collection. A second block is the error
-  [`binding_duplicate`](../write/when-something-goes-wrong.md#binding_duplicate).
-- Other `yaml` blocks in the description are ordinary text. Only the block with
-  the key `binding` counts.
-- Authors cannot change the Binding. Only people who can edit the Collection can.
+The block has exactly one key, `binding`, with the keys `template` and
+`configuration` below it. Both names must match an installed Template and
+Configuration, and the pair must be one that the person who runs Outprint
+allows. Use one block per Collection. Authors cannot change the Binding. Every
+key and error is listed in [Binding block](../reference/binding-block.md).
 
 ## The subject of a letter
 
@@ -72,7 +65,7 @@ Configuration wins over the title.
 2. The Collection has no block, and the installation has a default pair:
    Outprint uses the default pair.
 3. Neither exists: the author gets the error
-   [`no_binding`](../write/when-something-goes-wrong.md#no_binding).
+   [`no_binding`](../reference/error-messages.md#no_binding).
 
 A document in a Collection without a Binding and without a default shows no
 **Formatted PDF**.
@@ -82,17 +75,9 @@ A document in a Collection without a Binding and without a default shows no
 Mistakes in the block show up when an author clicks **Formatted PDF**. The action
 stays visible on purpose, so that the mistake is seen. The error says
 `collection` and gives the line, counted from the first line of the description.
-
-| Code | What it means |
-|------|---------------|
-| [`binding_malformed`](../write/when-something-goes-wrong.md#binding_malformed) | The block is not closed, is not valid YAML, or has a missing, extra or repeated key |
-| [`binding_unknown`](../write/when-something-goes-wrong.md#binding_unknown) | No installed Template or Configuration has that name |
-| [`binding_not_allowed`](../write/when-something-goes-wrong.md#binding_not_allowed) | Both names exist, but this pair is not allowed |
-| [`binding_duplicate`](../write/when-something-goes-wrong.md#binding_duplicate) | The description holds a second block |
-| [`no_binding`](../write/when-something-goes-wrong.md#no_binding) | No block, and no default pair |
-
-All problems are reported at once. A person who may not read the Collection
-gets a message that names the Collection.
+The codes (`binding_malformed`, `binding_unknown`, `binding_not_allowed`,
+`binding_duplicate`, `no_binding`) are explained in
+[Error messages](../reference/error-messages.md#binding_malformed).
 
 ## Try it
 

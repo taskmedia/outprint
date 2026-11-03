@@ -30,6 +30,12 @@ const rootHasInstall =
   fs.existsSync(path.join(__dirname, 'versioned_docs', `version-${releasedVersions[0]}`, 'install'));
 const installPath = rootHasInstall ? '/install/' : '/deploy/';
 
+// The Reference section is new (issue #119). Until the release served at the
+// root has it, the navbar and the landing page do not link to it.
+const rootHasReference =
+  !hasRelease ||
+  fs.existsSync(path.join(__dirname, 'versioned_docs', `version-${releasedVersions[0]}`, 'reference'));
+
 /** @param {string} existingPath */
 function createRedirects(existingPath) {
   if (existingPath.endsWith('.html')) return undefined;
@@ -78,7 +84,7 @@ const config = {
   tagline:
     'Outprint for Outline: turn Outline documents into typeset PDFs (letters, reports, custom LaTeX templates) with a Download PDF button. Self-hosted, no Outline fork.',
   favicon: 'brand/favicon.ico',
-  customFields: {installPath},
+  customFields: {installPath, rootHasReference},
 
   url: 'https://outprint.task.media',
   baseUrl,
@@ -88,7 +94,7 @@ const config = {
   // GitHub Pages serves page/index.html at /page/ and redirects /page to
   // /page/. Using the slash form everywhere avoids that redirect and keeps
   // one canonical URL per page, which the version-correct links from the
-  // product (/<minor>/write/when-something-goes-wrong/#<code>) rely on.
+  // product (/<minor>/reference/error-messages/#<code>) rely on.
   trailingSlash: true,
 
   // Strict: a broken link, anchor or markdown link fails the build.
@@ -212,6 +218,9 @@ const config = {
           {to: installPath, label: 'Install', position: 'left', activeBaseRegex: `^${installPath}`},
           {to: '/configure/', label: 'Configure', position: 'left', activeBaseRegex: '^/configure/'},
           {to: '/templates/', label: 'Templates', position: 'left', activeBaseRegex: '^/templates/'},
+          ...(rootHasReference
+            ? [{to: '/reference/', label: 'Reference', position: 'left', activeBaseRegex: '^/reference/'}]
+            : []),
           ...(hasRelease ? [{type: 'docsVersionDropdown', position: 'right'}] : []),
           {
             href: 'https://github.com/taskmedia/outprint',

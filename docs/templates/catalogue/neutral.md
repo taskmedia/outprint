@@ -79,16 +79,16 @@ These fields are fixed by the configuration `example`. A document cannot set the
 
 ### Errors you can expect
 
-Each message below was produced by the real checker from the mistake shown. The code links to its entry in [When something goes wrong](../../write/when-something-goes-wrong.md).
+Each message below was produced by the real checker from the mistake shown. The code links to its entry in [Error messages](../../reference/error-messages.md).
 
 | Message | Cause | Fix |
 |---|---|---|
-| autor: unknown key "autor": not a field of document type "letter" (did you mean "author"?) ([unknown](../../write/when-something-goes-wrong.md#unknown)) | A field name is misspelled, or the field does not exist in this document type. | Use the name the message suggests, or one from the field table. |
-| language: "fr" does not match the field pattern ^(en\|de)$ ([type](../../write/when-something-goes-wrong.md#type)) | The value does not match the allowed format of the field. | Use a value that matches the format in the field table. |
-| author: must be text, not a list ([type](../../write/when-something-goes-wrong.md#type)) | A list was written where one line of text is expected. | Write a single line of text. |
-| type: unknown document type "memo" (available: letter, report) ([unknown](../../write/when-something-goes-wrong.md#unknown)) | The type is not a document type of this Template. | Use one of the document types listed at the top of this page. |
-| name: "name" is a Fixed Value of the Configuration and cannot be set in a Document ([unknown](../../write/when-something-goes-wrong.md#unknown)) | The field is fixed by the configuration of the Collection. | Remove the line. To change the value, ask the Collection admin to change the configuration. |
-| the metadata block is not closed (missing closing fence) ([block](../../write/when-something-goes-wrong.md#block)) | The block has no closing line of three backticks. | Add a line with three backticks after the last field. |
+| autor: unknown key "autor": not a field of document type "letter" (did you mean "author"?) ([unknown](../../reference/error-messages.md#unknown)) | A field name is misspelled, or the field does not exist in this document type. | Use the name the message suggests, or one from the field table. |
+| language: "fr" does not match the field pattern ^(en\|de)$ ([type](../../reference/error-messages.md#type)) | The value does not match the allowed format of the field. | Use a value that matches the format in the field table. |
+| author: must be text, not a list ([type](../../reference/error-messages.md#type)) | A list was written where one line of text is expected. | Write a single line of text. |
+| type: unknown document type "memo" (available: letter, report) ([unknown](../../reference/error-messages.md#unknown)) | The type is not a document type of this Template. | Use one of the document types listed at the top of this page. |
+| name: "name" is a Fixed Value of the Configuration and cannot be set in a Document ([unknown](../../reference/error-messages.md#unknown)) | The field is fixed by the configuration of the Collection. | Remove the line. To change the value, ask the Collection admin to change the configuration. |
+| the metadata block is not closed (missing closing fence) ([block](../../reference/error-messages.md#block)) | The block has no closing line of three backticks. | Add a line with three backticks after the last field. |
 
 ## Document type `report`
 
@@ -135,15 +135,15 @@ These fields are fixed by the configuration `example`. A document cannot set the
 
 ### Errors you can expect
 
-Each message below was produced by the real checker from the mistake shown. The code links to its entry in [When something goes wrong](../../write/when-something-goes-wrong.md).
+Each message below was produced by the real checker from the mistake shown. The code links to its entry in [Error messages](../../reference/error-messages.md).
 
 | Message | Cause | Fix |
 |---|---|---|
-| autor: unknown key "autor": not a field of document type "report" (did you mean "author"?) ([unknown](../../write/when-something-goes-wrong.md#unknown)) | A field name is misspelled, or the field does not exist in this document type. | Use the name the message suggests, or one from the field table. |
-| title: required field "title" is empty ([required](../../write/when-something-goes-wrong.md#required)) | A required field is empty or missing. | Give the field a value. |
-| language: "fr" does not match the field pattern ^(en\|de)$ ([type](../../write/when-something-goes-wrong.md#type)) | The value does not match the allowed format of the field. | Use a value that matches the format in the field table. |
-| title: must be text, not a list ([type](../../write/when-something-goes-wrong.md#type)) | A list was written where one line of text is expected. | Write a single line of text. |
-| type: unknown document type "memo" (available: letter, report) ([unknown](../../write/when-something-goes-wrong.md#unknown)) | The type is not a document type of this Template. | Use one of the document types listed at the top of this page. |
-| name: "name" is a Fixed Value of the Configuration and cannot be set in a Document ([unknown](../../write/when-something-goes-wrong.md#unknown)) | The field is fixed by the configuration of the Collection. | Remove the line. To change the value, ask the Collection admin to change the configuration. |
-| the metadata block is not closed (missing closing fence) ([block](../../write/when-something-goes-wrong.md#block)) | The block has no closing line of three backticks. | Add a line with three backticks after the last field. |
+| autor: unknown key "autor": not a field of document type "report" (did you mean "author"?) ([unknown](../../reference/error-messages.md#unknown)) | A field name is misspelled, or the field does not exist in this document type. | Use the name the message suggests, or one from the field table. |
+| title: required field "title" is empty ([required](../../reference/error-messages.md#required)) | A required field is empty or missing. | Give the field a value. |
+| language: "fr" does not match the field pattern ^(en\|de)$ ([type](../../reference/error-messages.md#type)) | The value does not match the allowed format of the field. | Use a value that matches the format in the field table. |
+| title: must be text, not a list ([type](../../reference/error-messages.md#type)) | A list was written where one line of text is expected. | Write a single line of text. |
+| type: unknown document type "memo" (available: letter, report) ([unknown](../../reference/error-messages.md#unknown)) | The type is not a document type of this Template. | Use one of the document types listed at the top of this page. |
+| name: "name" is a Fixed Value of the Configuration and cannot be set in a Document ([unknown](../../reference/error-messages.md#unknown)) | The field is fixed by the configuration of the Collection. | Remove the line. To change the value, ask the Collection admin to change the configuration. |
+| the metadata block is not closed (missing closing fence) ([block](../../reference/error-messages.md#block)) | The block has no closing line of three backticks. | Add a line with three backticks after the last field. |
 

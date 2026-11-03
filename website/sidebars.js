@@ -25,6 +25,7 @@ const sidebars = {
     section('Install', 'install'),
     section('Configure', 'configure'),
     section('Templates', 'templates'),
+    section('Reference', 'reference'),
   ],
 };
 

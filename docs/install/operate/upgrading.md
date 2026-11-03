@@ -47,7 +47,7 @@ page lists what to check between versions. It will grow with later releases.
 
 1. Open a document in a Collection with a Binding and use **Export → Formatted PDF**.
 2. If an author reports a message you do not know, look up its code in
-   [When something goes wrong](../../write/when-something-goes-wrong.md).
+   [Error messages](../../reference/error-messages.md).
    The codes are stable per version.
 
 ## Roll back

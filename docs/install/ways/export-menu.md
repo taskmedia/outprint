@@ -129,4 +129,4 @@ list is in [Security notes](../operate/security-for-operators.md#check-after-the
 | Pages load without the action and the injector logs a warning | the page is compressed with `br` or `zstd` | compress at the edge proxy and not in Outline; see [Compression](../components/injector.md#compression) |
 | `401` or `403` on click | the Gateway is not on the host of Outline, so the cookie does not arrive | route `/pdf` through the injector |
 | `502` from the injector | corrupt gzip body from Outline, or Outline is unreachable | check `OUTPRINT_INJECTOR_UPSTREAM` and the injector log |
-| The action shows, a click fails with a message | the document is wrong, not the install | the panel shows what to fix; see [When something goes wrong](../../write/when-something-goes-wrong.md) |
+| The action shows, a click fails with a message | the document is wrong, not the install | the panel shows what to fix; see [Error messages](../../reference/error-messages.md) |

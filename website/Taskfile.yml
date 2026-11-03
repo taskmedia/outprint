@@ -60,7 +60,7 @@ tasks:
     desc: Fail when the error catalogue and the error codes in the source differ
     summary: |
       Compares the codes in the source with the headings of
-      docs/write/when-something-goes-wrong.md (one anchor per code).
+      docs/reference/error-messages.md (one anchor per code).
       `scripts/docs-error-codes.sh list` prints the codes found in the source.
     dir: '{{.ROOT_DIR}}'
     cmds:

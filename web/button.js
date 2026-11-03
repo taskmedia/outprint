@@ -28,7 +28,7 @@
   // The only origin a docs link may point at. The Gateway adds docs_url to its
   // errors (internal/docslink); a link to anywhere else is not rendered.
   var DOCS_ORIGIN = 'https://outprint.task.media';
-  var DOCS_PAGE_SUFFIX = '/write/when-something-goes-wrong/';
+  var DOCS_PAGE_SUFFIX = '/reference/error-messages/';
   var UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   var ITEM_ATTR = 'data-olp-item';
@@ -120,7 +120,7 @@
   }
 
   // The start page of the docs of the version a link points into:
-  // <origin>/<version>/write/when-something-goes-wrong/#code -> <origin>/<version>/.
+  // <origin>/<version>/reference/error-messages/#code -> <origin>/<version>/.
   function docsHome(docsUrl) {
     var safe = safeDocsUrl(docsUrl);
     if (!safe) return '';

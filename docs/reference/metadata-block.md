@@ -1,13 +1,15 @@
 ---
-sidebar_position: 5
+sidebar_position: 2
 ---
 
-# Metadata Block reference
+# Metadata Block
 
-**Reference.** The Metadata Block: every key, type and rule.
+**Reference.** The block at the top of a document: every key, type and rule.
 
-This page is the reference for Template authors and operators. Document authors
-find a plain-language version in [Fill in the document](../write/fill-in-the-document.md).
+Document authors find a plain-language version in
+[Fill in the document](../write/fill-in-the-document.md). The field names a
+Template offers are in its [catalogue](../templates/catalogue/README.md) page;
+common names are in [Standard Fields](standard-fields.md).
 
 A Document author sets field values, and picks the Document Type, in a
 **Metadata Block** at the very start of the Document. The block is removed
@@ -45,7 +47,9 @@ Thank you for your enquiry ...
 - A block spelled with the old info string `yaml metadata` is not recognised;
   it is body text.
 
-## Document Type
+## `type`
+
+**Type:** `string`. **Required:** yes, unless the Configuration sets a default. **Default:** `document_type` of the Configuration Defaults.
 
 `type` is the only reserved key. The Document Type comes from the Document's
 `type`, else from `document_type` in the Configuration Defaults. If neither is
@@ -119,6 +123,8 @@ Values reach TeX only as Pandoc metadata (a metadata file), never as `-V`
 variables or by building strings.
 
 ## Errors
+
+The code of each problem has an entry in [Error messages](error-messages.md).
 
 The result is either the body and the merged values, or the whole list of
 problems:

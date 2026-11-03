@@ -13,10 +13,11 @@ through one complete example. Terms are defined in [Vocabulary](https://github.c
 
 Reference pages this guide builds on:
 
-- [Packages](packages.md): package format, field types, typed patterns, the
-  TeX deny-list, drift guard, `validate`
-- [Standard Fields](standard-fields.md): the Standard Fields
-- [Metadata Block reference](metadata-reference.md): what a Document author can write
+- [Template package](../reference/template-package.md): the files and the keys of `manifest.yaml`
+- [Template checks](../reference/template-checks.md): typed patterns, drift guard, TeX deny-list, `validate`
+- [Configuration package](../reference/configuration-package.md): the keys of `configuration.yaml`
+- [Standard Fields](../reference/standard-fields.md): the Standard Fields
+- [Metadata Block](../reference/metadata-block.md): what a Document author can write
   and how values are layered
 - [Template catalogue](catalogue/README.md): the shipped Templates, as the
   authors see them
@@ -80,40 +81,18 @@ document_types:
 
 A field has a `type`, and optionally `required`, `description`, `default`,
 `pattern` and (for `enum`) `values`. Field names match `^[a-z][a-z0-9_]*$`.
-Unknown keys anywhere are errors. See [Packages](packages.md#manifestyaml).
+Unknown keys anywhere are errors. Every key is listed in [Template package](../reference/template-package.md).
 
-### Field types
+### Field types and typed patterns
 
-| Type     | Value                               | Where it may go in TeX |
-| -------- | ----------------------------------- | ---------------------- |
-| `string` | one line of text                    | text                   |
-| `text`   | multi-line text                     | text                   |
-| `list`   | list of strings                     | text                   |
-| `date`   | a date (free text or a YAML date)   | text                   |
-| `bool`   | `true` or `false`                   | condition (`$if$`)     |
-| `enum`   | one of `values`                     | command or option     |
-| `color`  | checked by `pattern`                | command or option     |
-| `asset`  | package-relative path, `pattern`    | command or option     |
-
+The types are listed under [`fields.<name>.type`](../reference/template-package.md#fieldsnametype).
 Text values are escaped by Pandoc's LaTeX writer. Values in **non-text
-positions** (the argument of `\definecolor`, `\includegraphics`,
-`\setlength`, `\usepackage`, `\setmainfont`, any option list in square
-brackets, and so on) are not escaped for you, so they need a strict pattern.
-
-### Typed patterns
-
-- `color` and `asset` fields must have a `pattern`; `enum` fields must have
-  `values` made of letters, digits, space, `.`, `_`, `-`.
-- Any other field used in a non-text position must have a `pattern` too.
-- A pattern is an RE2 expression matched against the whole value. It must not
-  match any of a set of hostile probes (backslash, braces, `%`, `$`, `&`, `#`,
-  `~`, `^`, `|`, quotes, newlines, `..`, a leading `/`). `.*` and `[^ ]+` are
-  rejected as too permissive.
-- Defaults must pass their own type and pattern. An asset value must be a
-  clean relative path without `..`.
-
-Prefer the narrowest pattern that does the job. In `neutral`, the accent
-colour is `'^[0-9A-Fa-f]{6}$'` and the logo is a path ending in `.svg`.
+positions** (the argument of `\definecolor`, `\includegraphics`, `\setlength`,
+`\usepackage`, `\setmainfont`, any option list in square brackets, and so on)
+are not escaped for you, so they need a strict pattern. The rules are in
+[Typed patterns](../reference/template-checks.md#typed-patterns). Prefer the
+narrowest pattern that does the job. In `neutral`, the accent colour is
+`'^[0-9A-Fa-f]{6}$'` and the logo is a path ending in `.svg`.
 
 ## Pandoc templates
 
@@ -170,58 +149,24 @@ must do the same.
 
 ## The TeX deny-list
 
-Every TeX file of a Template (`.latex`, `.tex`, `.sty`, `.cls`, `.def`, `.cfg`,
-`.ltx`, `.clo`) is scanned after comments are removed. These are errors:
-
-- Lua and shell execution (`\directlua`, `\latelua`, `\luaexec`,
-  `\ShellEscape`, `luacode`, `minted`, `pythontex`, `markdown`, ...);
-- writing files (`\write`, `\newwrite`, `\openout`, `\immediate`, ...);
-- reading files (`\read`, `\openin`, `\verbatiminput`, `\CatchFileDef`, ...);
-- inclusion (`\include`, `\InputIfFileExists`, `\@@input`, ...);
-- obfuscation (`^^` notation, `\catcode`, `\csname`, `\scantokens`);
-- `\input` unless written exactly `\input{shared/NAME}` for a file in the
-  package's own `shared/` directory;
-- `\includegraphics` with a literal absolute or `..` path;
-- any `.lua` file in the package.
-
-The full list is in [Packages](packages.md#tex-deny-list). It is a safety
-net against accidents and careless Templates, not a sandbox: the Worker still
-runs without network or secrets and with shell escape off
+Every TeX file of a Template is scanned for constructs that run code or touch
+files. The full list is in [TeX deny-list](../reference/template-checks.md#tex-deny-list).
+It is a safety net against accidents, not a sandbox: the Worker still runs
+without network or secrets and with shell escape off
 ([Security](https://github.com/taskmedia/outprint/blob/main/docs/internals/security.md)).
 
 ## Standard Fields
 
-Reuse the Standard Fields (`title`, `date`, `language`, `author`, `name`,
-`logo`, `accent_color`, letter and report fields) with the listed types so
-that Configurations stay portable between Templates. The page
-[Standard Fields](standard-fields.md) and the machine-readable table
-`internal/packages/standard_fields.yaml` (used by the loader) are kept in step
-by a test, and `neutral` declares its fields with those types. `validate`
-warns, never fails, when a Template uses a Standard Field name with another
-type. A Template may declare any other field it likes; `font`, for example, is
-a Standard Field that `neutral` does not declare.
+Reuse the names in [Standard Fields](../reference/standard-fields.md) with the
+listed types so that Configurations stay portable between Templates.
+`validate` warns, never fails, when a Template uses one of them with another
+type.
 
 ## Configuration packages
 
-<!-- validate: configuration template=neutral configuration=example -->
-```yaml
-manifest_version: 1
-
-defaults:                 # a Document may override these
-  document_type: letter
-  closing: Kind regards
-
-fields:                   # Fixed Values: a Document cannot change these
-  name: Example Garden Society
-  logo: logo.svg
-  accent_color: "2F6F5E"
-```
-
-When a Configuration is bound to a Template, every value of a declared field
-is checked against that field. A Fixed Value the Template does not declare has
-no effect and gives a warning, so one Configuration can serve several
-Templates. `extends` is reserved and not supported in v1. See
-[Packages](packages.md#configuration-package).
+A Configuration holds Defaults a Document may override and Fixed Values it
+cannot change. The keys are in
+[Configuration package](../reference/configuration-package.md).
 
 ## validate and render
 
@@ -239,10 +184,10 @@ outprint render --template NAME --config NAME [--title TEXT] [--date YYYY-MM-DD]
                 -o OUTPUT.pdf INPUT.md
 ```
 
-**`validate`** runs the same loader as service startup: manifests, field
-types and patterns, the TeX deny-list, the drift guard, path confinement, and
-(with `--template` and `--config`) the pair checks. All findings are
-collected, one per line; errors give exit code 1, warnings alone are success.
+**`validate`** runs the same loader as service startup and the checks in
+[Template checks](../reference/template-checks.md), and (with `--template` and
+`--config`) the pair checks. All findings are collected, one per line; errors
+give exit code 1, warnings alone are success.
 
 ```sh
 task build
@@ -265,15 +210,7 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" outprint render \
 
 `--debug-tex-log` prints the full TeX log (it may contain document content;
 see [Worker pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/worker.md)); `--json-errors` prints the JSON error body on
-stdout ([Metadata Block reference](metadata-reference.md)).
-
-### Drift guard
-
-`validate` and startup compare the variables a Pandoc template uses with the
-manifest: an undeclared variable, or one not listed by the Document Type that
-uses it, is an **error**; a declared field no template uses is a **warning**.
-Pandoc's own variables (`body`, `highlighting-macros`, `lang`, ...) are
-ignored. See [Packages](packages.md#drift-guard).
+stdout ([Metadata Block](../reference/metadata-block.md)).
 
 ## Goldens for Template authors
 
@@ -359,7 +296,7 @@ with `validate` and `render` against the image of this repository.
    listing the field and it is an error.
 
 5. Render a Document that sets it. The Metadata Block of a Document is a
-   `yaml` block at its start ([Metadata Block reference](metadata-reference.md)):
+   `yaml` block at its start ([Metadata Block](../reference/metadata-block.md)):
 
    <!-- validate: skip Metadata Block for the derived mine Template of the worked example, which is not shipped -->
    ````markdown
@@ -378,7 +315,7 @@ with `validate` and `render` against the image of this repository.
    ```
 
 6. To offer it to Collections, add the pair to `bindings` in the service
-   configuration ([Packages](packages.md#service-configuration)) and bake
+   configuration ([Template package](../reference/service-configuration.md)) and bake
    the package into the image or mount it.
 
 ## Checklist before you publish a Template
