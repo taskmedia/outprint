@@ -13,6 +13,11 @@ Outprint.
 | [Architecture](architecture.md) | Gateway and Worker roles, the job bundle, the request flow, error mapping |
 | [Worker pipeline](worker.md) | The phases of a render, the filters, the engine lockdown |
 | [Images in the pipeline](images.md) | How images and SVG files are checked, converted and placed |
+| [The injector and the PDF action](injector.md) | How the injector rewrites pages, and what the script does in Outline |
+| [The script tag](script-tag.md) | The tag's contract and its options |
+| [Edge-proxy recipes](edge-proxy-recipes.md) | The rules and caveats behind the nginx, Caddy and Traefik recipes |
+| [Image fetching](image-fetching.md) | How the Gateway fetches images and which hosts it trusts |
+| [The Worker baseline](worker-baseline.md) | The Worker's lock-down in Compose and Helm |
 | [Security](security.md) | The security layers, what each one proves, the limits of the guarantees |
 | [Development stack and end-to-end tests](development.md) | The seeded local stack with Outline, and the browser tests |
 | [Architecture decision records](../adr/README.md) | Why the system is built the way it is |

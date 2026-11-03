@@ -66,7 +66,8 @@ repository root:
 
 Every fenced `yaml` block in `docs/` needs a marker line directly before the
 fence, an HTML comment that is invisible on GitHub and on the site (inside a
-list item, indent it like the fence):
+list item, indent it like the fence). An `.mdx` page (one that uses Tabs) takes
+a JSX comment, `{/* validate: skip REASON */}`, because MDX has no HTML comments:
 
 ```
 <!-- validate: metadata template=neutral configuration=example -->

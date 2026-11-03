@@ -8,8 +8,8 @@ sidebar_position: 8
 
 The file is YAML. `OUTPRINT_SERVICE_CONFIG` names it; the shipped image sets it
 to `/opt/outprint/service.yaml`. Unknown keys are errors. This page lists the keys that name packages and
-Bindings. The file also takes `imageHosts` ([Image fetching](../install/components/image-fetching.md))
-and `admission` ([Limits and admission](../install/components/limits-and-admission.md)).
+Bindings. The file also takes `imageHosts` ([Image fetching](../internals/image-fetching.md))
+and `admission` ([Limits and admission](../install/operate/limits-and-admission.md)).
 
 <!-- validate: service-config -->
 ```yaml

@@ -20,7 +20,7 @@ Collection without one show nothing.
 | `button` | a button in the header, directly before **Share** | no |
 
 The person who runs the Gateway sets it with `OUTPRINT_BUTTON_PLACEMENT`. See
-[The script tag](../install/components/script-tag.md#options-come-from-the-gateway) for all options.
+[The script tag](../internals/script-tag.md#options-come-from-the-gateway) for all options.
 
 ## Export menu
 
@@ -58,7 +58,7 @@ of a document, and authors see it folded behind a **PDF details** toggle (**PDF-
 can open with a click. Set `OUTPRINT_BUTTON_METADATA_BLOCK` to change this:
 `hide` shows the block to authors as is, `show` shows it to everyone. The limits
 of hiding (Outline's markup, share links, exports, search) are listed under [Hiding the metadata
-block](../install/components/injector.md#hiding-the-metadata-block).
+block](../internals/injector.md#hiding-the-metadata-block).
 
 ## Not the same as Outline's own PDF
 

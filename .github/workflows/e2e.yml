@@ -107,7 +107,7 @@ jobs:
           retention-days: 14
 
   # The same tests with nginx instead of the injector: the recipe in
-  # docs/install/components/reverse-proxy-recipes.md.
+  # docs/internals/edge-proxy-recipes.md.
   e2e-nginx:
     name: browser e2e, nginx recipe
     runs-on: ubuntu-latest

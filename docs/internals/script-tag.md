@@ -2,12 +2,13 @@
 sidebar_position: 0
 ---
 
-# Load the script tag
+# The script tag
 
-**How-to.** Put the one script tag that draws the PDF action into Outline and check it.
+**Reference.** The one script tag that draws the PDF action, and the options it reads.
 
 Every way to the **Formatted PDF** action in Outline's interface does the same
 two things. Only the last step differs: who puts the tag into Outline's pages.
+To install it, see [Add the button](../install/add-the-button.mdx).
 
 1. `/pdf/*` on the address of Outline goes to the Gateway, with the prefix
    removed. The Gateway needs the cookie of the Outline user, so it has to be
@@ -19,7 +20,7 @@ two things. Only the last step differs: who puts the tag into Outline's pages.
    ```
 
 That tag is the whole contract. How it gets into the pages is covered in
-[Which way fits you?](../README.md#which-way-fits-you).
+[Add the button](../install/add-the-button.mdx).
 
 ## The contract
 
@@ -92,5 +93,5 @@ the **Console** and the **Network** tab:
 | no request for `/pdf/button.js` | the tag is not in the page; see step 1 |
 | `/pdf/button.js` is blocked and the console names a policy | Outline's Content-Security-Policy; see the table above |
 | `/pdf/status/<id>` answers `401` | the cookie does not reach the Gateway; `/pdf` is not on the same host as Outline |
-| `/pdf/status/<id>` answers `200` with `"available": false` | the Collection has no Binding; see [Configure](../../configure/README.md) |
-| the console says the anchor was not found and a floating button shows | Outline's markup changed; see [Compatibility](../operate/compatibility.md) |
+| `/pdf/status/<id>` answers `200` with `"available": false` | the Collection has no Binding; see [Configure](../configure/README.md) |
+| the console says the anchor was not found and a floating button shows | Outline's markup changed; see [Compatibility](../install/operate/compatibility.md) |

@@ -2,9 +2,12 @@
 sidebar_position: 4
 ---
 
-# Add the PDF action with an edge proxy
+# Edge-proxy recipes
 
-**How-to.** Add the script tag with nginx, Caddy or Traefik instead of the injector.
+**Background.** The rules, caveats and checks behind the nginx, Caddy and Traefik recipes.
+
+The snippets to copy are in [Add the button](../install/add-the-button.mdx). This page
+has what stands behind them.
 
 ## What it does
 
@@ -54,11 +57,11 @@ flowchart TB
 Take the injector if you are unsure, or if your proxy cannot rewrite bodies.
 Take a recipe if such a proxy already fronts Outline and you do not want one
 more part. The Gateway and the Worker are the same for both
-([common base](../common-base.md)).
+([Run Outprint](../install/run-outprint.mdx)).
 
 ## Prerequisites
 
-- The [common base](../common-base.md), with the Gateway and the Worker running
+- [Run Outprint](../install/run-outprint.mdx) done, with the Gateway and the Worker running
   and `/pdf/render/<id>` rendering a PDF while you are signed in.
 - **One host name** for Outline and for `/pdf`. The Gateway has no login of its
   own; it needs the cookie Outline set.
@@ -328,4 +331,4 @@ back; see [Injector and PDF action](injector.md#content-security-policy).
 | real-time editing hangs | the WebSocket upgrade is not passed | check the `Upgrade` headers |
 | `401` from `/pdf/render/...` | the Gateway is on another host name | one host name for Outline and `/pdf` |
 
-For the Gateway side see [Error messages](../../reference/error-messages.md).
+For the Gateway side see [Error messages](../reference/error-messages.md).

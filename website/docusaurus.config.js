@@ -46,8 +46,8 @@ function createRedirects(existingPath) {
   return [`/${rootAlias}${existingPath}`];
 }
 
-// Deploy pages that moved into folders (issue #97) and then into the Install
-// section (issue #114). The old address of each page redirects to the new one.
+// Deploy pages that moved into folders (issue #97), then into the Install
+// section (issue #114) and were merged into three steps (issue #115). The old address of each page redirects to the new one.
 // The PDF-by-link and command-line pages are gone and have no redirect.
 // Only the current docs moved: a released
 // version keeps the layout it was tagged with, so its pages stay real pages
@@ -55,13 +55,14 @@ function createRedirects(existingPath) {
 // at the root before; in that case /dev/... is also a redirect target the
 // product may link to, so both spellings are covered.
 const movedDeployPages = {
-  'way-menu': 'ways/export-menu',
-  'docker-compose': 'platforms/docker-compose',
-  'helm-kubernetes': 'platforms/helm-kubernetes',
-  injector: 'components/injector',
-  'image-fetching': 'components/image-fetching',
-  'limits-and-admission': 'components/limits-and-admission',
-  'reverse-proxy-recipes': 'components/reverse-proxy-recipes',
+  'common-base': 'run-outprint',
+  'way-menu': 'add-the-button',
+  'docker-compose': 'run-outprint',
+  'helm-kubernetes': 'run-outprint',
+  injector: 'add-the-button',
+  'image-fetching': 'operate/security-for-operators',
+  'limits-and-admission': 'operate/limits-and-admission',
+  'reverse-proxy-recipes': 'add-the-button',
   'security-for-operators': 'operate/security-for-operators',
   upgrading: 'operate/upgrading',
   compatibility: 'operate/compatibility',
