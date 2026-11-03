@@ -6,6 +6,8 @@ title: Template catalogue
 
 # Template catalogue
 
+**Reference.** The Templates that ship with Outprint.
+
 One page for every Template that ships with Outprint. Each page shows what the
 result looks like, a block you can copy into a document, every field, and the
 errors you can expect.

@@ -4,6 +4,8 @@ sidebar_position: 5
 
 # Metadata Block reference
 
+**Reference.** The Metadata Block: every key, type and rule.
+
 This page is the reference for Template authors and operators. Document authors
 find a plain-language version in [Fill in the document](../write/fill-in-the-document.md).
 

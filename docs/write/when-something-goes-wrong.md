@@ -4,6 +4,8 @@ sidebar_position: 6
 
 # When something goes wrong
 
+**Reference.** The messages Outprint shows when it cannot make a PDF, and what each one means.
+
 If Outprint cannot make your PDF, it shows a message instead of the download.
 Find the message on this page. Each entry says what the message means and what
 to do.

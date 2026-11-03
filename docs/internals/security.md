@@ -33,7 +33,7 @@ CI fails if any test of the security suite reports a skip.
 ## The shipped baseline
 
 `deploy/compose/compose.yaml`, service `worker` (see
-[Deploying with Docker Compose](../deploy/platforms/docker-compose.md)):
+[Deploying with Docker Compose](../install/platforms/docker-compose.md)):
 
 - fixed non-root user `10001:10001`, `no-new-privileges`, all capabilities
   dropped, Docker's default seccomp profile, read-only root file system

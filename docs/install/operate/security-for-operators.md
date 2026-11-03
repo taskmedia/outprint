@@ -2,10 +2,12 @@
 sidebar_position: 1
 ---
 
-# Security notes for operators
+# Secure the install
+
+**How-to.** Decide what to expose, what to keep inside and what to check after the install.
 
 What to expose, what to keep inside, and what to check after the install. The
-reasoning and the tests are in [Security](../../internals/security.md). The
+reasoning and the tests are in [Security](https://github.com/taskmedia/outprint/blob/main/docs/internals/security.md). The
 Compose file already follows everything on this page.
 
 ## What to expose

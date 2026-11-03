@@ -3,6 +3,7 @@ import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import ThemedImage from '@theme/ThemedImage';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 import styles from './index.module.css';
 
@@ -51,14 +52,13 @@ const FEATURES = [
   },
 ];
 
-// The five sections of the docs. docs/README.md keeps the same list as a
+// The sections of the docs. docs/README.md keeps the same list as a
 // plain table for GitHub.
 const SECTIONS = [
   {to: '/write/', title: 'Write', line: 'Make a PDF from a document, and fix a message.'},
+  {to: '/install/', title: 'Install', line: 'Install Outprint next to your own Outline.'},
   {to: '/configure/', title: 'Configure', line: 'Give a Collection its PDF look.'},
-  {to: '/deploy/', title: 'Deploy', line: 'Install Outprint next to your own Outline.'},
   {to: '/templates/', title: 'Templates', line: 'Browse the catalogue, or make your own.'},
-  {to: '/internals/', title: 'Internals', line: 'How it works, and why it is safe.'},
 ];
 
 function DocumentCard() {
@@ -86,6 +86,10 @@ function DocumentCard() {
 }
 
 export default function Home() {
+  const {siteConfig} = useDocusaurusContext();
+  const sections = SECTIONS.map((section) =>
+    section.title === 'Install' ? {...section, to: siteConfig.customFields.installPath} : section,
+  );
   return (
     <Layout
       title="PDFs from Outline documents"
@@ -155,7 +159,7 @@ export default function Home() {
           </h2>
           <nav aria-label="Documentation sections">
             <ol className={styles.list}>
-              {SECTIONS.map(({to, title, line}, index) => (
+              {sections.map(({to, title, line}, index) => (
                 <li key={to} className={styles.item}>
                   <Link to={to} className={styles.row}>
                     <span className={styles.number} aria-hidden="true">

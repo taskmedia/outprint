@@ -2,7 +2,9 @@
 sidebar_position: 3
 ---
 
-# Limits and admission control
+# Tune limits and admission control
+
+**How-to.** Set the limits of one render and of all renders together.
 
 The renderer bounds what one request can cost, and what all requests together
 can cost. Every limit ends in a clear 4xx or 504 response. Nothing is ever

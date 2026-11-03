@@ -29,7 +29,7 @@ tasks:
     desc: "Tier 3: the same browser tests with nginx instead of the injector"
     summary: |
       Loads the PDF action through the nginx recipe of
-      docs/deploy/components/reverse-proxy-recipes.md. Stop a running injector
+      docs/install/components/reverse-proxy-recipes.md. Stop a running injector
       stack first (task dev:down), they share port 8090.
     cmds:
       - task: :dev:up

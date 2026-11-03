@@ -87,7 +87,7 @@ Outline answers `/api/attachments.redirect?id=...` with a redirect to
 Gateway container `localhost` is the Gateway itself, so the Gateway gets
 `OUTLINE_PUBLIC_URL=http://localhost:8090` and fetches that redirect from
 `OUTLINE_URL=http://outline:3000` instead. See
-[Image fetching](../deploy/components/image-fetching.md#outline-behind-an-internal-address). No `imageHosts` is
+[Image fetching](../install/components/image-fetching.md#outline-behind-an-internal-address). No `imageHosts` is
 needed.
 
 ### Secrets

@@ -4,6 +4,8 @@ sidebar_position: 2
 
 # Template author guide
 
+**How-to.** Write a Template or a Template Configuration.
+
 This guide is for people who write a **Template** (a style family such as a
 letter or a report) or a **Template Configuration** (the values that adapt a
 Template to an organisation). It ties together the reference pages and walks
@@ -18,8 +20,8 @@ Reference pages this guide builds on:
   and how values are layered
 - [Template catalogue](catalogue/README.md): the shipped Templates, as the
   authors see them
-- [Worker pipeline](../internals/worker.md): what the engine allows, and why
-- [Images in the pipeline](../internals/images.md): how images are checked and placed
+- [Worker pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/worker.md): what the engine allows, and why
+- [Images in the pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/images.md): how images are checked and placed
 
 ## The model in one minute
 
@@ -137,7 +139,7 @@ does):
 
 Fonts are loaded by **file path** with `Path=./fonts/`, never by name (the
 engine cannot build the font name database under paranoid reads; see
-[Worker pipeline](../internals/worker.md#reading-below-the-job-directory-only)):
+[Worker pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/worker.md#reading-below-the-job-directory-only)):
 
 ```tex
 \setmainfont{texgyrepagella-regular.otf}[Path=./fonts/,
@@ -153,7 +155,7 @@ repository.
 ### Images and logos
 
 A logo is an `asset` field. SVG files are converted to vector PDF; raster
-formats are limited as described in [Images in the pipeline](../internals/images.md). Text inside
+formats are limited as described in [Images in the pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/images.md). Text inside
 an SVG is drawn with the fonts of the Worker image, not the Template's fonts.
 
 **Templates** must scale images to the page. The Gateway gives every image
@@ -185,7 +187,7 @@ Every TeX file of a Template (`.latex`, `.tex`, `.sty`, `.cls`, `.def`, `.cfg`,
 The full list is in [Packages](packages.md#tex-deny-list). It is a safety
 net against accidents and careless Templates, not a sandbox: the Worker still
 runs without network or secrets and with shell escape off
-([Security](../internals/security.md)).
+([Security](https://github.com/taskmedia/outprint/blob/main/docs/internals/security.md)).
 
 ## Standard Fields
 
@@ -262,7 +264,7 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" outprint render \
 ```
 
 `--debug-tex-log` prints the full TeX log (it may contain document content;
-see [Worker pipeline](../internals/worker.md)); `--json-errors` prints the JSON error body on
+see [Worker pipeline](https://github.com/taskmedia/outprint/blob/main/docs/internals/worker.md)); `--json-errors` prints the JSON error body on
 stdout ([Metadata Block reference](metadata-reference.md)).
 
 ### Drift guard

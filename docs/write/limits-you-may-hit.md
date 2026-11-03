@@ -4,6 +4,8 @@ sidebar_position: 7
 
 # Limits you may hit
 
+**Reference.** The size limits of a PDF and what happens when a document exceeds one.
+
 Outprint keeps a PDF within fixed sizes, so that one large document cannot slow
 everybody down. A document that does not fit fails with a message. Outprint
 never cuts a document short.

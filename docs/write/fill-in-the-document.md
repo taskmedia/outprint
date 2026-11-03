@@ -4,6 +4,8 @@ sidebar_position: 3
 
 # Fill in the document
 
+**How-to.** Fill in the details a Template asks for at the top of a document.
+
 A letter needs a recipient and a subject. A report needs a title and maybe a
 table of contents. You write these details in a small block at the very start of
 your document. Outprint calls it the **metadata block**. It does not appear in
@@ -93,7 +95,7 @@ Your block is still there, and Outprint still reads it.
 - If you can only read the document, you do not see the block at all.
 
 Your Outprint admin can change this, so that the block is always shown to you
-([Injector and PDF action](../deploy/components/injector.md#hiding-the-metadata-block)).
+([Injector and PDF action](../install/components/injector.md#hiding-the-metadata-block)).
 Two places still show the block: a link that you share from Outline, and
 Outline's own export and search.
 

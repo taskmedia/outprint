@@ -7,12 +7,16 @@ this directory holds only the site shell (config, theme, sidebar).
 
 ## Structure of the docs
 
-`docs/` has five sections, one folder each, each with an intro page
-(`README.md`) and a `_category_.json`: `write/`, `configure/`, `deploy/`,
-`templates/` and `internals/`. The decision records stay in `docs/adr/` next to
-their index and are shown under Internals (`sidebars.js`).
+`docs/` has four sections on the site, one folder each, each with an intro page
+(`README.md`) and a `_category_.json`: `write/`, `install/`, `configure/` and
+`templates/` (the sidebar order). `internals/` and `adr/` are on GitHub only: they
+are not in the sidebar or the navbar (they stay in the build, so a released version
+that lists them keeps building) and published pages link to them with absolute GitHub
+URLs. `research/` is excluded from the build. Every page opens with one line that says what it is
+(how-to, reference or background); titles of Install pages are verbs, titles of
+Reference pages are nouns.
 
-- **Landing page.** `src/pages/index.js` is the designed home page: the five
+- **Landing page.** `src/pages/index.js` is the designed home page: the
   sections as numbered rows. `docs/README.md` is the same list as a plain table
   that reads well on GitHub; it is excluded from the site so that the two do not
   fight over `/`. If you add a section, change both and `sidebars.js`.

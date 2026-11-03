@@ -1,9 +1,10 @@
 ---
-sidebar_label: Reverse-proxy recipes
 sidebar_position: 4
 ---
 
-# Reverse-proxy recipes
+# Add the PDF action with an edge proxy
+
+**How-to.** Add the script tag with nginx, Caddy or Traefik instead of the injector.
 
 ## What it does
 
@@ -58,7 +59,7 @@ more part. The Gateway and the Worker are the same for both
 ## Prerequisites
 
 - The [common base](../common-base.md), with the Gateway and the Worker running
-  and the link way working ([PDF by link](../ways/pdf-by-link.md)).
+  and `/pdf/render/<id>` rendering a PDF while you are signed in.
 - **One host name** for Outline and for `/pdf`. The Gateway has no login of its
   own; it needs the cookie Outline set.
 - Not both: with the injector in front, leave the recipe out, or the tag
@@ -327,4 +328,4 @@ back; see [Injector and PDF action](injector.md#content-security-policy).
 | real-time editing hangs | the WebSocket upgrade is not passed | check the `Upgrade` headers |
 | `401` from `/pdf/render/...` | the Gateway is on another host name | one host name for Outline and `/pdf` |
 
-For the Gateway side see [PDF by link](../ways/pdf-by-link.md#typical-problems).
+For the Gateway side see [When something goes wrong](../../write/when-something-goes-wrong.md).

@@ -2,11 +2,13 @@
 sidebar_position: 1
 ---
 
-# Injector and PDF action
+# Add the PDF action with the injector
+
+**How-to.** Put the injector in front of Outline to add the PDF action.
 
 The injector is an optional part of the install: it is what puts the action into
 Outline's interface ([Export menu in Outline](../ways/export-menu.md)). Without it the
-Gateway and the Worker still work ([PDF by link](../ways/pdf-by-link.md)). Outline has no
+Gateway and the Worker still work. Outline has no
 plug-in point for a toolbar button, and Outprint does not fork Outline. The **injector** is a small reverse proxy in front of Outline that adds
 one `<script>` tag to Outline's HTML pages. The script puts a **Formatted PDF**
 action into Outline's interface on document pages, but only where the Gateway

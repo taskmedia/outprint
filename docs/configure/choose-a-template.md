@@ -4,6 +4,8 @@ sidebar_position: 2
 
 # Choose a Template and Configuration
 
+**How-to.** Bind a Template and a Configuration to a Collection.
+
 You give a Collection its PDF look by adding a short block to the Collection
 description in Outline. The block names one Template and one Configuration. The
 pair is called a **Binding**.
