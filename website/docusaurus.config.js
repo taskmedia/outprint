@@ -257,16 +257,13 @@ const config = {
         additionalLanguages: ['bash', 'yaml', 'json', 'latex', 'docker'],
       },
       tableOfContents: {minHeadingLevel: 2, maxHeadingLevel: 3},
-      // Diagrams are drawn at their natural size (16 px text, like the body)
-      // and scroll sideways when they are wider than the column. The default,
-      // useMaxWidth, shrinks the whole canvas to the column, which made the
-      // text 26 to 61 % of its size. The font is the site's, so Mermaid
-      // measures labels with the face that is shown.
+      // The font is the site's, so Mermaid measures labels with the face that
+      // is shown.
       mermaid: {
         options: {
           fontFamily: "Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif",
-          flowchart: {useMaxWidth: false, wrappingWidth: 160},
-          sequence: {useMaxWidth: false, wrap: true, width: 100, actorMargin: 16, mirrorActors: false},
+          flowchart: {wrappingWidth: 160},
+          sequence: {wrap: true, width: 100, actorMargin: 16, mirrorActors: false},
         },
       },
     }),
