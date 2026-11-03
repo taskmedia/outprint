@@ -238,11 +238,11 @@ Feasibility of injecting a "Render with template X" item via an external script:
 
 ## Outcome
 
-The hybrid shape of section 7 was implemented: the service configuration is the allow-list, a fenced block in the Collection overview selects a Template ([Choose a Template and Configuration](../configure/choose-a-template.md)), and the PDF action is injected by a reverse proxy ([Injector and PDF action](../install/components/injector.md)).
+The hybrid shape of section 7 was implemented: the service configuration is the allow-list, a fenced block in the Collection overview selects a Template ([Bind a Template to a Collection](../configure/README.md)), and the PDF action is injected by a reverse proxy ([Injector and PDF action](../install/components/injector.md)).
 
 One assumption of section 2 turned out to be wrong when tested against a real Outline in the seeded dev stack: the editor keeps only the first word of a code fence's info string, so a block opened with an info string of two words is stored with the first word alone. This affects the markers used for the Binding and the Metadata Block and was tracked in issue #42.
 
-Resolution (issue #42): both blocks are plain `yaml` fences. The Metadata Block is the first thing in the Document; the Binding block is told apart by its root key `binding:` ([Choose a Template and Configuration](../configure/choose-a-template.md), [Metadata Block](../reference/metadata-block.md)). Checked against Outline 1.12.0 in the dev stack, through the paths the editor uses:
+Resolution (issue #42): both blocks are plain `yaml` fences. The Metadata Block is the first thing in the Document; the Binding block is told apart by its root key `binding:` ([Bind a Template to a Collection](../configure/README.md), [Metadata Block](../reference/metadata-block.md)). Checked against Outline 1.12.0 in the dev stack, through the paths the editor uses:
 
 - `collections.update` with `data` (a ProseMirror `code_block` with `language: yaml`) comes back from `collections.info` (without `x-api-version`) as a `yaml` fence with the content unchanged, nested indentation included.
 - `documents.update` with `text` starting with a `yaml` fence that holds a comment, a list and nested keys comes back from `documents.info` with the fence still at the top and its content unchanged, comment and key order included.

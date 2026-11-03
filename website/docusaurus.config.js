@@ -75,6 +75,20 @@ const movedPageRedirects = Object.entries(movedDeployPages).flatMap(([from, to])
   return sources.map((source) => ({from: source, to: target}));
 });
 
+// Write and Configure pages that were merged (issue #121), same rules as above.
+const mergedPages = {
+  '/write/download-a-pdf/': '/write/get-a-pdf/',
+  '/write/fill-in-the-document/': '/write/get-a-pdf/',
+  '/write/start-from-an-outline-template/': '/write/get-a-pdf/',
+  '/configure/choose-a-template/': '/configure/',
+  '/configure/pdf-action/': '/configure/',
+};
+const mergedPageRedirects = Object.entries(mergedPages).flatMap(([from, to]) => {
+  const sources = [`${currentDocsPath}${from}`];
+  if (!hasRelease) sources.push(`/dev${from}`);
+  return sources.map((source) => ({from: source, to: `${currentDocsPath}${to}`}));
+});
+
 // The site has its own domain (GitHub Pages custom domain, see
 // website/README.md), so it lives at the root.
 const baseUrl = '/';
@@ -178,7 +192,7 @@ const config = {
   plugins: [
     [
       '@docusaurus/plugin-client-redirects',
-      {createRedirects, redirects: movedPageRedirects},
+      {createRedirects, redirects: [...movedPageRedirects, ...mergedPageRedirects]},
     ],
   ],
 

@@ -7,42 +7,14 @@ sidebar_position: 1
 **How-to.** Write documents in Outline and get them as PDFs.
 
 You write documents in Outline. Outprint turns a document into a PDF with a
-letterhead, a footer and a fixed layout. You do not need to design anything.
-
-This section is for you if you write documents. It does not need any technical
-knowledge.
+letterhead, a footer and a fixed layout. You do not need to design anything or to
+know anything technical.
 
 | Page | What you learn |
 |------|----------------|
-| [Download a PDF](download-a-pdf.md) | Get your first PDF in five minutes. |
-| [Fill in the document](fill-in-the-document.md) | Add the details a letter or report needs, such as the recipient or the subject. |
-| [Start new documents with the block filled in](start-from-an-outline-template.md) | Use an Outline template so that every new document begins with its metadata block. |
+| [Get a PDF](get-a-pdf.md) | Download a PDF, fill in the details at the top of a document and start new documents with them in place. |
 | [Images and logos](images-and-logos.md) | Add pictures, and what to do when one is rejected. |
-| [Error messages](../reference/error-messages.md) | Find your message and see what to do. |
-| [Limits](../reference/limits.md) | How large a document can be. |
 
-## Four words you will meet
-
-Outprint uses a few words with a fixed meaning. The
-[vocabulary](https://github.com/taskmedia/outprint/blob/main/CONTEXT.md) lists
-them all. These four are enough to start.
-
-**Template**
-: The look of a PDF: page layout, fonts, and the kinds of document it can make,
-  such as a letter or a report. Think of it as letter paper that is ready to
-  use.
-
-**Configuration**
-: The details of your organisation that go on every PDF: name, logo and colour.
-  A Template plus a Configuration gives your own letterhead. You cannot change
-  a Configuration in a document. This keeps every PDF looking the same.
-
-**Collection**
-: A collection in Outline, shown in the left sidebar. Every document in a
-  Collection, including documents in nested folders, gets the same PDF look.
-
-**Binding**
-: The choice of one Template and one Configuration for a Collection. A
-  Collection admin makes it once. You do not choose it yourself. If your
-  Collection has no Binding, there is no Formatted PDF action. See
-  [Configure](../configure/README.md).
+When something goes wrong, find your message in
+[Error messages](../reference/error-messages.md). The size limits are in
+[Limits](../reference/limits.md).

@@ -47,7 +47,7 @@ needed). The Gateway sends no CORS headers: it is reached through the injector's
 
 `GET /status/{documentId}` tells the button script whether to show the button
 (see [Status endpoint](#status-endpoint)). The Template and Configuration come
-from the Collection's Binding block ([Binding](../configure/choose-a-template.md)) and nowhere
+from the Collection's Binding block ([Binding](../configure/README.md)) and nowhere
 else: no query parameter or header selects or overrides them.
 
 Configuration (environment):
@@ -150,7 +150,7 @@ are named in one place, `internal/limits`; see [Security](security.md).
    unknown name or a pair off the allow-list is a 422 with `source:
    collection`, never a fallback to the default. No block and no default is a
    422 `no_binding`. A Document without a Collection has no block. See
-   [Binding](../configure/choose-a-template.md).
+   [Binding](../configure/README.md).
 5. `metadata.Resolve` merges the Metadata Block with the derived values: `title`
    is the Outline title and `date` is the last-modified date (`updatedAt`, in
    UTC, as an ISO date).
@@ -239,7 +239,7 @@ fails when a code in the source has no anchor on the page
 | Outline answers 404 | 404 | |
 | metadata errors | 422 | the error list; all problems at once |
 | no Binding | 422 | one error with `source: collection`, `code: no_binding` |
-| invalid Binding block | 422 | errors with `source: collection` and a `binding_*` code, see [Binding](../configure/choose-a-template.md) |
+| invalid Binding block | 422 | errors with `source: collection` and a `binding_*` code, see [Binding](../configure/README.md) |
 | Outline answers 403 or 404 for the Collection | 403 / 404 | `phase: binding`, no fallback |
 | Markdown, bundle or PDF over a limit | 413 | |
 | too many pages (`pages_exceeded`), PDF too large (`pdf_too_large`) | 413 | `phase: output` |

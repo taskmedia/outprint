@@ -141,7 +141,7 @@ empty and set `OUTPRINT_INJECTOR_SCRIPT_URL` if the Gateway is reachable under a
 `web/button.js` is embedded in the outprint image and served by the Gateway at
 `GET /button.js` (`text/javascript`, `nosniff`, `Cache-Control: public, max-age=300`).
 Plain ES2019, no dependencies. For where the action appears and how it looks to
-users, see [Where the PDF action appears](../configure/pdf-action.md).
+users, see [the PDF action settings](../reference/settings.md#pdf-action).
 
 - It recognises `/doc/<title>-<urlId>` (and `/doc/<uuid>`, with `/edit` or
   `/history` after it) and follows Outline's client-side navigation.
@@ -195,7 +195,7 @@ real markup is covered by the browser tests, see
 ## Hiding the metadata block
 
 On documents where a Binding applies, the script takes the [metadata
-block](../write/fill-in-the-document.md) (the `yaml` code block at the very
+block](../reference/metadata-block.md) (the `yaml` code block at the very
 start of the document) out of sight. Outline opens a document for everyone who
 may edit it straight in the editor ("seamless editing"), so there is no separate
 reading view for authors. The script therefore tells two kinds of visitors apart

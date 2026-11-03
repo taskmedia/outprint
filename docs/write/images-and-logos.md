@@ -69,7 +69,7 @@ An SVG stays sharp at every size. Two things help.
 
 The logo on your letterhead is not part of your document. The admin of the
 Collection sets it once. You cannot change it in a document. See
-[Fill in the document](fill-in-the-document.md#defaults-and-what-you-cannot-change).
+[Get a PDF](get-a-pdf.md#fill-in-the-details-at-the-top).
 
 ## When a picture is refused
 
