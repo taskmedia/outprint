@@ -1,0 +1,249 @@
+---
+sidebar_position: 3
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Add the button
+
+**How-to.** Put **Export → Formatted PDF** into Outline with the injector or an edge-proxy recipe.
+
+This is step 2 of the [install](README.md). Outline has no plug-in point for its
+menus, so something in front of Outline has to do two things:
+
+1. send `/pdf/*` to the Gateway, with the prefix removed, and
+2. add one tag to Outline's HTML pages:
+
+   ```html
+   <script src="/pdf/button.js" defer></script>
+   ```
+
+The script asks the Gateway whether the document's Collection has a Binding and
+draws the action only then. Use the injector, or a recipe for the proxy you
+already run, not both: two tags load the script twice. Without either, Outprint
+still renders, and only the action is missing.
+
+## With the injector
+
+The injector is a small reverse proxy in front of Outline that does both things.
+Point your edge proxy (TLS, host name) at it instead of at Outline.
+
+<Tabs groupId="platform">
+<TabItem value="compose" label="Docker Compose" default>
+
+```sh
+export OUTPRINT_INJECTOR_UPSTREAM=http://outline:3000    # Outline, as the injector reaches it
+docker compose -f deploy/compose/compose.yaml up --build
+# http://localhost:8090/ is Outline with the action; /pdf/* is the Gateway
+```
+
+The injector publishes port 8090 (`OUTPRINT_INJECTOR_PORT`) and already points
+at the Gateway with the prefix `/pdf`.
+
+</TabItem>
+<TabItem value="helm" label="Helm">
+
+The chart runs the injector unless you set `injector.enabled=false`. Point your
+ingress or load balancer at the Service `outprint-injector` (port 80). If you use
+an ingress controller, `injector.ingress.enabled=true` lets the chart create the
+Ingress. Move the host name off Outline's own Ingress first; two Ingresses must
+not claim it.
+
+</TabItem>
+</Tabs>
+
+`OUTPRINT_INJECTOR_UPSTREAM` is the one setting you must set; the chart takes it
+from `outline.url`. Publish the injector only: the Gateway sends no CORS headers
+and has no login of its own, so it must stay behind the same address as Outline.
+If Outline's Content-Security-Policy lists `script-src` without `'self'`, set
+`OUTPRINT_INJECTOR_CSP_ALLOW_SELF=true`. All injector settings are in the
+[Settings reference](../reference/settings.md#injector); how it works is in
+[The injector](../internals/injector.md).
+
+## With an edge-proxy recipe
+
+Use a recipe when nginx, Caddy or Traefik already fronts Outline and can rewrite
+HTML. Replace the host names, then reload the proxy. Ask Outline for plain HTML
+on page loads (the snippets do), because a rewrite cannot read `br` or `zstd`.
+On Kubernetes set `injector.enabled=false` and route `/pdf` to the Gateway
+Service.
+
+<Tabs groupId="proxy">
+<TabItem value="nginx" label="nginx" default>
+
+**Tested** by the browser tests. Stock nginx is enough (`ngx_http_sub_module`).
+The `map` blocks go in the `http` context.
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ""      close;
+}
+map $http_accept $navigation {
+    default       0;
+    "~*text/html" 1;
+}
+map $navigation $upstream_accept_encoding {
+    0 $http_accept_encoding;
+    1 "identity";
+}
+map $navigation $upstream_if_none_match {
+    0 $http_if_none_match;
+    1 "";
+}
+map $navigation $upstream_if_modified_since {
+    0 $http_if_modified_since;
+    1 "";
+}
+
+server {
+    listen 443 ssl;
+    server_name wiki.example.test;
+    # ssl_certificate ... as for any server
+
+    location /pdf/ {
+        limit_except GET HEAD { deny all; }
+        proxy_pass http://gateway.internal.example.invalid:8080/;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 5m;   # a render may wait in the queue
+    }
+
+    location / {
+        proxy_pass http://outline.internal.example.invalid:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Accept-Encoding $upstream_accept_encoding;
+        proxy_set_header If-None-Match $upstream_if_none_match;
+        proxy_set_header If-Modified-Since $upstream_if_modified_since;
+
+        sub_filter '</body>' '<script src="/pdf/button.js" defer></script></body>';
+        sub_filter_once on;
+    }
+}
+```
+
+</TabItem>
+<TabItem value="caddy" label="Caddy">
+
+**Untested.** Caddy cannot rewrite a body by itself. Build the third-party module
+[`replace-response`](https://github.com/caddyserver/replace-response) into Caddy
+(for example with `xcaddy`).
+
+{/* validate: skip Caddyfile, a third-party format */}
+```caddyfile
+wiki.example.test {
+    handle_path /pdf/* {
+        reverse_proxy http://gateway.internal.example.invalid:8080
+    }
+
+    handle {
+        @navigation header Accept *text/html*
+        reverse_proxy http://outline.internal.example.invalid:3000 {
+            header_up @navigation Accept-Encoding identity
+            header_up @navigation -If-None-Match
+            header_up @navigation -If-Modified-Since
+        }
+        replace {
+            match {
+                header Content-Type text/html*
+                status 200
+            }
+            "</body>" `<script src="/pdf/button.js" defer></script></body>`
+        }
+    }
+    encode zstd gzip
+}
+```
+
+</TabItem>
+<TabItem value="traefik" label="Traefik">
+
+**Untested.** Traefik has no body-rewrite middleware of its own. This uses the
+community plugin [`packruler/rewrite-body`](https://github.com/packruler/rewrite-body),
+which Traefik loads from its plugin catalog at startup.
+
+{/* validate: skip Traefik static and dynamic configuration, a third-party format */}
+```yaml
+# static configuration
+experimental:
+  plugins:
+    rewrite-body:
+      moduleName: github.com/packruler/rewrite-body
+      version: v1.1.0   # pin the version you tested
+
+# dynamic configuration
+http:
+  middlewares:
+    outprint-tag:
+      plugin:
+        rewrite-body:
+          rewrites:
+            - regex: "</body>"
+              replacement: '<script src="/pdf/button.js" defer></script></body>'
+          monitoring:
+            methods: [GET]
+            types: [text/html]
+    outprint-strip-pdf:
+      stripPrefix:
+        prefixes: [/pdf]
+  routers:
+    gateway:
+      rule: Host(`wiki.example.test`) && PathPrefix(`/pdf/`)
+      entryPoints: [websecure]
+      middlewares: [outprint-strip-pdf]
+      service: gateway
+      priority: 20
+      tls: {}
+    wiki:
+      rule: Host(`wiki.example.test`)
+      entryPoints: [websecure]
+      middlewares: [outprint-tag]
+      service: outline
+      priority: 10
+      tls: {}
+  services:
+    gateway:
+      loadBalancer:
+        servers:
+          - url: http://gateway.internal.example.invalid:8080
+    outline:
+      loadBalancer:
+        servers:
+          - url: http://outline.internal.example.invalid:3000
+```
+
+</TabItem>
+</Tabs>
+
+The rules every recipe follows, what each proxy does and does not do, and the
+Content-Security-Policy choices are in [Edge-proxy recipes](../internals/edge-proxy-recipes.md).
+
+## Check it
+
+1. `curl -i https://wiki.example.test/pdf/healthz` answers `200`.
+2. The page carries the tag once. `1` is right, `0` means the page was not changed:
+
+   ```sh
+   curl -s -H 'Accept: text/html' https://wiki.example.test/ | grep -c 'pdf/button.js'
+   ```
+
+3. Sign in, open `/pdf/render/<id>` for a document (the id is the end of its
+   `/doc/<title>-<id>` address) and see a PDF. This is the check of step 1, now
+   on Outline's own host name.
+4. Open a document of a Collection that has a [Binding](../configure/README.md).
+   **Export → Formatted PDF** is listed after the file formats. Click it.
+
+If the action is missing, open the browser's developer tools and read the
+Console and the Network tab; [The script tag](../internals/script-tag.md#check)
+explains each sign. The usual causes: the page is not routed through the injector
+or proxy, the Collection has no Binding, or Outline's Content-Security-Policy
+blocks the script.
+
+Next: [Bind a Template to a Collection](../configure/README.md).

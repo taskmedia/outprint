@@ -6,8 +6,7 @@ sidebar_position: 1
 
 **How-to.** Decide what to expose, what to keep inside and what to check after the install.
 
-What to expose, what to keep inside, and what to check after the install. The
-reasoning and the tests are in [Security](https://github.com/taskmedia/outprint/blob/main/docs/internals/security.md). The
+The reasoning and the tests are in [Security](https://github.com/taskmedia/outprint/blob/main/docs/internals/security.md). The
 Compose file already follows everything on this page.
 
 ## What to expose
@@ -43,11 +42,23 @@ Compose file already follows everything on this page.
   read. Nothing else gets the cookie.
 - **To image hosts:** nothing with the cookie. Images come from Outline. A
   redirect is followed only to hosts you list in `imageHosts`, and only to public
-  addresses. See [Image fetching](../components/image-fetching.md).
+  addresses. See [Images from other hosts](#images-from-other-hosts).
 - **To the Worker:** the document, its images and its settings.
 
 The Gateway keeps no copy of a document or a PDF. Responses carry
 `Cache-Control: no-store`.
+
+## Images from other hosts
+
+The Gateway fetches a document's images from Outline with the user's cookie.
+Where Outline redirects to a file store, such as S3-compatible storage, the
+Gateway follows only to hosts you list under `imageHosts` in the
+[service configuration](../../reference/service-configuration.md), and only to
+public addresses, without the cookie. Until you list the host, the document shows
+`forbidden` with the host's name. If the Gateway reaches Outline at an internal
+address while Outline names itself with a public one, also set
+`OUTLINE_PUBLIC_URL` ([Settings](../../reference/settings.md#outline_public_url)).
+The full model is in [Image fetching](../../internals/image-fetching.md).
 
 ## What the logs hold
 
@@ -64,4 +75,4 @@ and no internal addresses.
 3. Open Outline through the injector. The **Formatted PDF** action appears in a
    Collection with a Binding.
 4. Check the Content-Security-Policy of Outline if the button is missing. See
-   [Injector and PDF action](../components/injector.md#content-security-policy).
+   [Add the button](../add-the-button.mdx#with-the-injector).

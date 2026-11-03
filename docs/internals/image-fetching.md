@@ -2,14 +2,13 @@
 sidebar_position: 2
 ---
 
-# Set up image fetching
+# Image fetching
 
-**How-to.** Choose which hosts the Gateway may fetch images from.
+**Background.** How the Gateway fetches images, which hosts a redirect may reach, and what to do when Outline runs behind an internal address.
 
 Images in a document are files in Outline. The Gateway fetches them before a
-render. This page covers what an operator sets: which hosts a redirect may
-reach, and what to do when Outline runs behind an internal address. Authors
-find the rules for pictures in [Images and logos](../../write/images-and-logos.md).
+render. The short version for operators is in [Secure the install](../install/operate/security-for-operators.md#images-from-other-hosts). Authors
+find the rules for pictures in [Images and logos](../write/images-and-logos.md).
 
 **Fetching images is the Gateway's only outbound request besides Outline's
 API.** The model:

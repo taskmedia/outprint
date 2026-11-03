@@ -39,9 +39,11 @@ page lists what to check between versions. It will grow with later releases.
    ```
 
    `validate` reports every problem of a package. Fix them before you roll out.
-5. Check the [Compose file](../platforms/docker-compose.md) of the new version against yours.
-   The Worker keeps its security settings in that file. The build of Outprint
-   checks them, so do not weaken them while you merge changes.
+5. Check the Compose file (`deploy/compose/compose.yaml`) of the new version against
+   yours. The Worker keeps its security settings in that file
+   ([The Worker baseline](../../internals/worker-baseline.md)). The build of
+   Outprint checks them, so do not weaken them while you merge changes. On
+   Helm, read the chart's release notes.
 
 ## After you upgrade
 

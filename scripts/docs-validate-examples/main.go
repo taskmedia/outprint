@@ -97,7 +97,7 @@ func markdownFiles(dir string) ([]string, error) {
 		if d.IsDir() && strings.HasSuffix(filepath.ToSlash(path), generatedDir) {
 			return filepath.SkipDir
 		}
-		if !d.IsDir() && strings.HasSuffix(path, ".md") {
+		if !d.IsDir() && (strings.HasSuffix(path, ".md") || strings.HasSuffix(path, ".mdx")) {
 			out = append(out, path)
 		}
 		return nil

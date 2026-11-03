@@ -1,0 +1,99 @@
+---
+sidebar_position: 2
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Run Outprint
+
+**How-to.** Start the Gateway and the Worker with Docker Compose or Helm, and check that a PDF renders.
+
+This is step 1 of the [install](README.md). You need a self-hosted Outline, and
+the Gateway must reach it over the network. Check the tested Outline releases in
+[Compatibility](operate/compatibility.md).
+
+Two parts run here. The **Gateway** reads the document from Outline as the user
+and asks the **Worker** for the PDF. The Worker has no network and no secrets.
+The reasons for the split are in [ADR 0001](https://github.com/taskmedia/outprint/blob/main/docs/adr/0001-split-renderer-into-gateway-and-worker.md).
+
+## Start it
+
+<Tabs groupId="platform">
+<TabItem value="compose" label="Docker Compose" default>
+
+The Compose file builds the image from a checkout of the repository. Point it at
+your Outline and start it:
+
+```sh
+export OUTLINE_URL=https://wiki.example.test      # your Outline
+# optional: a token shared by Gateway and Worker
+export OUTPRINT_WORKER_TOKEN="$(openssl rand -hex 32)"
+
+docker compose -f deploy/compose/compose.yaml up --build gateway worker
+```
+
+The Gateway listens on port 8080 (`OUTPRINT_PORT` changes the published port).
+The file also has an `injector` service for step 2; naming `gateway` and `worker`
+leaves it out for now.
+
+To use your own Templates and Configurations, replace the folders `templates`
+and `configurations`; the Compose file mounts them read-only.
+
+</TabItem>
+<TabItem value="helm" label="Helm">
+
+The chart is released from [taskmedia/helm](https://github.com/taskmedia/helm/tree/main/charts/outprint).
+You need Helm 3 and a cluster. A CNI that enforces NetworkPolicy keeps the Worker
+cut off from the network; without one the policy has no effect.
+
+```sh
+helm repo add taskmedia https://helm.task.media
+helm repo update
+helm upgrade --install outprint taskmedia/outprint \
+  --namespace outprint --create-namespace \
+  --set outline.url=http://outline.outline.svc:3000
+```
+
+`outline.url` is the address at which the Gateway reaches Outline; the chart
+refuses to render without it. The chart creates the Worker, the Gateway and, by
+default, the injector, with a random token shared by Gateway and Worker. The
+chart's README and `values.yaml` list every option; it is also published as
+`oci://ghcr.io/taskmedia/outprint`.
+
+</TabItem>
+</Tabs>
+
+## The settings you must set
+
+| Setting | Meaning |
+|---------|---------|
+| `OUTLINE_URL` | Outline as the Gateway reaches it (Helm: `outline.url`). Use an internal address if you have one. |
+| `OUTPRINT_WORKER_URL` | the Worker as the Gateway reaches it. The Compose file and the chart set it for you. |
+
+Without them the Gateway does not start. Everything else works unset; the
+[Settings reference](../reference/settings.md) lists the rest, and the
+[service configuration](../reference/service-configuration.md) holds the allowed
+Templates and Bindings.
+
+## Check it
+
+1. `curl -i http://localhost:8080/healthz` answers `200` (Compose; in Kubernetes
+   use `kubectl -n outprint get pods` and wait for `Ready`).
+2. `curl -i http://localhost:8080/render/anything` answers `401` with "sign in to
+   Outline to download this document". The Gateway is up and asks for a session.
+3. Sign in to Outline, open a document and note its address: the last part of
+   `/doc/<title>-<id>` is the document id. On the host name of Outline, open
+   `/pdf/render/<id>`. A PDF downloads. That proves the Gateway reaches Outline
+   and the Worker renders.
+
+Check 3 needs `/pdf` on Outline's own host name, because the Gateway needs
+Outline's cookie. Step 2 sets that up. If you cannot try it yet, do step 2 and
+come back.
+
+If a check fails: `docker compose -f deploy/compose/compose.yaml logs gateway worker`.
+A `500` with `outline: unavailable` means the Gateway cannot reach `OUTLINE_URL`;
+use the address the Gateway can reach, not the public one. The Worker refuses to
+start as UID 0.
+
+Next: [Add the button](add-the-button.mdx).

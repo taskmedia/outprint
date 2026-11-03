@@ -8,7 +8,7 @@ sidebar_position: 3
 
 The injector places the PDF action by reading Outline's page, because Outline
 has no extension point for its menus (see
-[Injector and PDF action](../components/injector.md#the-pdf-action)). A new Outline release can
+[The injector and the PDF action](../../internals/injector.md#the-pdf-action)). A new Outline release can
 change that markup. This page says which versions have been checked.
 
 | Outline | Outprint | Status |
@@ -19,7 +19,7 @@ change that markup. This page says which versions have been checked.
 | older than 1.12.0 | | **untested** |
 
 The script is the same when an edge proxy adds the tag instead of the injector
-([Reverse-proxy recipes](../components/reverse-proxy-recipes.md)). The browser
+([Add the button](../add-the-button.mdx)). The browser
 tests run against the **nginx** recipe too (`task e2e:run-nginx`, Outline 1.12.0).
 The Caddy and Traefik recipes are **untested**.
 

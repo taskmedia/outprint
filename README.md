@@ -30,7 +30,7 @@ Collection; a Document author fills structured fields in a leading
   Without it, PDFs still work by link.
 
 Which parts to run depends on how you want to use Outprint: see
-[Install](docs/install/README.md#which-way-fits-you).
+[Install](docs/install/README.md).
 
 See the [vocabulary](CONTEXT.md) and the
 [architecture decision records](docs/adr/README.md).
@@ -108,11 +108,10 @@ the TeX deny-list, the drift guard and `validate`) and
 [Standard Fields](docs/reference/standard-fields.md); [Images in the pipeline](docs/internals/images.md);
 [Choose a Template and Configuration](docs/configure/choose-a-template.md) for the
 `binding:` block of a Collection admin; the [Worker pipeline](docs/internals/worker.md);
-[Architecture](docs/internals/architecture.md); [Install: which way fits you](docs/install/README.md) and the
-[common base](docs/install/common-base.md); [Docker Compose](docs/install/platforms/docker-compose.md)
-with the Worker security baseline; the [Injector and PDF action](docs/install/components/injector.md);
+[Architecture](docs/internals/architecture.md); [Install](docs/install/README.md) in three steps; [The Worker baseline](docs/internals/worker-baseline.md);
+the [Injector and PDF action](docs/internals/injector.md);
 [Security](docs/internals/security.md) and [Testing](docs/testing.md) for the test tiers
-and the CI schedule; [Limits and admission control](docs/install/components/limits-and-admission.md);
+and the CI schedule; [Tune limits](docs/install/operate/limits-and-admission.md);
 and, for the maintainer, the [Sanitisation gate](docs/sanitize.md) and the
 [Publishing checklist](docs/publishing.md).
 

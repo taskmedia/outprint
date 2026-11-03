@@ -19,7 +19,9 @@ type block struct {
 }
 
 var (
-	markerPattern = regexp.MustCompile(`^\s*<!--\s*validate:\s*(.*?)\s*-->\s*$`)
+	// An HTML comment in Markdown, or a JSX comment in an .mdx page, where HTML
+	// comments are not allowed.
+	markerPattern = regexp.MustCompile(`^\s*(?:<!--\s*validate:\s*(.*?)\s*-->|\{/\*\s*validate:\s*(.*?)\s*\*/\})\s*$`)
 	openPattern   = regexp.MustCompile("^(\\s*)(`{3,}|~{3,})\\s*([A-Za-z0-9_-]*)")
 	innerYAML     = regexp.MustCompile("(?m)^\\s*(`{3,}|~{3,})\\s*ya?ml\\b")
 )
@@ -34,7 +36,7 @@ func scan(file, text string) ([]block, []string) {
 	markerAt := map[int]int{}   // line number of the fence -> line of its marker
 	for i := 0; i < len(lines); i++ {
 		if m := markerPattern.FindStringSubmatch(lines[i]); m != nil {
-			markers[i+2] = m[1]
+			markers[i+2] = m[1] + m[2]
 			markerAt[i+2] = i + 1
 			continue
 		}
