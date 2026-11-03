@@ -39,7 +39,7 @@ func startWorker(t *testing.T) string {
 	}
 	addr := freeAddr(t)
 	cmd := exec.Command(bin, "worker")
-	cmd.Env = append(os.Environ(), "OUTPRINT_LISTEN="+addr, "TMPDIR="+t.TempDir())
+	cmd.Env = append(os.Environ(), "OUTPRINT_LISTEN="+addr, "OUTPRINT_WORK_DIR="+t.TempDir())
 	var logs bytes.Buffer
 	cmd.Stderr = &logs
 	if err := cmd.Start(); err != nil {

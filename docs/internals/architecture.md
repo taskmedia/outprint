@@ -72,7 +72,7 @@ The pipeline behind it is described in [Worker pipeline](worker.md).
 
 - One job per instance. While a job runs, a second request gets `503` with
   kind `busy`.
-- A fresh `0700` job directory below `TMPDIR` per job, removed
+- A fresh `0700` job directory below `OUTPRINT_WORK_DIR` per job, removed
   afterwards. Production mounts the work root as a tmpfs.
 - After a timeout, a kill, a panic or any unexpected failure the Worker sends
   its response, then shuts down and exits non-zero. While it is shutting down it

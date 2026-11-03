@@ -24,18 +24,27 @@ const (
 	EnvLogLevel       = "OUTPRINT_LOG_LEVEL"
 	EnvMaxPages       = "OUTPRINT_MAX_PAGES"
 	EnvMaxPDFBytes    = "OUTPRINT_MAX_PDF_BYTES"
+	EnvWorkDir        = "OUTPRINT_WORK_DIR"
+	EnvTeXCacheDir    = "OUTPRINT_TEXCACHE_DIR"
+	EnvDebugTeXLog    = "OUTPRINT_DEBUG_TEX_LOG"
 	EnvAdmissionSlots = "OUTPRINT_ADMISSION_SLOTS"
 
 	EnvAdmissionQueueDepth = "OUTPRINT_ADMISSION_QUEUE_DEPTH"
 	EnvAdmissionPerUser    = "OUTPRINT_ADMISSION_PER_USER"
 	EnvAdmissionMaxWait    = "OUTPRINT_ADMISSION_MAX_WAIT"
 
-	EnvButtonPlacement = "OUTPRINT_BUTTON_PLACEMENT"
-	EnvButtonLabels    = "OUTPRINT_BUTTON_LABELS"
+	EnvButtonPlacement     = "OUTPRINT_BUTTON_PLACEMENT"
+	EnvButtonStyle         = "OUTPRINT_BUTTON_STYLE"
+	EnvButtonFallback      = "OUTPRINT_BUTTON_FALLBACK"
+	EnvButtonFallbackDelay = "OUTPRINT_BUTTON_FALLBACK_DELAY"
+	EnvButtonLabels        = "OUTPRINT_BUTTON_LABELS"
+	EnvButtonMetadataBlock = "OUTPRINT_BUTTON_METADATA_BLOCK"
 
 	EnvInjectorUpstream     = "OUTPRINT_INJECTOR_UPSTREAM"
 	EnvInjectorListen       = "OUTPRINT_INJECTOR_LISTEN"
+	EnvInjectorScriptURL    = "OUTPRINT_INJECTOR_SCRIPT_URL"
 	EnvInjectorGatewayURL   = "OUTPRINT_INJECTOR_GATEWAY_URL"
+	EnvInjectorGatewayPref  = "OUTPRINT_INJECTOR_GATEWAY_PREFIX"
 	EnvInjectorCSPAllowSelf = "OUTPRINT_INJECTOR_CSP_ALLOW_SELF"
 	EnvInjectorLogLevel     = "OUTPRINT_INJECTOR_LOG_LEVEL"
 )
@@ -49,6 +58,9 @@ const (
 	MustSet Tier = "must set"
 	// Tuning settings have a default that works. Only the Reference lists them.
 	Tuning Tier = "tuning"
+	// Advanced settings work, but few installations need them. Only the
+	// last section of the Reference lists them; the guides do not mention them.
+	Advanced Tier = "advanced"
 )
 
 // Setting is one environment variable.
@@ -73,6 +85,7 @@ const (
 	GatewayAndWorker = "Gateway and Worker"
 	PDFAction        = "PDF action"
 	Injector         = "Injector"
+	CommandLine      = "Command line"
 )
 
 // All returns every setting in the order of the Reference. The slice is a
@@ -103,6 +116,10 @@ var registry = []Setting{
 		Description: "The most pages a PDF may have. A positive integer. A malformed value stops the Worker."},
 	{Name: EnvMaxPDFBytes, Component: Worker, Type: "`integer` (bytes)", Default: "`52428800`", Tier: Tuning,
 		Description: "The largest PDF the Worker returns, in bytes: 50 MiB. From 1 up to that value; it can be lowered but not raised."},
+	{Name: EnvWorkDir, Component: Worker, Type: "`path`", Tier: Advanced,
+		Description: "The folder for the files of one job. The Compose file sets `/work`, and the sandbox tests check it."},
+	{Name: EnvTeXCacheDir, Component: Worker, Type: "`path`", Default: "`/opt/outprint/texcache`", Tier: Advanced,
+		Description: "The cache of the TeX engine. The image sets it."},
 
 	{Name: EnvListen, Component: GatewayAndWorker, Type: "`address`", Default: "`:8080` (Gateway), `:8081` (Worker)", Tier: Tuning,
 		Description: "The address to listen on, for example `:9000`."},
@@ -123,6 +140,14 @@ var registry = []Setting{
 		Description: "Where the PDF action sits. `menu` puts it in the Export submenu of the document menu, `button` in a header button before Share."},
 	{Name: EnvButtonLabels, Component: PDFAction, Type: "`JSON object`", Default: "the built-in texts", Tier: Tuning,
 		Description: "Replaces the texts of the action. Keys are `menu`, `button` and `tooltip`, each a map from a language such as `de` to a text of 1 to 80 characters."},
+	{Name: EnvButtonStyle, Component: PDFAction, Type: "one of `icon-label`, `icon`", Default: "`icon-label`", Tier: Advanced,
+		Description: "Whether the header button shows its label."},
+	{Name: EnvButtonFallback, Component: PDFAction, Type: "one of `on`, `off`", Default: "`on`", Tier: Advanced,
+		Description: "Whether a floating button appears when the anchor for the placement is missing."},
+	{Name: EnvButtonFallbackDelay, Component: PDFAction, Type: "`duration`", Default: "the script's own wait", Tier: Advanced,
+		Description: "How long the script waits for the anchor before it falls back."},
+	{Name: EnvButtonMetadataBlock, Component: PDFAction, Type: "one of `collapse`, `hide`, `show`", Default: "`collapse`", Tier: Advanced,
+		Description: "What readers and authors see of the Metadata Block."},
 
 	{Name: EnvInjectorUpstream, Component: Injector, Type: "`URL`", Tier: MustSet,
 		Description: "The base URL of Outline. The only place the injector sends requests to, besides the Gateway. The injector does not start without it."},
@@ -134,4 +159,11 @@ var registry = []Setting{
 		Description: "Adds `'self'` to the script policy of Outline, so the page may load the script from the injector's origin."},
 	{Name: EnvInjectorLogLevel, Component: Injector, Type: "one of `debug`, `info`, `warn`, `error`", Default: "`info`", Tier: Tuning,
 		Description: "How much the injector logs. An unknown value is ignored."},
+	{Name: EnvInjectorGatewayPref, Component: Injector, Type: "`path`", Default: "`/pdf`", Tier: Advanced,
+		Description: "The path prefix that is routed to the Gateway."},
+	{Name: EnvInjectorScriptURL, Component: Injector, Type: "`URL` or path", Default: "the Gateway prefix followed by /button.js", Tier: Advanced,
+		Description: "The `src` of the injected script, for when something else routes the Gateway."},
+
+	{Name: EnvDebugTeXLog, Component: CommandLine, Type: "`1` or unset", Tier: Advanced,
+		Description: "Prints the TeX log of the render command, as `--debug-tex-log` does."},
 }

@@ -109,6 +109,9 @@ bare.
 | `OUTPRINT_BUTTON_PLACEMENT` | `menu`: Export → Formatted PDF in the document menu. `button`: a header button before Share | `menu` |
 | `OUTPRINT_BUTTON_LABELS` | override the texts, see below | built-in |
 
+More options exist for rare cases; the [Reference](../reference/settings.md#advanced)
+lists them under Advanced.
+
 A wrong value stops the Gateway (and the injector, if you set it there) at startup with a message naming the variable.
 
 `OUTPRINT_BUTTON_LABELS` is a JSON object. The keys are `menu` (the menu item),
@@ -128,7 +131,8 @@ needs your text for every label you care about.
 shell, so the container health check runs `/outprint-injector healthcheck <url>`.
 
 If an edge proxy already routes `/pdf` to the Gateway, leave `OUTPRINT_INJECTOR_GATEWAY_URL`
-empty. The injected script is always `/pdf/button.js`.
+empty. If the Gateway is reachable under another path, see the advanced settings in the
+[Reference](../reference/settings.md#advanced).
 
 ## The PDF action
 
@@ -204,6 +208,9 @@ An author opens the block with one click on the toggle and folds
 it again with a second. In Outline the toggle is called **PDF details**
 (**PDF-Details** in German); the docs call the block itself the metadata block.
 The state is not remembered: each document starts folded.
+
+An operator can change this installation-wide with an advanced setting, see the
+[Reference](../reference/settings.md#advanced).
 
 This is a cosmetic convenience, not access control:
 

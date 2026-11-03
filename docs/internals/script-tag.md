@@ -43,6 +43,9 @@ The button options are settings of the Gateway. Set them where you set
 | `OUTPRINT_BUTTON_PLACEMENT` | `menu`: Export → Formatted PDF in the document menu. `button`: a header button before Share | `menu` |
 | `OUTPRINT_BUTTON_LABELS` | override the texts, see [Injector and PDF action](injector.md#placement-of-the-action) | built-in |
 
+More options exist for rare cases, such as the style of the button; they are
+listed under [Advanced](../reference/settings.md#advanced) in the Reference.
+
 The values apply to the whole installation. They are not per Collection or per
 document. A wrong value stops the Gateway at startup with a message naming the
 variable. The script gets them in the answer of `GET /status/<document id>` (the
@@ -54,11 +57,13 @@ after a cache expires.
 
 A `data-` attribute on the tag wins over the setting of the Gateway. The names
 are the variable without the prefix, in lower case with dashes:
-`data-placement` and `data-labels` (JSON).
+`data-placement`, `data-style`, `data-fallback`, `data-fallback-delay` (in
+milliseconds), `data-metadata-block` and `data-labels` (JSON).
 
-The [injector](injector.md) reads the same `OUTPRINT_BUTTON_*` variables and
-writes them as `data-` attributes. Set them on the Gateway only; you never need
-the attributes in a proxy rule or a template.
+The [injector](injector.md) still reads the same `OUTPRINT_BUTTON_*` variables
+and writes them as `data-` attributes, so an install that sets them on the
+injector keeps working unchanged. New installs set them on the Gateway only.
+You never need the attributes in a proxy rule or a template.
 
 ## Check that it works {#check}
 

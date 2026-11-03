@@ -21,7 +21,7 @@ It is not part of the injector, and the sandbox tests do not read the injector.
 | no `seccomp` entry | Docker's default profile (`RuntimeDefault`) applies; never `unconfined` |
 | `cap_drop: [ALL]` | the Worker needs no capability |
 | `read_only: true` | the root file system cannot be written |
-| `tmpfs: /work`, mode `0700`, `uid=10001`, 256 MiB | the job directories (`TMPDIR`); gone when the container stops |
+| `tmpfs: /work`, mode `0700`, `uid=10001`, 256 MiB | the job directories (`OUTPRINT_WORK_DIR`); gone when the container stops |
 | `tmpfs: /tmp` | scratch space for tools |
 | `networks: [worker-net]`, `internal: true` | no route out: no internet, no Outline, no host |
 | no `ports` | the Worker is reachable from the Gateway only |

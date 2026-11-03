@@ -256,7 +256,7 @@ func TestStatusSemantics(t *testing.T) {
 }
 
 func TestStatusCarriesTheButtonOptions(t *testing.T) {
-	options := button.Options{Placement: "button", Labels: map[string]map[string]string{"menu": {"de": "PDF mit Briefkopf"}}}
+	options := button.Options{Placement: "button", Style: "icon", FallbackDelay: 1500, Labels: map[string]map[string]string{"menu": {"de": "PDF mit Briefkopf"}}}
 	e := newEnvConfigured(t, true, nil, nil, func(c *Config) { c.Button = options })
 	e.outline.add("d", 200, "T", docText)
 	e.outline.addCollection("c1", 200, "# Team\n")

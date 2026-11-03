@@ -163,3 +163,62 @@ Adds `'self'` to the script policy of Outline, so the page may load the script f
 **Type:** one of `debug`, `info`, `warn`, `error`. **Required:** no. **Default:** `info`.
 
 How much the injector logs. An unknown value is ignored.
+
+## Advanced
+
+These settings work, but few installations need them. The image and the Compose
+file set what the defaults cannot. Change one only for a reason you can name.
+
+### `OUTPRINT_WORK_DIR`
+
+**Type:** `path`. **Required:** no. **Default:** none. **Read by:** Worker.
+
+The folder for the files of one job. The Compose file sets `/work`, and the sandbox tests check it.
+
+### `OUTPRINT_TEXCACHE_DIR`
+
+**Type:** `path`. **Required:** no. **Default:** `/opt/outprint/texcache`. **Read by:** Worker.
+
+The cache of the TeX engine. The image sets it.
+
+### `OUTPRINT_BUTTON_STYLE`
+
+**Type:** one of `icon-label`, `icon`. **Required:** no. **Default:** `icon-label`. **Read by:** PDF action.
+
+Whether the header button shows its label.
+
+### `OUTPRINT_BUTTON_FALLBACK`
+
+**Type:** one of `on`, `off`. **Required:** no. **Default:** `on`. **Read by:** PDF action.
+
+Whether a floating button appears when the anchor for the placement is missing.
+
+### `OUTPRINT_BUTTON_FALLBACK_DELAY`
+
+**Type:** `duration`. **Required:** no. **Default:** the script's own wait. **Read by:** PDF action.
+
+How long the script waits for the anchor before it falls back.
+
+### `OUTPRINT_BUTTON_METADATA_BLOCK`
+
+**Type:** one of `collapse`, `hide`, `show`. **Required:** no. **Default:** `collapse`. **Read by:** PDF action.
+
+What readers and authors see of the Metadata Block.
+
+### `OUTPRINT_INJECTOR_GATEWAY_PREFIX`
+
+**Type:** `path`. **Required:** no. **Default:** `/pdf`. **Read by:** Injector.
+
+The path prefix that is routed to the Gateway.
+
+### `OUTPRINT_INJECTOR_SCRIPT_URL`
+
+**Type:** `URL` or path. **Required:** no. **Default:** the Gateway prefix followed by /button.js. **Read by:** Injector.
+
+The `src` of the injected script, for when something else routes the Gateway.
+
+### `OUTPRINT_DEBUG_TEX_LOG`
+
+**Type:** `1` or unset. **Required:** no. **Default:** none. **Read by:** Command line.
+
+Prints the TeX log of the render command, as `--debug-tex-log` does.

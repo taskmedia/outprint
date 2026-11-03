@@ -216,7 +216,7 @@ job.
 ## Job directory
 
 Each job gets a new directory `job-<id>` below the work root
-(`TMPDIR`, default the system temporary directory), mode `0700`,
+(default the system temporary directory), mode `0700`,
 removed when the job ends, whatever the outcome. The id is 16 random hex
 digits. Production mounts the work root as a tmpfs.
 
@@ -284,7 +284,6 @@ a deployment.
 | Page limit | | `OUTPRINT_MAX_PAGES` | `500` |
 | PDF size limit | | `OUTPRINT_MAX_PDF_BYTES` | `52428800` (50 MiB; can be lowered, not raised) |
 | Full TeX log | `--debug-tex-log` | | off |
-| Work root | | `TMPDIR` | system temporary directory |
 | Log level | | `OUTPRINT_LOG_LEVEL` | `warn` |
 
 ## Limitations
