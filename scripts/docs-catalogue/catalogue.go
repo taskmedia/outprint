@@ -163,7 +163,7 @@ func (c *catalogue) typeSection(t packages.Template, typeName string) (string, e
 	b.WriteString("````markdown\n```yaml\n" + block + "```\n````\n\n")
 
 	b.WriteString("### Fields\n\n")
-	b.WriteString("Types are explained in [Fill in the document](../../write/fill-in-the-document.md#what-each-kind-of-field-looks-like).\n\n")
+	b.WriteString("Types are explained in [Metadata Block](../../reference/metadata-block.md#types).\n\n")
 	b.WriteString(c.fieldTable(fields))
 	b.WriteString(c.fixedTable(fields))
 

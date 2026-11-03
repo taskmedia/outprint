@@ -5,9 +5,9 @@ your job. The same files make up the [documentation site](https://outprint.task.
 
 | Section | For | What you find |
 |---------|-----|---------------|
-| [Write](write/README.md) | people who write documents in Outline | download a PDF, fill in the details at the top of a document, add images, fix a message |
+| [Write](write/README.md) | people who write documents in Outline | get a PDF, fill in the details at the top of a document, add images, fix a message |
 | [Install](install/README.md) | people who run Outline | three steps: run Outprint (Docker Compose or Helm), add the button (injector or edge-proxy recipe), bind a Template; then security, compatibility, limits, upgrading |
-| [Configure](configure/README.md) | admins of a Collection | choose a Template and a Configuration for a Collection |
+| [Configure](configure/README.md) | admins of a Collection | bind a Template to a Collection |
 | [Templates](templates/README.md) | people who make Templates | the catalogue and the author guide |
 | [Reference](reference/README.md) | everyone | the Metadata Block, Binding block, package files, Standard Fields, error messages, limits and settings, key by key |
 

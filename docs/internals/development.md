@@ -257,6 +257,63 @@ block an unrelated pull request, so no blocking external check is added. The
 site's own domain is excluded from that run; its links are internal ones and
 the strict build already covers them.
 
+## Build, test and the renderer alone
+
+You need Go and [Task](https://taskfile.dev) 3.54 or newer (`brew install go-task`);
+`task` alone lists every task.
+
+```sh
+task build           # build bin/outprint
+task test            # tier 1: Go unit tests, and the button script tests when Node is installed
+task image-injector  # build the slim injector image
+task image           # build the outprint image
+task test-golden     # tier 2: PDF goldens, Worker and security tests, in the pinned image
+task test-security   # security layers 1-3: hostile payloads, sandbox, resource bombs
+task test-sandbox    # security layers 2 and 3 only (needs a Docker daemon)
+task update-goldens  # regenerate goldens, only ever inside the pinned image
+task sanitize        # scan tree and history for forbidden strings
+task test-sanitize   # test the sanitize gate itself
+task audit           # pre-publish audit: sanitize plus issues and pull requests via gh
+```
+
+Render a letter with the shipped Template and Configuration, without Outline:
+
+```sh
+docker build -t outprint .
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" outprint render --template neutral \
+  --config example --date 2026-03-02 -o /data/out.pdf /data/testdata/fixtures/letter-full/input.md
+```
+
+Goldens compare `pdfinfo`/`pdffonts` facts and `pdftotext -layout` text, never
+PDF bytes. Fixtures live in `testdata/fixtures/<topic>/`, goldens in
+`testdata/golden/<topic>/`. Check Templates and Configurations before deploying
+them:
+
+```sh
+docker run --rm outprint validate                  # the packages shipped in the image
+outprint validate --templates-root ./templates --configs-root ./configurations
+```
+
+### Documentation site
+
+The pages in `docs/` are also published as a site (`website/`, Docusaurus).
+
+```sh
+task docs:build              # strict build of the site (broken links fail)
+task docs:catalogue          # regenerate the Template catalogue pages from the packages
+task docs:catalogue-check    # fail if the generated catalogue pages are out of date
+task docs:catalogue-preview  # re-render the catalogue preview images (needs Docker)
+task docs:settings           # regenerate the settings reference from the registry in internal/settings
+task docs:settings-check     # fail if the settings reference is out of date
+task docs:errors-check       # fail if the error catalogue and the source codes differ
+```
+
+More: [Architecture](architecture.md), [Worker pipeline](worker.md),
+[Worker baseline](worker-baseline.md), [Security](security.md),
+[Testing](https://github.com/taskmedia/outprint/blob/main/docs/testing.md) (test tiers, CI schedule),
+[Images in the pipeline](images.md), [Sanitisation gate](https://github.com/taskmedia/outprint/blob/main/docs/sanitize.md) and
+[Publishing checklist](https://github.com/taskmedia/outprint/blob/main/docs/publishing.md).
+
 ## Pinned versions
 
 `deploy/dev/versions.env` pins Outline, Dex, Postgres and Redis by explicit tag,

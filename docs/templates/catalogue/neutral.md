@@ -50,7 +50,7 @@ cc:
 
 ### Fields
 
-Types are explained in [Fill in the document](../../write/fill-in-the-document.md#what-each-kind-of-field-looks-like).
+Types are explained in [Metadata Block](../../reference/metadata-block.md#types).
 
 | Field | Type | Required | Default | Meaning |
 |---|---|---|---|---|
@@ -110,7 +110,7 @@ toc: true
 
 ### Fields
 
-Types are explained in [Fill in the document](../../write/fill-in-the-document.md#what-each-kind-of-field-looks-like).
+Types are explained in [Metadata Block](../../reference/metadata-block.md#types).
 
 | Field | Type | Required | Default | Meaning |
 |---|---|---|---|---|

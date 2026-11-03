@@ -71,7 +71,7 @@ name appears twice.
 
 **What to do:** Check the lines the message points to. Close the block with
 three backticks on a line of their own. Put a value that contains a colon and a
-space in quotation marks. See [Fill in the document](../write/fill-in-the-document.md).
+space in quotation marks. See [Get a PDF](../write/get-a-pdf.md).
 
 ### `required`
 
@@ -108,7 +108,7 @@ the allowed format.
 
 **What to do:** Write the value the way the field expects. The page of your
 Template shows the kind of each field. See
-[what each kind of field looks like](../write/fill-in-the-document.md#what-each-kind-of-field-looks-like).
+[types of fields](metadata-block.md#types).
 
 ### `enum`
 
@@ -205,7 +205,7 @@ picture and insert it again.
 ## Problems with the PDF setup of the Collection
 
 These messages say `collection`. The admin of the Collection fixes them. If you
-are the admin, see [Choose a Template and Configuration](../configure/choose-a-template.md).
+are the admin, see [Bind a Template to a Collection](../configure/README.md).
 
 ### `no_binding`
 
@@ -223,7 +223,7 @@ are the admin, see [Choose a Template and Configuration](../configure/choose-a-t
 **Cause:** The setup block in the Collection description is written wrongly.
 
 **What to do:** The admin compares the block with the example on
-[Choose a Template and Configuration](../configure/choose-a-template.md).
+[Bind a Template to a Collection](../configure/README.md).
 
 ### `binding_unknown`
 

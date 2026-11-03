@@ -8,7 +8,7 @@ sidebar_position: 4
 
 A Collection admin adds the block to the description of a Collection in
 Outline. How to do it, step by step, is in
-[Choose a Template and Configuration](../configure/choose-a-template.md).
+[Bind a Template to a Collection](../configure/README.md).
 
 <!-- validate: binding -->
 ````markdown

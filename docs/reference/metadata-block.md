@@ -7,7 +7,7 @@ sidebar_position: 2
 **Reference.** The block at the top of a document: every key, type and rule.
 
 Document authors find a plain-language version in
-[Fill in the document](../write/fill-in-the-document.md). The field names a
+[Get a PDF](../write/get-a-pdf.md). The field names a
 Template offers are in its [catalogue](../templates/catalogue/README.md) page;
 common names are in [Standard Fields](standard-fields.md).
 

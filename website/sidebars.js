@@ -23,7 +23,8 @@ const sidebars = {
   docs: [
     section('Write', 'write'),
     section('Install', 'install'),
-    section('Configure', 'configure'),
+    // One page: the section is that page.
+    {type: 'doc', id: 'configure/README', label: 'Configure'},
     section('Templates', 'templates'),
     section('Reference', 'reference'),
   ],
