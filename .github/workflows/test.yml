@@ -39,9 +39,6 @@ jobs:
       - name: skip guard
         run: task test-guard
 
-      - name: patch-outline-template script
-        run: task test-patch-template
-
       - name: compose file is valid
         run: docker compose -f deploy/compose/compose.yaml config --quiet
 
@@ -50,10 +47,6 @@ jobs:
           ./deploy/dev/gen-secrets.sh
           docker compose --env-file deploy/dev/versions.env \
             -f deploy/compose/compose.yaml -f deploy/dev/compose.yaml config --quiet
-          touch deploy/dev/.generated/outline-index.html
-          docker compose --env-file deploy/dev/versions.env \
-            -f deploy/compose/compose.yaml -f deploy/dev/compose.yaml \
-            -f deploy/dev/compose.template.yaml config --quiet
 
   injector:
     name: injector image

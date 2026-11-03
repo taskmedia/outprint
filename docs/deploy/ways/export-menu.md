@@ -96,10 +96,6 @@ A worked example for Traefik is in
 [Injector and PDF action](../components/injector.md#routing-example). Other proxies follow the
 same shape: `edge proxy -> injector -> Outline`.
 
-If you control the Outline container but not the proxy in front of it, the
-[mounted page template](../components/mounted-template.md) puts the tag into the
-page itself, so nothing has to be rewritten on the way.
-
 If you already run nginx, Caddy or Traefik in front of Outline and it can rewrite
 the HTML, you can skip the injector: [Reverse-proxy recipes](../components/reverse-proxy-recipes.md)
 add the same script tag at the edge. They give less (no CSP rewrite, no option
