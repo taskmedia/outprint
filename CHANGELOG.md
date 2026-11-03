@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.0.0](https://github.com/taskmedia/outprint/compare/v0.1.0...v1.0.0) (2026-11-03)
+
+
+### Features
+
+* add a copy-permalink button and pinned heading links to the docs ([#99](https://github.com/taskmedia/outprint/issues/99)) ([541e9f2](https://github.com/taskmedia/outprint/commit/541e9f208a99945a7994ebb3fb33c196eeb49a6d))
+* add a settings registry and generate the settings reference ([#120](https://github.com/taskmedia/outprint/issues/120)) ([#126](https://github.com/taskmedia/outprint/issues/126)) ([cdef257](https://github.com/taskmedia/outprint/commit/cdef257b28df8dc5c4f0b7c27dd2c5265b88a33e))
+* build older docs versions from git tags instead of committed snapshots ([#84](https://github.com/taskmedia/outprint/issues/84)) ([aca0080](https://github.com/taskmedia/outprint/commit/aca00800117cf4c807c4a63c57462225ad3a6fe8))
+* default the letter subject to the page title unless subject is explicitly empty ([#90](https://github.com/taskmedia/outprint/issues/90)) ([f672f82](https://github.com/taskmedia/outprint/commit/f672f82ddee4d618b81d0a442822709e2e015206))
+* edge-proxy recipes (nginx, Caddy, Traefik) to load the PDF action without the injector ([#108](https://github.com/taskmedia/outprint/issues/108)) ([d9f8e62](https://github.com/taskmedia/outprint/commit/d9f8e62801f6e18aac49e6ca96e52fe107cc71ed))
+* hide the metadata block in outline's reading view ([#89](https://github.com/taskmedia/outprint/issues/89)) ([b737ef3](https://github.com/taskmedia/outprint/commit/b737ef34c6c78855f2aaaf73a72825deea35e2f1))
+* load the pdf action through a mounted outline page template ([#110](https://github.com/taskmedia/outprint/issues/110)) ([8404d96](https://github.com/taskmedia/outprint/commit/8404d96994ac3424c8510ebb9aca66a6c27ddb02))
+* send the button options with the status and document the script tag contract ([#112](https://github.com/taskmedia/outprint/issues/112)) ([c84ab2c](https://github.com/taskmedia/outprint/commit/c84ab2c5a58329616ae2bee65ed9aed906d7c023))
+* show a .pdf file-type hint on the PDF item in the Export menu ([#88](https://github.com/taskmedia/outprint/issues/88)) ([819b06e](https://github.com/taskmedia/outprint/commit/819b06e6d2db05318155e606a7cc2e2a6bbefeb0))
+
+
+### Bug Fixes
+
+* copy the docs snapshot into versioned_docs/version-X.Y ([#81](https://github.com/taskmedia/outprint/issues/81)) ([eb6537b](https://github.com/taskmedia/outprint/commit/eb6537b1be79345dc05270430864e4af2dd674b1))
+* make the documentation screenshots reproducible ([#91](https://github.com/taskmedia/outprint/issues/91)) ([4da32fd](https://github.com/taskmedia/outprint/commit/4da32fd223d813542358ab542642abdf7ac6116f))
+* publish the outprint image and let release-please pick the next version ([#109](https://github.com/taskmedia/outprint/issues/109)) ([e4f1e17](https://github.com/taskmedia/outprint/commit/e4f1e17f1570ec0ebee9049a4641f555b6af0cb5))
+* render diagrams under reduced motion, add traefik on kubernetes tab ([#133](https://github.com/taskmedia/outprint/issues/133)) ([e995079](https://github.com/taskmedia/outprint/commit/e995079fe78f97cc2456c49df9a315a998bffd5f))
+
 ## 0.1.0 (2026-11-01)
 
 
