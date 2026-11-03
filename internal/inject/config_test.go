@@ -22,15 +22,13 @@ func TestConfigFromEnvReadsEverything(t *testing.T) {
 		"OUTPRINT_INJECTOR_UPSTREAM":       "http://outline.example.invalid:3000",
 		"OUTPRINT_INJECTOR_LISTEN":         "127.0.0.1:9000",
 		"OUTPRINT_INJECTOR_GATEWAY_URL":    "http://gateway.example.invalid:8080",
-		"OUTPRINT_INJECTOR_GATEWAY_PREFIX": "/_pdf",
-		"OUTPRINT_INJECTOR_SCRIPT_URL":     "/x.js",
 		"OUTPRINT_INJECTOR_CSP_ALLOW_SELF": "true",
 	}))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if cfg.Listen != "127.0.0.1:9000" || cfg.Gateway != "http://gateway.example.invalid:8080" ||
-		cfg.Prefix != "/_pdf" || cfg.ScriptURL != "/x.js" || !cfg.AllowScriptSelf {
+		!cfg.AllowScriptSelf {
 		t.Errorf("cfg = %+v", cfg)
 	}
 }

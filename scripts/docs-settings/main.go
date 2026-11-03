@@ -101,9 +101,6 @@ func groupByComponent(all []settings.Setting) []group {
 	var groups []group
 	index := map[string]int{}
 	for _, s := range all {
-		if s.Tier == settings.Internal {
-			continue
-		}
 		i, ok := index[s.Component]
 		if !ok {
 			i = len(groups)

@@ -33,23 +33,12 @@ func TestRegistryEntriesAreComplete(t *testing.T) {
 		if s.Component == "" || s.Type == "" || s.Description == "" {
 			t.Errorf("%s: component, type and description are required", s.Name)
 		}
-		if s.Tier != settings.MustSet && s.Tier != settings.Tuning && s.Tier != settings.Internal {
+		if s.Tier != settings.MustSet && s.Tier != settings.Tuning {
 			t.Errorf("%s: unknown tier %q", s.Name, s.Tier)
 		}
 		if !strings.HasSuffix(s.Description, ".") {
 			t.Errorf("%s: description must end with a period", s.Name)
 		}
-	}
-}
-
-func TestInternalTierIsExactlyTheDecidedList(t *testing.T) {
-	want := []string{
-		"OUTPRINT_BUTTON_FALLBACK", "OUTPRINT_BUTTON_FALLBACK_DELAY", "OUTPRINT_BUTTON_METADATA_BLOCK",
-		"OUTPRINT_BUTTON_STYLE", "OUTPRINT_DEBUG_TEX_LOG", "OUTPRINT_INJECTOR_GATEWAY_PREFIX",
-		"OUTPRINT_INJECTOR_SCRIPT_URL", "OUTPRINT_TEXCACHE_DIR", "OUTPRINT_WORK_DIR",
-	}
-	if got := namesOf(settings.Internal); !equal(got, want) {
-		t.Errorf("internal settings\n got %v\nwant %v", got, want)
 	}
 }
 
@@ -70,7 +59,6 @@ func TestDefaultsMatchTheCode(t *testing.T) {
 		settings.EnvAdmissionPerUser:    strconv.Itoa(admission.Defaults().PerUser),
 		settings.EnvAdmissionMaxWait:    seconds(admission.Defaults().MaxWait),
 		settings.EnvInjectorListen:      inject.DefaultListen,
-		settings.EnvInjectorGatewayPref: inject.DefaultPrefix,
 	}
 	for name, want := range cases {
 		got, ok := lookup(name)
@@ -80,18 +68,6 @@ func TestDefaultsMatchTheCode(t *testing.T) {
 		}
 		if !strings.Contains(got.Default, want) {
 			t.Errorf("%s: default %q does not contain the code's %q", name, got.Default, want)
-		}
-	}
-}
-
-func TestDocumentedLeavesOutTheInternalTier(t *testing.T) {
-	documented := settings.Documented()
-	if len(documented) == 0 {
-		t.Fatal("nothing is documented")
-	}
-	for _, s := range documented {
-		if s.Tier == settings.Internal {
-			t.Errorf("%s is internal and must not be documented", s.Name)
 		}
 	}
 }

@@ -197,7 +197,7 @@ token or cookie can reach a child process through the environment.
 
 luaotfload caches processed font data. `outprint warm-cache` renders a small
 document of every Document Type once when the image is built and keeps the
-cache in `/opt/outprint/texcache` (`OUTPRINT_TEXCACHE_DIR`). A job copies it
+cache in `/opt/outprint/texcache`. A job copies it
 into its own `texmf-var`, which is writable; the shared copy is never written.
 If the directory does not exist, the job builds its cache itself and is
 slower.
@@ -216,7 +216,7 @@ job.
 ## Job directory
 
 Each job gets a new directory `job-<id>` below the work root
-(`OUTPRINT_WORK_DIR`, default the system temporary directory), mode `0700`,
+(`TMPDIR`, default the system temporary directory), mode `0700`,
 removed when the job ends, whatever the outcome. The id is 16 random hex
 digits. Production mounts the work root as a tmpfs.
 
@@ -271,7 +271,7 @@ Document used, as in `! Undefined control sequence.` or ``! LaTeX Error: File
 
 ### Debug switch
 
-`--debug-tex-log`, or `OUTPRINT_DEBUG_TEX_LOG=1`, prints the full TeX log of
+`--debug-tex-log` prints the full TeX log of
 every run to stderr, between lines that say it may contain Document content.
 It is off by default and meant for a developer's workstation. Do not set it in
 a deployment.
@@ -283,9 +283,8 @@ a deployment.
 | Time limit | `--timeout` | `OUTPRINT_TIMEOUT` | `60s` |
 | Page limit | | `OUTPRINT_MAX_PAGES` | `500` |
 | PDF size limit | | `OUTPRINT_MAX_PDF_BYTES` | `52428800` (50 MiB; can be lowered, not raised) |
-| Full TeX log | `--debug-tex-log` | `OUTPRINT_DEBUG_TEX_LOG=1` | off |
-| Work root | | `OUTPRINT_WORK_DIR` | system temporary directory |
-| Font cache | | `OUTPRINT_TEXCACHE_DIR` | `/opt/outprint/texcache` |
+| Full TeX log | `--debug-tex-log` | | off |
+| Work root | | `TMPDIR` | system temporary directory |
 | Log level | | `OUTPRINT_LOG_LEVEL` | `warn` |
 
 ## Limitations

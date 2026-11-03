@@ -39,7 +39,7 @@ const serveUsage = `       outprint gateway [--listen ADDR] [--service-config FI
                          OUTPRINT_ADMISSION_SLOTS, OUTPRINT_ADMISSION_QUEUE_DEPTH,
                          OUTPRINT_ADMISSION_PER_USER, OUTPRINT_ADMISSION_MAX_WAIT)
        outprint worker  [--listen ADDR] [--service-config FILE]
-                        (env: OUTPRINT_WORK_DIR, OUTPRINT_WORKER_TOKEN, OUTPRINT_TIMEOUT,
+                        (env: OUTPRINT_WORKER_TOKEN, OUTPRINT_TIMEOUT,
                          OUTPRINT_MAX_PAGES, OUTPRINT_MAX_PDF_BYTES)
        outprint healthcheck URL`
 
@@ -113,10 +113,7 @@ func runGateway(args []string, getenv func(string) string, stderr io.Writer) int
 		return 1
 	}
 	var buttonConfig button.Config
-	if err := buttonConfig.ReadEnv(getenv); err != nil {
-		fmt.Fprintf(stderr, "outprint: %v\n", err)
-		return 2
-	}
+	buttonConfig.ReadEnv(getenv)
 	ctx, stop := signalContext()
 	defer stop()
 	err = gateway.Run(ctx, gateway.RunConfig{
@@ -154,8 +151,8 @@ func runWorker(args []string, getenv func(string) string, stderr io.Writer) int 
 	ctx, stop := signalContext()
 	defer stop()
 	err = workerserver.Run(ctx, workerserver.RunConfig{
-		Listen: o.Listen, Token: getenv(envWorkerToken), WorkDir: getenv(envWorkDir),
-		CacheDir: firstNonEmpty(getenv(envCacheDir), defaultCacheDir), Timeout: timeoutFromEnv(getenv),
+		Listen: o.Listen, Token: getenv(envWorkerToken),
+		CacheDir: defaultCacheDir, Timeout: timeoutFromEnv(getenv),
 		Limits: jobLimits, Startup: started, Logger: log,
 	})
 	if err != nil {

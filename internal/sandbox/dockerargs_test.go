@@ -23,7 +23,7 @@ func TestWorkerRunArgsCarryEveryShippedFlag(t *testing.T) {
 		"--tmpfs /tmp:mode=1777,size=64m,uid=10001,gid=10001",
 		"--tmpfs /work:mode=0700,size=256m,uid=10001,gid=10001",
 		"-v " + templates + ":/opt/outprint/templates:ro",
-		"-e OUTPRINT_WORK_DIR=/work", "-e OUTPRINT_WORKER_TOKEN= ", "-e OUTPRINT_TIMEOUT=5s",
+		"-e TMPDIR=/work", "-e OUTPRINT_WORKER_TOKEN= ", "-e OUTPRINT_TIMEOUT=5s",
 		"--network t-worker-net", "--memory 1g", "--cpus 1", "--pids-limit 128", "--restart always",
 	} {
 		if !strings.Contains(joined+" ", want) {

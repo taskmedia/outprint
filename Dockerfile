@@ -40,7 +40,6 @@ RUN useradd --system --create-home --uid 10001 render \
 USER render
 # Build the luaotfload cache once, at image build time. A job copies it into
 # its own writable cache directory, so the fonts are not processed again.
-ENV OUTPRINT_TEXCACHE_DIR=/opt/outprint/texcache
 RUN outprint warm-cache --template neutral --config example --out /opt/outprint/texcache \
  && chmod -R a+rX /opt/outprint/texcache
 # Labels last: they cost no layer, and a new VERSION must not redo the TeX

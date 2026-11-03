@@ -12,7 +12,6 @@ import (
 var sample = []settings.Setting{
 	{Name: "OUTPRINT_A", Component: "Gateway", Type: "`integer`", Default: "`1`", Tier: settings.Tuning, Description: "First."},
 	{Name: "OUTPRINT_B", Component: "Gateway", Type: "`URL`", Tier: settings.MustSet, Description: "Second."},
-	{Name: "OUTPRINT_C", Component: "Worker", Type: "`path`", Default: "/x", Tier: settings.Internal, Description: "Hidden."},
 }
 
 func TestRenderStatesTheTypeInTheFirstLine(t *testing.T) {
@@ -41,20 +40,10 @@ func TestRenderShowsTypeRequiredAndDefault(t *testing.T) {
 	}
 }
 
-func TestRenderLeavesOutInternalSettings(t *testing.T) {
-	page := render(sample)
-	if strings.Contains(page, "OUTPRINT_C") || strings.Contains(page, "Hidden.") {
-		t.Errorf("an internal setting was rendered:\n%s", page)
-	}
-}
-
-func TestRenderGroupsByComponentAndSkipsEmptyGroups(t *testing.T) {
+func TestRenderGroupsByComponent(t *testing.T) {
 	page := render(sample)
 	if !strings.Contains(page, "## Gateway\n") {
 		t.Errorf("Gateway group missing:\n%s", page)
-	}
-	if strings.Contains(page, "## Worker\n") {
-		t.Errorf("a group with only internal settings was rendered:\n%s", page)
 	}
 }
 
@@ -62,10 +51,7 @@ func TestRealRegistryRendersEveryDocumentedSetting(t *testing.T) {
 	page := render(settings.All())
 	for _, s := range settings.All() {
 		has := strings.Contains(page, "### `"+s.Name+"`")
-		if s.Tier == settings.Internal && has {
-			t.Errorf("%s is internal but rendered", s.Name)
-		}
-		if s.Tier != settings.Internal && !has {
+		if !has {
 			t.Errorf("%s is documented but missing", s.Name)
 		}
 	}

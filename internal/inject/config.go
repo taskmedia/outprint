@@ -28,9 +28,7 @@ const (
 const (
 	envUpstream     = registry.EnvInjectorUpstream
 	envListen       = registry.EnvInjectorListen
-	envScriptURL    = registry.EnvInjectorScriptURL
 	envGatewayURL   = registry.EnvInjectorGatewayURL
-	envGatewayPref  = registry.EnvInjectorGatewayPref
 	envCSPAllowSelf = registry.EnvInjectorCSPAllowSelf
 	envLogLevel     = registry.EnvInjectorLogLevel
 )
@@ -67,19 +65,16 @@ type Config struct {
 // URLs; New does.
 func ConfigFromEnv(getenv func(string) string) (Config, error) {
 	cfg := Config{
-		Upstream:  strings.TrimSpace(getenv(envUpstream)),
-		Listen:    firstNonEmpty(getenv(envListen), DefaultListen),
-		Gateway:   strings.TrimSpace(getenv(envGatewayURL)),
-		Prefix:    firstNonEmpty(getenv(envGatewayPref), DefaultPrefix),
-		ScriptURL: strings.TrimSpace(getenv(envScriptURL)),
-		LogLevel:  getenv(envLogLevel),
+		Upstream: strings.TrimSpace(getenv(envUpstream)),
+		Listen:   firstNonEmpty(getenv(envListen), DefaultListen),
+		Gateway:  strings.TrimSpace(getenv(envGatewayURL)),
+		Prefix:   DefaultPrefix,
+		LogLevel: getenv(envLogLevel),
 	}
 	if cfg.Upstream == "" {
 		return Config{}, fmt.Errorf("%s is required: the base URL of Outline", envUpstream)
 	}
-	if err := cfg.Button.ReadEnv(getenv); err != nil {
-		return Config{}, err
-	}
+	cfg.Button.ReadEnv(getenv)
 	if v := getenv(envCSPAllowSelf); v != "" {
 		b, err := strconv.ParseBool(v)
 		if err != nil {
@@ -153,11 +148,11 @@ func parseBaseURL(name, raw string) (*url.URL, error) {
 func checkPrefix(p string) error {
 	switch {
 	case !strings.HasPrefix(p, "/") || strings.HasSuffix(p, "/"):
-		return fmt.Errorf("%s must start with a slash and not end with one, got %q", envGatewayPref, p)
+		return fmt.Errorf("the gateway prefix must start with a slash and not end with one, got %q", p)
 	case path.Clean(p) != p:
-		return fmt.Errorf("%s must be a clean path, got %q", envGatewayPref, p)
+		return fmt.Errorf("the gateway prefix must be a clean path, got %q", p)
 	case p == path.Dir(HealthPath) || strings.HasPrefix(HealthPath, p+"/"):
-		return fmt.Errorf("%s %q would shadow %s", envGatewayPref, p, HealthPath)
+		return fmt.Errorf("the gateway prefix %q would shadow %s", p, HealthPath)
 	}
 	return nil
 }

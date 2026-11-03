@@ -252,9 +252,9 @@ func assertInfo(t *testing.T, r probeReport, key, want string) {
 // file's, the image's and the ones Docker adds.
 var allowedEnvNames = map[string]bool{
 	"PATH": true, "HOSTNAME": true, "HOME": true, "TERM": true,
-	"OUTPRINT_LISTEN": true, "OUTPRINT_WORK_DIR": true, "OUTPRINT_WORKER_TOKEN": true,
+	"OUTPRINT_LISTEN": true, "TMPDIR": true, "OUTPRINT_WORKER_TOKEN": true,
 	"OUTPRINT_TEMPLATES_ROOT": true, "OUTPRINT_CONFIGURATIONS_ROOT": true,
-	"OUTPRINT_SERVICE_CONFIG": true, "OUTPRINT_TEXCACHE_DIR": true,
+	"OUTPRINT_SERVICE_CONFIG": true,
 }
 
 func assertEnvNames(t *testing.T, joined string) {

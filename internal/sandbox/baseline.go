@@ -16,13 +16,15 @@ const (
 	// TokenEnv is the one optional secret of the Worker.
 	TokenEnv = settings.EnvWorkerToken
 
-	workDir    = "/work"
+	workDir = "/work"
+	// tmpDirEnv points the Worker's job directories at the work tmpfs.
+	tmpDirEnv  = "TMPDIR"
 	tmpDir     = "/tmp"
 	maxTmpSize = 64 << 20
 )
 
 var (
-	allowedEnv        = []string{settings.EnvListen, settings.EnvWorkDir, TokenEnv}
+	allowedEnv        = []string{settings.EnvListen, tmpDirEnv, TokenEnv}
 	requiredMounts    = []string{"/opt/outprint/templates", "/opt/outprint/configurations"}
 	allowedSecurity   = []string{"no-new-privileges:true"}
 	forbiddenTmpfsOpt = []string{"exec", "suid", "dev"}
@@ -188,8 +190,8 @@ func checkEnvironment(v *violations, svc Service) {
 			v.add("environment", "%s is missing", key)
 		}
 	}
-	if svc.Environment[settings.EnvWorkDir] != workDir {
-		v.add("environment", "%s must be %s, got %q", settings.EnvWorkDir, workDir, svc.Environment[settings.EnvWorkDir])
+	if svc.Environment[tmpDirEnv] != workDir {
+		v.add("environment", "%s must be %s, got %q", tmpDirEnv, workDir, svc.Environment[tmpDirEnv])
 	}
 	expanded := Interpolate(svc.Environment[TokenEnv], func(string) (string, bool) { return "", false })
 	if expanded != "" {

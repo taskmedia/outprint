@@ -41,10 +41,6 @@ The button options are settings of the Gateway. Set them where you set
 | Variable | Meaning | Default |
 |----------|---------|---------|
 | `OUTPRINT_BUTTON_PLACEMENT` | `menu`: Export → Formatted PDF in the document menu. `button`: a header button before Share | `menu` |
-| `OUTPRINT_BUTTON_STYLE` | `icon-label` or `icon`; applies to the header button | `icon-label` |
-| `OUTPRINT_BUTTON_FALLBACK` | `on` or `off`: show a floating button when the anchor is missing | `on` |
-| `OUTPRINT_BUTTON_FALLBACK_DELAY` | how long to wait for the anchor before the fallback, for example `3s` | `3s` |
-| `OUTPRINT_BUTTON_METADATA_BLOCK` | `collapse`, `hide` or `show`: what readers and authors see of the [metadata block](injector.md#hiding-the-metadata-block) | `collapse` |
 | `OUTPRINT_BUTTON_LABELS` | override the texts, see [Injector and PDF action](injector.md#placement-of-the-action) | built-in |
 
 The values apply to the whole installation. They are not per Collection or per
@@ -58,13 +54,11 @@ after a cache expires.
 
 A `data-` attribute on the tag wins over the setting of the Gateway. The names
 are the variable without the prefix, in lower case with dashes:
-`data-placement`, `data-style`, `data-fallback`, `data-fallback-delay` (in
-milliseconds), `data-metadata-block` and `data-labels` (JSON).
+`data-placement` and `data-labels` (JSON).
 
-The [injector](injector.md) still reads the same `OUTPRINT_BUTTON_*` variables
-and writes them as `data-` attributes, so an install that sets them on the
-injector keeps working unchanged. New installs set them on the Gateway only.
-You never need the attributes in a proxy rule or a template.
+The [injector](injector.md) reads the same `OUTPRINT_BUTTON_*` variables and
+writes them as `data-` attributes. Set them on the Gateway only; you never need
+the attributes in a proxy rule or a template.
 
 ## Check that it works {#check}
 

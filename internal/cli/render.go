@@ -40,11 +40,8 @@ const (
 	defaultTemplatesRoot = "./templates"
 	defaultConfigsRoot   = "./configurations"
 
-	envTimeout     = settings.EnvTimeout
-	envDebugTeXLog = settings.EnvDebugTeXLog
-	envWorkDir     = settings.EnvWorkDir
-	envLogLevel    = settings.EnvLogLevel
-	envCacheDir    = settings.EnvTeXCacheDir
+	envTimeout  = settings.EnvTimeout
+	envLogLevel = settings.EnvLogLevel
 
 	defaultCacheDir = "/opt/outprint/texcache"
 
@@ -64,7 +61,6 @@ type renderOptions struct {
 	Timeout       time.Duration
 	DebugTeXLog   bool
 	LogLevel      slog.Level
-	WorkDir       string
 	CacheDir      string
 }
 
@@ -122,11 +118,10 @@ func parseRender(args []string, getenv func(string) string) (renderOptions, erro
 	fs.BoolVar(&o.JSONErrors, "json-errors", false, "print metadata problems as the JSON error body on stdout")
 	fs.StringVar(&o.Output, "o", "", "output PDF path")
 	fs.DurationVar(&o.Timeout, "timeout", timeoutFromEnv(getenv), "wall-clock limit for the render")
-	fs.BoolVar(&o.DebugTeXLog, "debug-tex-log", getenv(envDebugTeXLog) == "1",
+	fs.BoolVar(&o.DebugTeXLog, "debug-tex-log", false,
 		"print the full TeX log to stderr (UNSAFE: may contain document content)")
-	o.WorkDir = getenv(envWorkDir)
 	o.LogLevel = logLevelFromEnv(getenv)
-	o.CacheDir = firstNonEmpty(getenv(envCacheDir), defaultCacheDir)
+	o.CacheDir = defaultCacheDir
 	if err := fs.Parse(args); err != nil {
 		return renderOptions{}, err
 	}
@@ -240,7 +235,6 @@ func workerJob(o renderOptions, r metadata.Result, imgs images.Result, tpl packa
 		DocumentType:  r.DocumentType,
 		Configuration: cfg,
 		Timeout:       o.Timeout,
-		WorkRoot:      o.WorkDir,
 		CacheDir:      o.CacheDir,
 		Logger:        slog.New(slog.NewTextHandler(stderr, &slog.HandlerOptions{Level: o.LogLevel})),
 	}

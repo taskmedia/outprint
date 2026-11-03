@@ -40,7 +40,7 @@ CI fails if any test of the security suite reports a skip.
 - tmpfs for the job directory (`/work`, mode 0700, 256 MiB) and `/tmp` (64 MiB);
   Docker mounts them `noexec,nosuid,nodev`
 - an `internal` network: no route out, no published port
-- environment: only `OUTPRINT_LISTEN`, `OUTPRINT_WORK_DIR` and the optional
+- environment: only `OUTPRINT_LISTEN`, `TMPDIR` and the optional
   `OUTPRINT_WORKER_TOKEN`
 - read-only package mounts and nothing else
 - `mem_limit: 1g`, `cpus: 1`, `pids_limit: 128`, `restart: always`

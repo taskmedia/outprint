@@ -188,13 +188,13 @@ func TestTimeoutAndDebugSwitchesDefaultOffAndComeFromFlagOrEnv(t *testing.T) {
 	}
 
 	env := func(k string) string {
-		return map[string]string{"OUTPRINT_TIMEOUT": "90s", "OUTPRINT_DEBUG_TEX_LOG": "1", "OUTPRINT_WORK_DIR": "/work"}[k]
+		return map[string]string{"OUTPRINT_TIMEOUT": "90s"}[k]
 	}
 	opts, err = parseRender(args, env)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !opts.DebugTeXLog || opts.Timeout != 90*time.Second || opts.WorkDir != "/work" {
+	if opts.Timeout != 90*time.Second {
 		t.Fatalf("env: %+v", opts)
 	}
 
@@ -209,21 +209,6 @@ func TestTimeoutAndDebugSwitchesDefaultOffAndComeFromFlagOrEnv(t *testing.T) {
 	opts, err = parseRender(append([]string{"--debug-tex-log"}, args...), noEnv)
 	if err != nil || !opts.DebugTeXLog {
 		t.Fatalf("--debug-tex-log: %+v, %v", opts, err)
-	}
-}
-
-func TestEnvDebugSwitchNeedsExactlyOne(t *testing.T) {
-	args := []string{"--template", "a", "--config", "b", "-o", "o.pdf", "in.md"}
-	for _, v := range []string{"", "0", "true", "yes"} {
-		opts, err := parseRender(args, func(k string) string {
-			if k == "OUTPRINT_DEBUG_TEX_LOG" {
-				return v
-			}
-			return ""
-		})
-		if err != nil || opts.DebugTeXLog {
-			t.Errorf("OUTPRINT_DEBUG_TEX_LOG=%q enabled the debug log", v)
-		}
 	}
 }
 

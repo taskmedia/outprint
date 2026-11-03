@@ -30,7 +30,7 @@ services:
       - /work:mode=0700,size=256m,uid=10001,gid=10001
     environment:
       OUTPRINT_LISTEN: ":8081"
-      OUTPRINT_WORK_DIR: /work
+      TMPDIR: /work
       # The one optional secret: a token shared with the gateway. Set the same
       # value in the environment of both services; empty means no token.
       OUTPRINT_WORKER_TOKEN: ${OUTPRINT_WORKER_TOKEN:-}
@@ -79,10 +79,6 @@ services:
       # Where the PDF action sits (docs/install/components/script-tag.md). Empty
       # keeps the default.
       OUTPRINT_BUTTON_PLACEMENT: ${OUTPRINT_BUTTON_PLACEMENT:-}
-      OUTPRINT_BUTTON_STYLE: ${OUTPRINT_BUTTON_STYLE:-}
-      OUTPRINT_BUTTON_FALLBACK: ${OUTPRINT_BUTTON_FALLBACK:-}
-      OUTPRINT_BUTTON_FALLBACK_DELAY: ${OUTPRINT_BUTTON_FALLBACK_DELAY:-}
-      OUTPRINT_BUTTON_METADATA_BLOCK: ${OUTPRINT_BUTTON_METADATA_BLOCK:-}
       OUTPRINT_BUTTON_LABELS: ${OUTPRINT_BUTTON_LABELS:-}
     volumes:
       - type: bind
@@ -131,7 +127,6 @@ services:
       # Requests below /pdf go to the Gateway, so the browser stays on one
       # origin and sends Outline's cookie by itself.
       OUTPRINT_INJECTOR_GATEWAY_URL: http://gateway:8080
-      OUTPRINT_INJECTOR_GATEWAY_PREFIX: /pdf
       OUTPRINT_INJECTOR_CSP_ALLOW_SELF: ${OUTPRINT_INJECTOR_CSP_ALLOW_SELF:-false}
     networks: [frontend]
     ports:
