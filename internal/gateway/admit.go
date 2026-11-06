@@ -77,3 +77,15 @@ func admissionFailure(err error) *failure {
 		retryAfter: rej.RetryAfter, cause: err,
 	}
 }
+
+// acquireImageSlot bounds how many requests decode images at once, whatever
+// the number of users, as that phase holds the most memory. The wait ends
+// with the build deadline.
+func (g *Gateway) acquireImageSlot(ctx context.Context) (func(), *failure) {
+	select {
+	case g.imageSlots <- struct{}{}:
+		return func() { <-g.imageSlots }, nil
+	case <-ctx.Done():
+		return nil, imagesFailure(ctx.Err())
+	}
+}

@@ -21,6 +21,7 @@ import (
 	"github.com/taskmedia/outprint/internal/bundle"
 	"github.com/taskmedia/outprint/internal/config"
 	"github.com/taskmedia/outprint/internal/images"
+	"github.com/taskmedia/outprint/internal/limits"
 	"github.com/taskmedia/outprint/internal/metadata"
 	"github.com/taskmedia/outprint/internal/outline"
 	"github.com/taskmedia/outprint/internal/packages"
@@ -67,12 +68,20 @@ type Config struct {
 	// the tag overrides it with data attributes. The zero value means the
 	// defaults.
 	Button button.Options
-	Logger *slog.Logger
+	// BuildTimeout caps building one bundle; zero means limits.BundleTimeout.
+	BuildTimeout time.Duration
+	// ImageConcurrency is how many requests may fetch and process images at
+	// once; zero means limits.ImageConcurrency.
+	ImageConcurrency int
+	Logger           *slog.Logger
 }
 
 // Gateway serves the render endpoint.
 type Gateway struct {
 	cfg Config
+	// imageSlots bounds the image phase across all users.
+	imageSlots chan struct{}
+	lookups    *lookupCache
 }
 
 // New returns a Gateway. Logger defaults to slog.Default().
@@ -83,7 +92,17 @@ func New(cfg Config) *Gateway {
 	if cfg.Admission == nil {
 		cfg.Admission = defaultAdmission()
 	}
-	return &Gateway{cfg: cfg}
+	if cfg.BuildTimeout <= 0 {
+		cfg.BuildTimeout = limits.BundleTimeout
+	}
+	if cfg.ImageConcurrency <= 0 {
+		cfg.ImageConcurrency = limits.ImageConcurrency
+	}
+	return &Gateway{
+		cfg:        cfg,
+		imageSlots: make(chan struct{}, cfg.ImageConcurrency),
+		lookups:    newLookupCache(time.Now),
+	}
 }
 
 func defaultAdmission() *admission.Controller {
@@ -172,7 +191,9 @@ func (g *Gateway) process(r *http.Request, docID string) (rendered, *failure) {
 		return rendered{}, f
 	}
 	defer leaveUser()
-	b, f := g.buildBundle(r.Context(), doc, sel.Binding, session)
+	buildCtx, cancel := context.WithTimeout(r.Context(), g.cfg.BuildTimeout)
+	defer cancel()
+	b, f := g.buildBundle(buildCtx, doc, sel.Binding, session)
 	if f != nil {
 		return rendered{}, f
 	}
@@ -201,6 +222,11 @@ func (g *Gateway) buildBundle(ctx context.Context, doc outline.Document, binding
 	if f != nil {
 		return bundle.Bundle{}, f
 	}
+	releaseImages, f := g.acquireImageSlot(ctx)
+	if f != nil {
+		return bundle.Bundle{}, f
+	}
+	defer releaseImages()
 	imgs, problems, f := g.processImages(ctx, doc, session)
 	if f != nil {
 		return bundle.Bundle{}, f
