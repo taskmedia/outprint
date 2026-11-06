@@ -53,16 +53,39 @@ var deniedPrimitives = map[string]string{
 	"catcode":           "category code changes, used to hide other primitives",
 	"csname":            "building control sequence names, used to bypass the deny-list",
 	"scantokens":        "re-reading text as TeX code",
+
+	"@nameuse":     "building control sequence names, used to bypass the deny-list",
+	"@namedef":     "building control sequence names, used to bypass the deny-list",
+	"csuse":        "building control sequence names, used to bypass the deny-list",
+	"csdef":        "building control sequence names, used to bypass the deny-list",
+	"csgdef":       "building control sequence names, used to bypass the deny-list",
+	"csedef":       "building control sequence names, used to bypass the deny-list",
+	"csxdef":       "building control sequence names, used to bypass the deny-list",
+	"cslet":        "building control sequence names, used to bypass the deny-list",
+	"letcs":        "building control sequence names, used to bypass the deny-list",
+	"csletcs":      "building control sequence names, used to bypass the deny-list",
+	"csappto":      "building control sequence names, used to bypass the deny-list",
+	"csgappto":     "building control sequence names, used to bypass the deny-list",
+	"expandcsonce": "building control sequence names, used to bypass the deny-list",
+
+	"ExplSyntaxOn":        "expl3 syntax, whose name-building and primitive access bypass the deny-list",
+	"ProvidesExplPackage": "expl3 syntax, whose name-building and primitive access bypass the deny-list",
+	"ProvidesExplClass":   "expl3 syntax, whose name-building and primitive access bypass the deny-list",
+	"ProvidesExplFile":    "expl3 syntax, whose name-building and primitive access bypass the deny-list",
 }
 
 // deniedPackages may not be loaded by a Template.
 var deniedPackages = map[string]bool{
 	"shellesc": true, "luacode": true, "catchfile": true, "minted": true,
 	"pythontex": true, "sagetex": true, "gnuplottex": true, "markdown": true,
+	// packages that read files by path
+	"import": true, "pdfpages": true, "datatool": true, "csvsimple": true,
+	"csvsimple-l3": true, "csvsimple-legacy": true, "pgfplotstable": true,
+	"filecontents": true, "readarray": true,
 }
 
 // deniedEnvironments are environments that run code or read files.
-var deniedEnvironments = map[string]bool{"luacode": true, "luacode*": true, "minted": true}
+var deniedEnvironments = map[string]bool{"luacode": true, "luacode*": true, "minted": true, "filecontents": true, "filecontents*": true}
 
 var (
 	// the literal path of a permitted \input
@@ -70,6 +93,10 @@ var (
 	// the literal path of a file read through \includegraphics
 	plainPathRE = regexp.MustCompile(`^[A-Za-z0-9_][A-Za-z0-9._/-]*$`)
 )
+
+// The deny-list is advisory, defence in depth: it matches control sequence
+// names and cannot see every way TeX can build a name. The real boundary is
+// the sandboxed TeX run (paranoid file mode, restricted Lua).
 
 // scanTeX applies the deny-list to TeX source. It reports every problem.
 // sharedHas says whether a file exists in the Template's shared directory.
