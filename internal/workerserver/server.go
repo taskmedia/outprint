@@ -55,10 +55,12 @@ func New(cfg Config, r Renderer) *Server {
 	return &Server{cfg: cfg, renderer: r, slot: make(chan struct{}, 1)}
 }
 
-// Handler serves POST /render and GET /healthz.
+// Handler serves POST /render, GET /healthz (liveness, always 200) and
+// GET /readyz (200 only while a job can start).
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET "+workerapi.HealthPath, func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
+	mux.HandleFunc("GET "+workerapi.ReadyPath, s.ready)
 	mux.HandleFunc("POST "+workerapi.RenderPath, s.render)
 	return mux
 }
@@ -104,6 +106,16 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(pdf); err != nil {
 		s.cfg.Logger.Warn("write PDF failed", "error", err)
 	}
+}
+
+// ready answers 503 while a job runs or the Worker is going away; the slot
+// stays taken in both cases.
+func (s *Server) ready(w http.ResponseWriter, _ *http.Request) {
+	if len(s.slot) > 0 {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Server) tryAcquire() bool {
