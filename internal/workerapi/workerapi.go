@@ -24,6 +24,9 @@ import (
 const (
 	RenderPath = "/render"
 	HealthPath = "/healthz"
+	// ReadyPath answers 200 only while the Worker can take a job, so a
+	// Service or load balancer can route around a busy or restarting Worker.
+	ReadyPath = "/readyz"
 
 	// MaxPDFBytes is the largest PDF the Worker returns.
 	MaxPDFBytes = limits.MaxPDFBytes
