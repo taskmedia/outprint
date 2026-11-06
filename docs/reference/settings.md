@@ -84,9 +84,9 @@ The address to listen on, for example `:9000`.
 
 ### `OUTPRINT_WORKER_TOKEN`
 
-**Type:** `string` (a secret). **Required:** yes in the shipped Compose file, no otherwise. **Default:** none.
+**Type:** `string` (a secret). **Required:** no. **Default:** none.
 
-A shared token. When set on the Worker, it only accepts requests that carry it, so the Gateway needs the same value. The shipped Compose file refuses to start without it. Without Compose, an empty value means no token, and the Worker logs a warning at start.
+A shared token. When set on the Worker, it only accepts requests that carry it, so the Gateway needs the same value. The shipped Compose file requires it. Empty means no token, and the Worker logs a warning at start.
 
 ### `OUTPRINT_TIMEOUT`
 
@@ -98,7 +98,7 @@ The time one PDF may take, for example `90s`. A value that is not a positive dur
 
 **Type:** one of `debug`, `info`, `warn`, `error`. **Required:** no. **Default:** `info`.
 
-How much is logged. An unknown value is ignored. The command line logs at `warn` unless set.
+How much is logged. An unknown value is ignored. The Gateway and the Worker log at `info` unless set; the `render` command line logs at `warn`.
 
 ### `OUTPRINT_SERVICE_CONFIG`
 
@@ -162,7 +162,7 @@ The address the injector listens on.
 
 **Type:** `boolean`. **Required:** no. **Default:** `false`.
 
-Adds `'self'` to the script policy of Outline, so the page may load the script from the injector's origin.
+Adds `'self'` to the script policy of Outline, so the page may load the script from the injector's origin. This widens `script-src` for every script of that origin. `strict-dynamic`, a `<meta>` policy and `Content-Security-Policy-Report-Only` are not rewritten.
 
 ### `OUTPRINT_INJECTOR_LOG_LEVEL`
 

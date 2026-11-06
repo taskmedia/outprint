@@ -57,7 +57,8 @@ not claim it.
 from `outline.url`. Publish the injector only: the Gateway sends no CORS headers
 and has no login of its own, so it must stay behind the same address as Outline.
 If Outline's Content-Security-Policy lists `script-src` without `'self'`, set
-`OUTPRINT_INJECTOR_CSP_ALLOW_SELF=true`. All injector settings are in the
+`OUTPRINT_INJECTOR_CSP_ALLOW_SELF=true`; this widens `script-src` for every script
+of Outline's origin (see [The injector](../internals/injector.md#content-security-policy)). All injector settings are in the
 [Settings reference](../reference/settings.md#injector); how it works is in
 [The injector](../internals/injector.md).
 

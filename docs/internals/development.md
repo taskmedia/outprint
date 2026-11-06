@@ -110,7 +110,7 @@ works through Outline's own interfaces:
    Outline creates the workspace and the user at the first sign-in. The session
    cookie it receives is also accepted as a bearer token.
 2. **Create the content through the API**, only what is missing:
-   - Collection **Bound**: its overview holds the Binding block
+   - Collection **Bound**: its description holds the Binding block
      (`template: neutral`, `configuration: example`), and Document **Spring plant
      sale** with body text, a table and two images (a PNG and an SVG, uploaded
      with `attachments.create`, sized with Outline's `=240x` syntax).

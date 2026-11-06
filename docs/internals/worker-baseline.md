@@ -47,6 +47,8 @@ its port and reach Outline).
 
 The chart is released from
 [taskmedia/helm](https://github.com/taskmedia/helm/tree/main/charts/outprint).
+It is not part of this repository: nothing under `deploy/` installs it, and
+the build here does not check it.
 
 | Setting | In the chart |
 |---------|--------------|
@@ -65,7 +67,7 @@ warn about it; do not do that on a shared cluster. Kubernetes has no per-pod
 process limit: `pids_limit` of the Compose file has no counterpart in the chart,
 the kubelet setting `podPidsLimit` applies instead.
 
-The chart's CI installs it into a kind cluster. That does not sign in to
+The chart's own CI, in that repository, installs it into a kind cluster. That does not sign in to
 Outline, so the Gateway's path through Outline is covered by the
 [browser tests](development.md) of the Compose stack. It also does not check
 that a cluster's CNI enforces the NetworkPolicy.
