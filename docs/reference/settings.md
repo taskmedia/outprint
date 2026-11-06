@@ -98,7 +98,7 @@ The time one PDF may take, for example `90s`. A value that is not a positive dur
 
 **Type:** one of `debug`, `info`, `warn`, `error`. **Required:** no. **Default:** `info`.
 
-How much is logged. An unknown value is ignored. The command line logs at `warn` unless set.
+How much is logged. An unknown value is ignored. The Gateway and the Worker log at `info` unless set; the `render` command line logs at `warn`.
 
 ### `OUTPRINT_SERVICE_CONFIG`
 
@@ -162,7 +162,7 @@ The address the injector listens on.
 
 **Type:** `boolean`. **Required:** no. **Default:** `false`.
 
-Adds `'self'` to the script policy of Outline, so the page may load the script from the injector's origin.
+Adds `'self'` to the script policy of Outline, so the page may load the script from the injector's origin. This widens `script-src` for every script of that origin. `strict-dynamic`, a `<meta>` policy and `Content-Security-Policy-Report-Only` are not rewritten.
 
 ### `OUTPRINT_INJECTOR_LOG_LEVEL`
 

@@ -147,6 +147,13 @@ server {
 }
 ```
 
+**`X-Forwarded-For`.** `$proxy_add_x_forwarded_for` appends the client address to
+whatever `X-Forwarded-For` the client sent, so a client can forge the earlier
+entries. That is right when another trusted proxy sits in front of this one. When
+this proxy is the first hop from the internet, use `$remote_addr` instead:
+`proxy_set_header X-Forwarded-For $remote_addr;`. The same goes for the Caddy and
+Traefik recipes: trust forwarded headers only from a hop you run.
+
 What this does and does not do:
 
 - `sub_filter` rewrites `text/html` only (its default type list). JSON, scripts,
@@ -300,8 +307,10 @@ header. The choices are:
   `add_header`). You then own the policy and must follow Outline's changes;
 - configure the policy in Outline, if your version allows it.
 
-With `'strict-dynamic'` browsers ignore `'self'`; that needs a nonce, which no
-recipe adds. The script's styles need `style-src 'unsafe-inline'` or they fall
+The injector option widens `script-src` for every script of Outline's origin, not
+only `button.js`. With `'strict-dynamic'` browsers ignore `'self'`; that needs a
+nonce, which no recipe adds. A policy in a `<meta>` tag and
+`Content-Security-Policy-Report-Only` are not rewritten by the injector. The script's styles need `style-src 'unsafe-inline'` or they fall
 back; see [Injector and PDF action](injector.md#content-security-policy).
 
 ## Check that it works

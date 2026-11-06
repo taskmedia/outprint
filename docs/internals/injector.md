@@ -72,10 +72,19 @@ that allows `'self'` for scripts needs no change. If Outline's policy lists
 `script-src` without `'self'`, set `OUTPRINT_INJECTOR_CSP_ALLOW_SELF=true`: the injector
 then adds `'self'` to `script-src` and `script-src-elem` (or creates `script-src`
 from `default-src`) in the `Content-Security-Policy` header of the pages it
-injects. `Content-Security-Policy-Report-Only` is left alone. Two limits:
+injects. This is a real widening of `script-src`: every script that Outline's
+origin can serve, not only `button.js`, now passes the policy. Leave the setting
+off when Outline's policy already allows `'self'`, and prefer an exact allow-list
+entry at your edge when you can set one. Not rewritten, and so not covered by the
+setting:
 
+- `Content-Security-Policy-Report-Only` is left alone.
+- A policy delivered in a `<meta http-equiv>` tag of the page body is left alone.
 - With `'strict-dynamic'` browsers ignore `'self'`; that needs a nonce, which the
   injector does not add.
+
+One more limit, on the script itself:
+
 - The script's styles use a constructed stylesheet and fall back to a `<style>`
   element, which needs `style-src 'unsafe-inline'`.
 

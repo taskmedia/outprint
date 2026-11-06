@@ -1,6 +1,6 @@
 # Outprint
 
-Outprint turns Outline documents into typeset PDFs. A Template provides the look and structure; a Template Configuration adapts it to an organisation or purpose.
+Outprint turns Outline documents into typeset PDFs. A Template provides the look and structure; a Configuration adapts it to an organisation or purpose.
 
 ## Language
 
@@ -9,31 +9,31 @@ A self-contained style family: structure, typography and page design, offering o
 _Avoid_: Theme, Style, Layout
 
 **Document Type**:
-A kind of output a Template offers (for example a letter or a report), each with its own formatting and accepted fields. A Template Configuration sets a default; a Document may override it.
+A kind of output a Template offers (for example a letter or a report), each with its own formatting and accepted fields. A Configuration sets a default; a Document may override it.
 _Avoid_: Mode, Variant, Kind
 
-**Template Configuration**:
-A named set of values that adapts a Template: name, logo, colours, Defaults, optionally a font override. Pure data. One Template can have many Template Configurations, and one Template Configuration can serve several Templates.
-_Avoid_: Brand, Profile, Theme
+**Configuration**:
+A named set of values that adapts a Template: name, logo, colours, Defaults, optionally a font override. Pure data. One Template can have many Configurations, and one Configuration can serve several Templates.
+_Avoid_: Template Configuration, Brand, Profile, Theme
 
 **Fixed Values**:
-The part of a Template Configuration a Document cannot change: logo, colours, optional font override. The counterpart to Defaults, which a Document may override.
+The part of a Configuration a Document cannot change: logo, colours, optional font override. The counterpart to Defaults, which a Document may override.
 _Avoid_: Brand values, Locked fields
 
 **Defaults**:
-The field values a Template Configuration supplies when a Document does not set them itself. A Document's own values win.
+The field values a Configuration supplies when a Document does not set them itself. A Document's own values win.
 _Avoid_: Presets
 
 **Metadata Block**:
-The fenced block at the very start of a Document in which its author sets field values (recipient, subject, …). It is not part of the rendered content. In Outline's interface the injector script keeps it out of the way: readers do not see it, and authors see it folded behind a toggle called "PDF details" (an operator setting can change this).
+The fenced block at the very start of a Document in which its author sets field values (recipient, subject, …). It is not part of the rendered content. In Outline's interface the button script (`button.js`, served by the Gateway and added to Outline's pages by the injector) keeps it out of the way: readers do not see it, and authors see it folded behind a toggle called "PDF details" (an operator setting can change this).
 _Avoid_: Frontmatter, Header
 
 **Standard Fields**:
-A documented set of common field names (for example subject, recipient) that Templates are encouraged to reuse so Template Configurations stay portable. A convention, not a requirement: a Template may declare any fields it likes. Where the pipeline derives a default, it applies to every Template that declares the field: `title`, `date`, and `subject` (the Document's title, unless the author sets it, even to empty).
+A documented set of common field names (for example subject, recipient) that Templates are encouraged to reuse so Configurations stay portable. A convention, not a requirement: a Template may declare any fields it likes. Where the pipeline derives a default, it applies to every Template that declares the field: `title`, `date`, and `subject` (the Document's title, unless the author sets it, even to empty).
 _Avoid_: Core fields, Reserved fields
 
 **Binding**:
-The pairing of one Template and one Template Configuration that a Collection selects. Every Document in the Collection, including nested ones, is rendered with it.
+The pairing of one Template and one Configuration that a Collection selects. Every Document in the Collection, including nested ones, is rendered with it.
 _Avoid_: Assignment, Mapping
 
 **Collection**:

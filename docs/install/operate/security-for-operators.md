@@ -19,7 +19,9 @@ Compose file already follows everything on this page.
   `ports` entry of the Gateway in the Compose file is for trying it out.
 - **Terminate TLS in front.** The edge proxy ends TLS and sets the forwarding
   headers. A client that reaches the injector directly can forge
-  `X-Forwarded-For`.
+  `X-Forwarded-For`. The nginx examples use `$proxy_add_x_forwarded_for`, which
+  keeps what the client sent; at the first hop from the internet use
+  `$remote_addr` instead.
 
 ## What to keep inside
 

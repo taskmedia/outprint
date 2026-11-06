@@ -284,7 +284,7 @@ a deployment.
 | Page limit | | `OUTPRINT_MAX_PAGES` | `500` |
 | PDF size limit | | `OUTPRINT_MAX_PDF_BYTES` | `52428800` (50 MiB; can be lowered, not raised) |
 | Full TeX log | `--debug-tex-log` | | off |
-| Log level | | `OUTPRINT_LOG_LEVEL` | `warn` |
+| Log level | | `OUTPRINT_LOG_LEVEL` | `warn` for `render`, `info` for the Worker service |
 
 ## Limitations
 

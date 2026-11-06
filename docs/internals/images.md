@@ -47,7 +47,7 @@ quotes the file.
 | no usable size, or an absurd one (above) | |
 | more than 2 MiB (`too_large`) | |
 
-The logo of a Template Configuration is an SVG too. The Configuration comes
+The logo of a Configuration is an SVG too. The Configuration comes
 from the operator, so its logo is not pre-checked, but it goes through the
 same sandboxed conversion as a Document's SVG.
 
