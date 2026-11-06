@@ -601,3 +601,29 @@ func (panicOutline) UserLanguage(_ context.Context, _ outline.Session) (string, 
 }
 
 func (panicOutline) BaseURL() string { return "https://outline.example.invalid" }
+
+func TestCrossSiteRenderIsRejectedBeforeOutline(t *testing.T) {
+	e := newEnv(t, true)
+	req, _ := http.NewRequest(http.MethodGet, e.gw.URL+"/render/doc-1", nil)
+	req.Header.Set("Cookie", cookieCanary)
+	req.Header.Set("Sec-Fetch-Site", "cross-site")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusForbidden || len(e.outline.seen) != 0 {
+		t.Errorf("status %d, outline calls %d", resp.StatusCode, len(e.outline.seen))
+	}
+	for _, site := range []string{"none", "same-site", "same-origin"} {
+		req.Header.Set("Sec-Fetch-Site", site)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode == http.StatusForbidden {
+			t.Errorf("Sec-Fetch-Site %s rejected", site)
+		}
+	}
+}
