@@ -26,7 +26,7 @@ func TestImageSlotsBoundTheImagePhaseAcrossUsers(t *testing.T) {
 
 func TestBuildDeadlineEndsTheImagePhase(t *testing.T) {
 	e := newEnvConfigured(t, true, nil, nil, func(c *Config) { c.BuildTimeout = time.Nanosecond })
-	e.outline.add("d", 200, "T", "![x](/api/attachments.redirect?id=1)\n")
+	e.outline.add("d", 200, "T", "![x](/api/attachments.redirect?id=0b6f1a52-3c41-4d2e-9a77-5f0c2e8d1b34)\n")
 	resp, body := e.get(t, "d", cookieCanary)
 	if resp.StatusCode != http.StatusGatewayTimeout {
 		t.Fatalf("status %d, want 504: %s", resp.StatusCode, body)
