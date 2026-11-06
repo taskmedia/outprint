@@ -3,6 +3,7 @@ package packages
 import (
 	"fmt"
 	"regexp"
+	"regexp/syntax"
 	"slices"
 	"strings"
 	"time"
@@ -194,12 +195,77 @@ func (f *Field) strictPatternProblem() string {
 	if f.matcher == nil {
 		return "a strict typed pattern is required"
 	}
+	if r, ok := admittedSpecial(f.Pattern); ok {
+		return fmt.Sprintf("pattern is too permissive: it can match the character %q", r)
+	}
 	for _, probe := range hostileProbes() {
 		if f.matcher.MatchString(probe) {
 			return fmt.Sprintf("pattern is too permissive: it matches %q", sanitizeForMessage(probe))
 		}
 	}
 	return ""
+}
+
+// forbiddenRunes are characters a non-text value must never contain: TeX
+// syntax and the delimiters of bracketed option lists. Control characters
+// and whitespace are rejected separately in isForbiddenRune.
+const forbiddenRunes = "\\{}%$&#~^|`\"[],=*@!"
+
+func isForbiddenRune(r rune) bool {
+	return r <= ' ' || r == 0x7f || strings.ContainsRune(forbiddenRunes, r)
+}
+
+// admittedSpecial walks the parsed pattern and reports a forbidden
+// character that any literal, class or wildcard could match. Patterns that
+// do not parse are left to the compile step.
+func admittedSpecial(pattern string) (rune, bool) {
+	re, err := syntax.Parse(pattern, syntax.Perl)
+	if err != nil {
+		return 0, false
+	}
+	return firstForbidden(re.Simplify())
+}
+
+func firstForbidden(re *syntax.Regexp) (rune, bool) {
+	switch re.Op {
+	case syntax.OpAnyChar, syntax.OpAnyCharNotNL:
+		return '\\', true
+	case syntax.OpLiteral:
+		for _, r := range re.Rune {
+			if isForbiddenRune(r) {
+				return r, true
+			}
+		}
+	case syntax.OpCharClass:
+		if r, ok := forbiddenInClass(re.Rune); ok {
+			return r, true
+		}
+	}
+	for _, sub := range re.Sub {
+		if r, ok := firstForbidden(sub); ok {
+			return r, true
+		}
+	}
+	return 0, false
+}
+
+// forbiddenInClass checks the lo/hi pairs of a character class.
+func forbiddenInClass(pairs []rune) (rune, bool) {
+	for i := 0; i+1 < len(pairs); i += 2 {
+		lo, hi := pairs[i], pairs[i+1]
+		if lo <= ' ' {
+			return lo, true
+		}
+		if lo <= 0x7f && hi >= 0x7f {
+			return 0x7f, true
+		}
+		for _, r := range forbiddenRunes {
+			if lo <= r && r <= hi {
+				return r, true
+			}
+		}
+	}
+	return 0, false
 }
 
 // Check reports whether v is a valid value for the field: its type, its
