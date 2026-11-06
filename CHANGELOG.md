@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/taskmedia/outprint/compare/v1.0.0...v1.0.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* **gateway:** reject cross-site render requests and extend blocked address ranges ([#152](https://github.com/taskmedia/outprint/issues/152)) ([36894f7](https://github.com/taskmedia/outprint/commit/36894f7ed8e43d5012e193635941979d7678ca89))
+* require the worker token in compose and warn when it is empty ([#153](https://github.com/taskmedia/outprint/issues/153)) ([5041b6e](https://github.com/taskmedia/outprint/commit/5041b6e35abc8834e5514e7adaea66345df80422))
+* restrict template input targets to scanned tex extensions ([#146](https://github.com/taskmedia/outprint/issues/146)) ([2eceacb](https://github.com/taskmedia/outprint/commit/2eceacb1ae710e3bca4fb048e68c3dbd018b407a))
+
 ## [1.0.0](https://github.com/taskmedia/outprint/compare/v0.1.0...v1.0.0) (2026-11-03)
 
 
