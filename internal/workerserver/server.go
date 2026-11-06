@@ -63,6 +63,10 @@ func (s *Server) Handler() http.Handler {
 	return mux
 }
 
+// statusClientClosedRequest is the nginx convention for a caller that hung
+// up. Nobody reads the response; it only shows in logs.
+const statusClientClosedRequest = 499
+
 func (s *Server) render(w http.ResponseWriter, r *http.Request) {
 	if s.cfg.Token != "" && !workerapi.TokenMatches(r.Header.Get("Authorization"), s.cfg.Token) {
 		writeError(w, http.StatusUnauthorized, workerapi.ErrorBody{Phase: workerapi.PhaseAuth, Kind: workerapi.KindUnauthorized})
@@ -163,6 +167,8 @@ func (s *Server) classify(err error) (int, workerapi.ErrorBody, string) {
 	switch failure.Kind {
 	case worker.KindTimeout:
 		return http.StatusGatewayTimeout, body, "timeout"
+	case worker.KindCanceled:
+		return statusClientClosedRequest, body, ""
 	case worker.KindResource:
 		return http.StatusInternalServerError, body, "resource exhaustion"
 	case worker.KindPagesExceeded, worker.KindPDFTooLarge:

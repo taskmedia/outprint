@@ -29,6 +29,9 @@ const (
 	KindTeXError   Kind = "tex_error"
 	KindNoOutput   Kind = "no_output"
 	KindTimeout    Kind = "timeout"
+	// KindCanceled means the caller went away: the job context was canceled
+	// before its own deadline. The Worker needs no restart for it.
+	KindCanceled Kind = "canceled"
 	// KindSVGConvert is an SVG that rsvg-convert could not turn into a PDF.
 	KindSVGConvert Kind = "svg_convert"
 	// KindOutputTooLarge is a conversion whose PDF passed its size limit.
