@@ -98,7 +98,7 @@ The time one PDF may take, for example `90s`. A value that is not a positive dur
 
 **Type:** one of `debug`, `info`, `warn`, `error`. **Required:** no. **Default:** `info`.
 
-How much is logged. An unknown value is ignored. The Gateway and the Worker log at `info` unless set; the `render` command line logs at `warn`.
+How much is logged. An unknown value stops the Gateway and the Worker at startup. The Gateway and the Worker log at `info` unless set; the `render` command line logs at `warn`.
 
 ### `OUTPRINT_SERVICE_CONFIG`
 

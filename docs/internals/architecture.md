@@ -258,7 +258,8 @@ Both roles log with `log/slog` to stderr.
 - The Gateway logs one line per request: `job`, `document` (Outline's id),
   `phase`, `kind`, `status`, `duration_ms`. A 5xx adds the cause, which is an
   error of the clients and carries no response text. The `job` is the Worker's
-  job id when the Worker answered, else a Gateway request id.
+  job id when the Worker answered with a failure, else a Gateway request id
+  (a success carries no Worker job id).
 - The Worker logs, per failed job, `job`, `phase`, `duration_ms`, `exit_code`
   and the first TeX error line, see [Worker pipeline](worker.md#logging). The first
   TeX error line stays in the Worker's log and does not travel to the Gateway;

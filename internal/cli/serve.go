@@ -64,15 +64,16 @@ func parseServe(name, defaultListen string, args []string, getenv func(string) s
 }
 
 // serviceLogger logs at info by default: unlike the render command, a
-// service is expected to log what it does.
-func serviceLogger(stderr io.Writer, getenv func(string) string) *slog.Logger {
+// service is expected to log what it does. An unknown level is an error, like
+// every other malformed setting.
+func serviceLogger(stderr io.Writer, getenv func(string) string) (*slog.Logger, error) {
 	level := slog.LevelInfo
 	if name := getenv(envLogLevel); name != "" {
 		if err := level.UnmarshalText([]byte(name)); err != nil {
-			level = slog.LevelInfo
+			return nil, fmt.Errorf("%s: %q is not one of debug, info, warn, error", envLogLevel, name)
 		}
 	}
-	return slog.New(slog.NewTextHandler(stderr, &slog.HandlerOptions{Level: level}))
+	return slog.New(slog.NewTextHandler(stderr, &slog.HandlerOptions{Level: level})), nil
 }
 
 // logStartup records which build is running, once, at info level.
@@ -101,7 +102,11 @@ func runGateway(args []string, getenv func(string) string, stderr io.Writer) int
 		fmt.Fprintf(stderr, "outprint: %v\n%s\n", err, usage)
 		return 2
 	}
-	log := serviceLogger(stderr, getenv)
+	log, err := serviceLogger(stderr, getenv)
+	if err != nil {
+		fmt.Fprintf(stderr, "outprint: %v\n", err)
+		return 2
+	}
 	logStartup(log, "gateway")
 	if getenv(envOutlineURL) == "" || getenv(envWorkerURL) == "" {
 		fmt.Fprintf(stderr, "outprint: gateway needs %s and %s\n", envOutlineURL, envWorkerURL)
@@ -139,7 +144,11 @@ func runWorker(args []string, getenv func(string) string, stderr io.Writer) int 
 		fmt.Fprintf(stderr, "outprint: %v\n%s\n", err, usage)
 		return 2
 	}
-	log := serviceLogger(stderr, getenv)
+	log, err := serviceLogger(stderr, getenv)
+	if err != nil {
+		fmt.Fprintf(stderr, "outprint: %v\n", err)
+		return 2
+	}
 	logStartup(log, "worker")
 	jobLimits, err := limits.FromEnv(getenv)
 	if err != nil {
