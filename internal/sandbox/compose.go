@@ -130,17 +130,23 @@ func (c Compose) Worker() (Service, error) {
 	return svc, nil
 }
 
-var interpolationRE = regexp.MustCompile(`\$\{([A-Za-z_][A-Za-z0-9_]*)(?::?-([^}]*))?\}`)
+var interpolationRE = regexp.MustCompile(`\$\{([A-Za-z_][A-Za-z0-9_]*)(?:(:?-|:?\?)([^}]*))?\}`)
 
-// Interpolate expands ${NAME}, ${NAME:-default} and ${NAME-default} using
-// lookup. The shipped file only uses the defaulting form.
+// Interpolate expands ${NAME}, ${NAME:-default}, ${NAME-default} and
+// ${NAME:?message} using lookup. A required variable that is unset expands to
+// empty.
 func Interpolate(s string, lookup func(string) (string, bool)) string {
 	return interpolationRE.ReplaceAllStringFunc(s, func(m string) string {
 		parts := interpolationRE.FindStringSubmatch(m)
 		if v, ok := lookup(parts[1]); ok && v != "" {
 			return v
 		}
-		return parts[2]
+		if strings.HasSuffix(parts[2], "?") {
+			// ${NAME:?message} is the required form; the harness runs
+			// without the variable and treats it as empty.
+			return ""
+		}
+		return parts[3]
 	})
 }
 

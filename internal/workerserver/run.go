@@ -68,6 +68,7 @@ func Run(ctx context.Context, cfg RunConfig) error {
 		return err
 	}
 	CollectPosture(src).Log(cfg.Logger)
+	WarnIfTokenMissing(cfg.Logger, cfg.Token)
 
 	timeout := cfg.Timeout
 	if timeout <= 0 {
@@ -142,4 +143,13 @@ func checkWorkDir(dir string) error {
 		return fmt.Errorf("refusing to start: work directory %s is not a directory", dir)
 	}
 	return nil
+}
+
+// WarnIfTokenMissing logs a warning when the Worker runs without a token, since
+// then any peer on its network can submit jobs.
+func WarnIfTokenMissing(logger *slog.Logger, token string) {
+	if token != "" || logger == nil {
+		return
+	}
+	logger.Warn("worker token is not set: any peer on the worker network can submit render jobs; set OUTPRINT_WORKER_TOKEN")
 }

@@ -84,9 +84,9 @@ The address to listen on, for example `:9000`.
 
 ### `OUTPRINT_WORKER_TOKEN`
 
-**Type:** `string` (a secret). **Required:** no. **Default:** none.
+**Type:** `string` (a secret). **Required:** yes in the shipped Compose file, no otherwise. **Default:** none.
 
-A shared token. When set on the Worker, it only accepts requests that carry it, so the Gateway needs the same value. Empty means no token.
+A shared token. When set on the Worker, it only accepts requests that carry it, so the Gateway needs the same value. The shipped Compose file refuses to start without it. Without Compose, an empty value means no token, and the Worker logs a warning at start.
 
 ### `OUTPRINT_TIMEOUT`
 
