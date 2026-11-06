@@ -175,6 +175,11 @@ tasks:
     cmds:
       - ./scripts/security_guard_test.sh
 
+  test-helm-bump:
+    desc: Test scripts/helm-bump-chart.sh
+    cmds:
+      - ./scripts/helm_bump_chart_test.sh
+
   update-goldens:
     desc: Regenerate the goldens, only ever inside the pinned image
     cmds:

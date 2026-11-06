@@ -135,6 +135,72 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  # Opens the pull request that points the chart in taskmedia/helm at the new
+  # release (docs/releasing.md). It waits for publish so the chart never names
+  # an image tag that does not exist yet. Pre-releases get no chart.
+  helm:
+    name: helm chart pull request
+    needs: [release-please, publish]
+    if: >-
+      needs.release-please.outputs.release_created == 'true'
+      && !contains(needs.release-please.outputs.version, '-')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.release-please.outputs.version }}
+      # The default GITHUB_TOKEN cannot write to another repository and does
+      # not start the chart tests in the pull request, so there is no fallback.
+      PAT: ${{ secrets.PAT }}
+    steps:
+      - name: require the PAT
+        run: |
+          if [ -z "$PAT" ]; then
+            echo "::error::secret PAT is missing: the helm chart pull request needs it"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: taskmedia/helm
+          token: ${{ secrets.PAT }}
+          path: helm
+
+      - name: bump the chart
+        run: scripts/helm-bump-chart.sh helm/charts/outprint "$VERSION"
+
+      - id: pr
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.PAT }}
+          path: helm
+          branch: chore/outprint-${{ needs.release-please.outputs.version }}
+          base: main
+          commit-message: "chore(outprint): bump outprint to ${{ needs.release-please.outputs.version }}"
+          title: "chore(outprint): bump outprint to ${{ needs.release-please.outputs.version }}"
+          body: |
+            Points the chart at the Outprint release
+            [${{ needs.release-please.outputs.tag_name }}](https://github.com/${{ github.repository }}/releases/tag/${{ needs.release-please.outputs.tag_name }}).
+
+            Opened by `.github/workflows/release-please.yml` in ${{ github.repository }}.
+            Only the version is bumped. Chart changes that this release needs
+            (new values, templates) are a separate pull request.
+
+      # Off until the repository variable HELM_AUTO_MERGE is "true". GitHub only
+      # waits for checks that are required on the helm repository's main; without
+      # a required check this would merge at once.
+      - name: auto-merge once the chart tests pass
+        if: vars.HELM_AUTO_MERGE == 'true' && steps.pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
+          GH_REPO: taskmedia/helm
+          PR_NUMBER: ${{ steps.pr.outputs.pull-request-number }}
+        run: gh pr merge "$PR_NUMBER" --auto --squash
+
   publish:
     name: publish ${{ matrix.image }}
     needs: [release-please, build]
