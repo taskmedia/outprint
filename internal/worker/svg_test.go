@@ -160,6 +160,19 @@ func TestJobTimeoutDuringConversionIsAJobTimeout(t *testing.T) {
 	}
 }
 
+func TestCallerCancelDuringConversionIsCanceledNotTimeout(t *testing.T) {
+	dir := fakeConverter(t, "sleep 30\n")
+	p := svgPipeline(dir, 20*time.Second, 1<<20)
+	ctx, cancel := context.WithCancel(context.Background())
+	time.AfterFunc(300*time.Millisecond, cancel)
+	p.ctx = ctx
+	err := p.convertSVG([]byte("<svg/>"), filepath.Join(dir, "images", "a.pdf"))
+	var we *Error
+	if !errors.As(err, &we) || we.Kind != KindCanceled {
+		t.Fatalf("error = %v, want a canceled job", err)
+	}
+}
+
 func TestConvertSVGRefusesAnOversizeSource(t *testing.T) {
 	dir := fakeConverter(t, "cat >/dev/null; printf '%%PDF'\n")
 	err := svgPipeline(dir, time.Second, 1<<20).convertSVG(make([]byte, 3<<20), filepath.Join(dir, "images", "a.pdf"))

@@ -209,6 +209,25 @@ func TestTimeoutAnswers504ThenRestartsAndStaysBusy(t *testing.T) {
 	}
 }
 
+func TestCanceledRenderFreesTheSlotWithoutRestart(t *testing.T) {
+	f := &fakeRenderer{err: &worker.Error{Phase: worker.PhaseTeX, Kind: worker.KindCanceled, JobID: "job1"}}
+	h := newHarness(t, "", f)
+	resp, data := h.post(t, encoded(t, sample()), "")
+	if resp.StatusCode != 499 || errorBody(t, data).Kind != "canceled" {
+		t.Fatalf("status %d body %s", resp.StatusCode, data)
+	}
+	select {
+	case reason := <-h.restarts:
+		t.Fatalf("a canceled render must not restart the Worker, got %q", reason)
+	case <-time.After(300 * time.Millisecond):
+	}
+	f.err = nil
+	resp, _ = h.post(t, encoded(t, sample()), "")
+	if resp.StatusCode == http.StatusServiceUnavailable {
+		t.Error("the slot was not released after the cancel")
+	}
+}
+
 func TestPanicIsContainedAndRestarts(t *testing.T) {
 	h := newHarness(t, "", &fakeRenderer{panics: true})
 	resp, data := h.post(t, encoded(t, sample()), "")

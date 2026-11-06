@@ -354,6 +354,10 @@ func (p *pipeline) toolError(phase Phase, res toolResult, err error) error {
 }
 
 func (p *pipeline) timeoutError(during Phase, res toolResult) error {
+	if p.ctx != nil && errors.Is(p.ctx.Err(), context.Canceled) {
+		p.logPhase(slog.LevelWarn, during, res, "")
+		return &Error{Phase: during, Kind: KindCanceled, JobID: p.id, Err: context.Canceled}
+	}
 	p.logPhase(slog.LevelWarn, PhaseTimeout, res, "")
 	return &Error{Phase: PhaseTimeout, Kind: KindTimeout, JobID: p.id,
 		Err: fmt.Errorf("exceeded %s while in phase %s", p.timeout, during)}
