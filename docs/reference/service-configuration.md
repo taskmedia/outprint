@@ -47,6 +47,20 @@ missing package, is an error. Packages on disk but not on the list are
 loaded and checked, but their problems are only warnings, since nothing can
 use them.
 
+**Trust model.** The allow-list is global to the service, not per Collection
+or group. Anyone who can edit a Collection description, including a user who
+created the Collection, can bind any pair on the list, and with it that
+Configuration's logo and Fixed Values. Fixed Values protect a Configuration
+against Document authors, not against Collection editors. On an installation
+shared by several organisations, list only pairs that every Collection
+editor may use, or run one service per organisation. Per-Collection pair
+restrictions are not implemented.
+
+**Guests.** A user who can read a Document but not its Collection gets 403
+for the Binding and sees no Formatted PDF action. This is intended: the
+Binding is read with the user's own permission, so access to the Collection
+is required.
+
 ## `defaultBinding`
 
 **Type:** `{template, configuration}`. **Required:** no. **Default:** none.
