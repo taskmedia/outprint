@@ -122,6 +122,47 @@ func TestHealthzNeedsNoToken(t *testing.T) {
 	resp.Body.Close()
 }
 
+func readyStatus(t *testing.T, h *harness) int {
+	t.Helper()
+	resp, err := http.Get(h.srv.URL + workerapi.ReadyPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	return resp.StatusCode
+}
+
+func TestReadyzFollowsTheSlot(t *testing.T) {
+	f := &fakeRenderer{pdf: []byte("pdf"), started: make(chan struct{}, 1), release: make(chan struct{})}
+	h := newHarness(t, "s3cret", f)
+	if got := readyStatus(t, h); got != 200 {
+		t.Fatalf("idle readyz = %d", got)
+	}
+	done := make(chan struct{})
+	go func() { h.post(t, encoded(t, sample()), "Bearer s3cret"); close(done) }()
+	<-f.started
+	if got := readyStatus(t, h); got != http.StatusServiceUnavailable {
+		t.Errorf("busy readyz = %d", got)
+	}
+	close(f.release)
+	<-done
+	if got := readyStatus(t, h); got != 200 {
+		t.Errorf("readyz after the job = %d", got)
+	}
+}
+
+func TestReadyzStaysUnavailableAfterRestartRequest(t *testing.T) {
+	f := &fakeRenderer{err: &worker.Error{Phase: worker.PhaseTimeout, Kind: worker.KindTimeout}}
+	h := newHarness(t, "", f)
+	h.post(t, encoded(t, sample()), "")
+	if got := readyStatus(t, h); got != http.StatusServiceUnavailable {
+		t.Errorf("readyz on a restarting Worker = %d", got)
+	}
+	if resp, err := http.Get(h.srv.URL + workerapi.HealthPath); err != nil || resp.StatusCode != 200 {
+		t.Errorf("healthz must stay 200: %v %v", resp, err)
+	}
+}
+
 func TestBearerToken(t *testing.T) {
 	f := &fakeRenderer{pdf: []byte("pdf")}
 	h := newHarness(t, "s3cret", f)
@@ -206,6 +247,25 @@ func TestTimeoutAnswers504ThenRestartsAndStaysBusy(t *testing.T) {
 	resp, _ = h.post(t, encoded(t, sample()), "")
 	if resp.StatusCode != http.StatusServiceUnavailable {
 		t.Errorf("after the restart request the Worker must stay busy, got %d", resp.StatusCode)
+	}
+}
+
+func TestCanceledRenderFreesTheSlotWithoutRestart(t *testing.T) {
+	f := &fakeRenderer{err: &worker.Error{Phase: worker.PhaseTeX, Kind: worker.KindCanceled, JobID: "job1"}}
+	h := newHarness(t, "", f)
+	resp, data := h.post(t, encoded(t, sample()), "")
+	if resp.StatusCode != 499 || errorBody(t, data).Kind != "canceled" {
+		t.Fatalf("status %d body %s", resp.StatusCode, data)
+	}
+	select {
+	case reason := <-h.restarts:
+		t.Fatalf("a canceled render must not restart the Worker, got %q", reason)
+	case <-time.After(300 * time.Millisecond):
+	}
+	f.err = nil
+	resp, _ = h.post(t, encoded(t, sample()), "")
+	if resp.StatusCode == http.StatusServiceUnavailable {
+		t.Error("the slot was not released after the cancel")
 	}
 }
 

@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/taskmedia/outprint/internal/binding"
@@ -50,11 +51,14 @@ func (g *Gateway) statusOf(r *http.Request) (statusResponse, *failure) {
 		return statusResponse{}, fail(http.StatusBadRequest, PhaseRequest, "bad_document_id", "invalid document id", nil)
 	}
 	session := outline.Session{Cookie: r.Header.Get("Cookie")}
-	if session.Cookie == "" {
+	if session.Cookie == "" || g.lookups.denied(session.Cookie) {
 		return statusResponse{}, outlineFailure(outline.ErrUnauthorized)
 	}
 	doc, err := g.cfg.Outline.Document(r.Context(), docID, session)
 	if err != nil {
+		if errors.Is(err, outline.ErrUnauthorized) {
+			g.lookups.deny(session.Cookie)
+		}
 		return statusResponse{}, outlineFailure(err)
 	}
 	sel, f := g.resolveBinding(r.Context(), doc, session)
@@ -72,7 +76,13 @@ func (g *Gateway) statusOf(r *http.Request) (statusResponse, *failure) {
 // userLanguage is best effort: a label in the wrong language is better than
 // no button, so a failed lookup yields an empty language.
 func (g *Gateway) userLanguage(r *http.Request, session outline.Session) string {
+	if lang, ok := g.lookups.language(session.Cookie); ok {
+		return lang
+	}
 	lang, err := g.cfg.Outline.UserLanguage(r.Context(), session)
+	if err == nil {
+		g.lookups.setLanguage(session.Cookie, lang)
+	}
 	if err != nil {
 		g.cfg.Logger.Debug("user language not available", "err", err)
 		return ""

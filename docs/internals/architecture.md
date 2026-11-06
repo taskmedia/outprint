@@ -68,7 +68,8 @@ Configuration (environment):
 
 `POST /render` takes a bundle and answers `application/pdf` or a JSON error
 `{"phase", "kind", "job_id"}`. `GET /healthz` answers 200 and needs no token.
-The pipeline behind it is described in [Worker pipeline](worker.md).
+`GET /readyz` answers 200 while the Worker can take a job and 503 while it renders or is restarting; use it as the
+readiness probe, keep `/healthz` for liveness. The pipeline behind it is described in [Worker pipeline](worker.md).
 
 - One job per instance. While a job runs, a second request gets `503` with
   kind `busy`.

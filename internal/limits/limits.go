@@ -66,6 +66,19 @@ const (
 	MaxSVGPDFBytes    = 10 << 20
 )
 
+// Gateway image phase and status lookups.
+const (
+	// BundleTimeout caps building one bundle: every image fetch, decode and
+	// rewrite of a request together.
+	BundleTimeout = 3 * time.Minute
+	// ImageConcurrency is how many requests may run the image phase at once.
+	ImageConcurrency = 2
+	// StatusTTL is how long a status lookup of the user's language is reused;
+	// StatusDeniedTTL is how long a refused session is remembered.
+	StatusTTL       = 60 * time.Second
+	StatusDeniedTTL = 5 * time.Second
+)
+
 // Admission control, enforced by the Gateway. The starting values match one
 // Worker replica; scale them together with the replicas.
 const (

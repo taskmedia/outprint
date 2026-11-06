@@ -63,6 +63,8 @@ func TestLoadErrors(t *testing.T) {
 		"unsupported partial":               {mutation{letter, fixtureLetter + "$header()$\n"}, []string{"letter.latex:5", "not supported"}},
 		"input outside package":             {mutation{letter, fixtureLetter + `\input{/etc/passwd}` + "\n"}, []string{"letter.latex:5", `\input`}},
 		"input of missing shared file":      {mutation{letter, fixtureLetter + `\input{shared/none.tex}` + "\n"}, []string{"no such file"}},
+		"input of unscanned extension":      {mutation{letter, fixtureLetter + `\input{shared/payload.dat}` + "\n"}, []string{"scanned TeX extension"}},
+		"input without extension":           {mutation{letter, fixtureLetter + `\input{shared/payload}` + "\n"}, []string{"scanned TeX extension"}},
 		"directlua":                         {mutation{letter, fixtureLetter + `\directlua{os.execute("id")}` + "\n"}, []string{`\directlua`, "letter.latex:5"}},
 		"write18":                           {mutation{letter, fixtureLetter + `\immediate\write18{id}` + "\n"}, []string{`\write`}},
 		"openout":                           {mutation{letter, fixtureLetter + `\openout1=x` + "\n"}, []string{`\openout`}},
@@ -97,6 +99,19 @@ func TestLoadErrors(t *testing.T) {
 				t.Fatalf("no error finding containing %q in:\n%s", tc.want, dump(findings))
 			}
 		})
+	}
+}
+
+func TestInputOfExistingUnscannedSharedFileIsRejected(t *testing.T) {
+	fx := newFixture(t)
+	fx.write("templates/plain/shared/payload.dat", `\directlua{os.execute("id")}`)
+	fx.write("templates/plain/letter.latex", fixtureLetter+`\input{shared/payload.dat}`+"\n")
+	reg, findings := fx.load()
+	if reg != nil {
+		t.Fatal("registry must be nil when errors are found")
+	}
+	if !mentions(findings, SeverityError, "payload.dat", "scanned TeX extension") {
+		t.Fatalf("no error finding in:\n%s", dump(findings))
 	}
 }
 
