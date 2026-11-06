@@ -82,14 +82,29 @@ func TestHealthcheck(t *testing.T) {
 
 func TestServiceLoggerLevel(t *testing.T) {
 	var b bytes.Buffer
-	serviceLogger(&b, envMap(nil)).Info("hello")
+	log, err := serviceLogger(&b, envMap(nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Info("hello")
 	if !strings.Contains(b.String(), "hello") {
 		t.Error("info is not logged by default")
 	}
 	b.Reset()
-	serviceLogger(&b, envMap(map[string]string{"OUTPRINT_LOG_LEVEL": "error"})).Info("hello")
+	log, err = serviceLogger(&b, envMap(map[string]string{"OUTPRINT_LOG_LEVEL": "error"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Info("hello")
 	if b.Len() != 0 {
 		t.Error("OUTPRINT_LOG_LEVEL=error still logs info")
+	}
+}
+
+func TestServiceLoggerRefusesAnUnknownLevel(t *testing.T) {
+	var b bytes.Buffer
+	if _, err := serviceLogger(&b, envMap(map[string]string{"OUTPRINT_LOG_LEVEL": "verbose"})); err == nil {
+		t.Error("an unknown level was accepted")
 	}
 }
 

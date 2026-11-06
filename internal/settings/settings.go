@@ -128,7 +128,7 @@ var registry = []Setting{
 	{Name: EnvTimeout, Component: GatewayAndWorker, Type: "`duration`", Default: "`60s`", Tier: Tuning,
 		Description: "The time one PDF may take, for example `90s`. A value that is not a positive duration is ignored."},
 	{Name: EnvLogLevel, Component: GatewayAndWorker, Type: "one of `debug`, `info`, `warn`, `error`", Default: "`info`", Tier: Tuning,
-		Description: "How much is logged. An unknown value is ignored. The Gateway and the Worker log at `info` unless set; the `render` command line logs at `warn`."},
+		Description: "How much is logged. An unknown value stops the Gateway and the Worker at startup. The Gateway and the Worker log at `info` unless set; the `render` command line logs at `warn`."},
 	{Name: EnvServiceConfig, Component: GatewayAndWorker, Type: "`path`", Tier: Tuning,
 		Description: "The service configuration file. The image sets `/opt/outprint/service.yaml`. Without it, a service needs `--service-config`."},
 	{Name: EnvTemplatesRoot, Component: GatewayAndWorker, Type: "`path`", Tier: Tuning,
