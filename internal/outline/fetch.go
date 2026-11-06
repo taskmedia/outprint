@@ -254,9 +254,21 @@ func (f *imageFetch) get(ctx context.Context, u *url.URL, cookie string) (*http.
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("%w: image fetch: %s", ErrUnavailable, errorKind(err))
+		return nil, imageFetchError(err)
 	}
 	return resp, nil
+}
+
+// imageFetchError keeps the context error in the chain, so the Gateway can
+// tell a spent deadline (504) from an unreachable image host (500). Only the
+// sentinel is wrapped: the transport error with its URL stays out.
+func imageFetchError(err error) error {
+	for _, ctxErr := range []error{context.DeadlineExceeded, context.Canceled} {
+		if errors.Is(err, ctxErr) {
+			return fmt.Errorf("%w: image fetch: %s: %w", ErrUnavailable, errorKind(err), ctxErr)
+		}
+	}
+	return fmt.Errorf("%w: image fetch: %s", ErrUnavailable, errorKind(err))
 }
 
 type dialFunc func(ctx context.Context, network, address string) (net.Conn, error)
