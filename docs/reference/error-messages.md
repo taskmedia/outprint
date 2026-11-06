@@ -285,6 +285,14 @@ helps.
 
 **What to do:** Open the document from Outline again and retry.
 
+### `cross_site`
+
+**Message:** `cross-site requests are not allowed`.
+
+**Cause:** The download was started from a page on another site.
+
+**What to do:** Open the document in Outline and use its PDF button.
+
 ### `unauthorized`
 
 **Message:** `sign in to Outline to download this document`.
