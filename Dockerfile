@@ -1,4 +1,4 @@
-FROM golang:1.27-trixie AS build
+FROM golang:1.27-trixie@sha256:af1bfc2614ebb1dbd31af514b78740fd678850e76498762b425ecee4c5c6ea80 AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
@@ -18,7 +18,7 @@ RUN LDFLAGS="-X github.com/taskmedia/outprint/internal/version.Version=${VERSION
  && CGO_ENABLED=0 go build -trimpath -ldflags "${LDFLAGS}" -o /out/outprint ./cmd/outprint \
  && CGO_ENABLED=0 go build -trimpath -ldflags "${LDFLAGS}" -o /out/outprint-injector ./cmd/outprint-injector
 
-FROM debian:trixie-20261027-slim AS outprint
+FROM debian:trixie-20261027-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4 AS outprint
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       pandoc \
@@ -88,7 +88,7 @@ USER render
 # The injector image: a reverse proxy in front of Outline. It carries no TeX
 # toolchain, no shell and no package manager, only the one static binary.
 # Build it with --target injector (task image-injector).
-FROM gcr.io/distroless/static-debian13:nonroot AS injector
+FROM gcr.io/distroless/static-debian13:nonroot@sha256:25ac8f0c3b2334a9eb05452266bd4697864a8c8ef0ef71e5e6480d7f92868329 AS injector
 COPY --from=build /out/outprint-injector /outprint-injector
 ARG VERSION=dev
 LABEL org.opencontainers.image.title="outprint-injector" \
