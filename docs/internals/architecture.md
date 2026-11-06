@@ -57,7 +57,7 @@ Configuration (environment):
 | `OUTLINE_URL` | base URL of Outline; the only origin the cookie is sent to | required |
 | `OUTLINE_PUBLIC_URL` | Outline's own `URL` setting, when `OUTLINE_URL` is an internal address; a redirect to this origin is fetched from `OUTLINE_URL` ([Image fetching](image-fetching.md#outline-behind-an-internal-address)) | none |
 | `OUTPRINT_WORKER_URL` | base URL of the Worker | required |
-| `OUTPRINT_WORKER_TOKEN` | optional shared bearer token | none |
+| `OUTPRINT_WORKER_TOKEN` | shared bearer token (required by the shipped Compose file) | none |
 | `OUTPRINT_LISTEN` | listen address | `:8080` |
 | `OUTPRINT_TIMEOUT` | render limit; the Gateway waits 30 s longer for the Worker | `60s` |
 | `OUTPRINT_SERVICE_CONFIG` | service configuration file | |

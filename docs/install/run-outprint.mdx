@@ -27,7 +27,7 @@ your Outline and start it:
 
 ```sh
 export OUTLINE_URL=https://wiki.example.test      # your Outline
-# optional: a token shared by Gateway and Worker
+# required: a token shared by Gateway and Worker
 export OUTPRINT_WORKER_TOKEN="$(openssl rand -hex 32)"
 
 docker compose -f deploy/compose/compose.yaml up --build gateway worker

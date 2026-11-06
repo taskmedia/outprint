@@ -124,7 +124,7 @@ var registry = []Setting{
 	{Name: EnvListen, Component: GatewayAndWorker, Type: "`address`", Default: "`:8080` (Gateway), `:8081` (Worker)", Tier: Tuning,
 		Description: "The address to listen on, for example `:9000`."},
 	{Name: EnvWorkerToken, Component: GatewayAndWorker, Type: "`string` (a secret)", Tier: Tuning,
-		Description: "A shared token. When set on the Worker, it only accepts requests that carry it, so the Gateway needs the same value. Empty means no token."},
+		Description: "A shared token. When set on the Worker, it only accepts requests that carry it, so the Gateway needs the same value. The shipped Compose file requires it. Empty means no token, and the Worker logs a warning at start."},
 	{Name: EnvTimeout, Component: GatewayAndWorker, Type: "`duration`", Default: "`60s`", Tier: Tuning,
 		Description: "The time one PDF may take, for example `90s`. A value that is not a positive duration is ignored."},
 	{Name: EnvLogLevel, Component: GatewayAndWorker, Type: "one of `debug`, `info`, `warn`, `error`", Default: "`info`", Tier: Tuning,

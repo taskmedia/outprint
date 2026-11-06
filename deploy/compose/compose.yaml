@@ -31,9 +31,9 @@ services:
     environment:
       OUTPRINT_LISTEN: ":8081"
       OUTPRINT_WORK_DIR: /work
-      # The one optional secret: a token shared with the gateway. Set the same
-      # value in the environment of both services; empty means no token.
-      OUTPRINT_WORKER_TOKEN: ${OUTPRINT_WORKER_TOKEN:-}
+      # A token shared with the gateway. Compose refuses to start without it;
+      # set the same value in the environment of both services.
+      OUTPRINT_WORKER_TOKEN: ${OUTPRINT_WORKER_TOKEN:?set OUTPRINT_WORKER_TOKEN to a shared secret}
     volumes:
       - type: bind
         source: ../../templates
@@ -66,7 +66,7 @@ services:
     environment:
       OUTPRINT_LISTEN: ":8080"
       OUTPRINT_WORKER_URL: http://worker:8081
-      OUTPRINT_WORKER_TOKEN: ${OUTPRINT_WORKER_TOKEN:-}
+      OUTPRINT_WORKER_TOKEN: ${OUTPRINT_WORKER_TOKEN:?set OUTPRINT_WORKER_TOKEN to a shared secret}
       # Required: the base URL of your Outline. The gateway refuses to start
       # without it.
       OUTLINE_URL: ${OUTLINE_URL:-}

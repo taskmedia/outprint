@@ -25,7 +25,7 @@ It is not part of the injector, and the sandbox tests do not read the injector.
 | `tmpfs: /tmp` | scratch space for tools |
 | `networks: [worker-net]`, `internal: true` | no route out: no internet, no Outline, no host |
 | no `ports` | the Worker is reachable from the Gateway only |
-| no secrets | the only environment variable that looks like one is the optional `OUTPRINT_WORKER_TOKEN` |
+| no secrets | the only environment variable that looks like one is `OUTPRINT_WORKER_TOKEN` |
 | package mounts `read_only: true` | a package cannot be changed from inside |
 | `mem_limit: 1g`, `cpus: 1`, `pids_limit: 128` | a resource bomb ends at the container |
 | `restart: always` | the Worker exits after a timeout or kill; this gives the next job a clean process |

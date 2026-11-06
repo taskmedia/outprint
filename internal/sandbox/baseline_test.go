@@ -47,7 +47,7 @@ func TestWeakeningTheShippedWorkerBreaksTheBaseline(t *testing.T) {
 		"bigger tmpfs":     {workerOnly("size=256m", "size=512m"), "tmpfs"},
 		"executable tmp":   {workerOnly("/tmp:mode=1777,", "/tmp:exec,mode=1777,"), "tmpfs"},
 		"secret env":       {workerOnly(`OUTPRINT_WORK_DIR: /work`, "OUTPRINT_WORK_DIR: /work\n      API_KEY: hunter2"), "environment"},
-		"token default":    {workerOnly("${OUTPRINT_WORKER_TOKEN:-}", "fixed-token"), "environment"},
+		"token default":    {workerOnly("${OUTPRINT_WORKER_TOKEN:?set OUTPRINT_WORKER_TOKEN to a shared secret}", "fixed-token"), "environment"},
 		"writable mount":   {workerOnly("target: /opt/outprint/templates\n        read_only: true", "target: /opt/outprint/templates\n        read_only: false"), "volumes"},
 		"host mount":       {workerOnly("source: ../../templates", "source: /var/run"), "volumes"},
 		"open network":     {strings.Replace(original, "worker-net:\n    internal: true", "worker-net:\n    internal: false", 1), "networks"},

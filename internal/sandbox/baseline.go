@@ -13,7 +13,7 @@ import (
 const (
 	// WorkerUID is the fixed non-root user the Worker image runs as.
 	WorkerUID = 10001
-	// TokenEnv is the one optional secret of the Worker.
+	// TokenEnv is the one secret of the Worker.
 	TokenEnv = settings.EnvWorkerToken
 
 	workDir    = "/work"

@@ -33,8 +33,9 @@ Compose file already follows everything on this page.
   the Worker logs `worker posture is weaker than the shipped baseline` if it
   finds a weaker setting.
 - **Set a token between Gateway and Worker.** `OUTPRINT_WORKER_TOKEN` is
-  optional. Set it when the network between the two is shared with other
-  services. Do not reuse the value anywhere else.
+  required by the shipped Compose file. Without it, any container on the
+  Worker network can submit jobs, and the Worker logs a warning at start. Do
+  not reuse the value anywhere else.
 
 ## What the Gateway sends out
 

@@ -43,6 +43,8 @@ jobs:
         run: task test-helm-bump
 
       - name: compose file is valid
+        env:
+          OUTPRINT_WORKER_TOKEN: ci-config-check-not-a-secret
         run: docker compose -f deploy/compose/compose.yaml config --quiet
 
       - name: dev compose stack is valid
