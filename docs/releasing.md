@@ -27,6 +27,22 @@ For the maintainer. Repo-only: this page is not part of the published docs.
    `.github/workflows/docs.yml`, which deploys the site with the new version
    (see "Docs versions" below). Patch releases and pre-releases do not add one.
 
+6. For a final release (no `-` suffix) the `helm` job runs after `publish` and
+   opens a pull request in `taskmedia/helm` that points `charts/outprint` at the
+   new release: `appVersion`, both image tags, a chart patch bump and a single
+   `artifacthub.io/changes` entry (`scripts/helm-bump-chart.sh`). Merging that
+   pull request makes the helm repository's own workflow publish the chart.
+   The job needs the `PAT` secret with access to `taskmedia/helm` (Contents and
+   Pull requests: read and write) and fails without it. Chart changes a release
+   needs beyond the version (values, templates) stay a manual pull request there.
+
+   **Auto-merge** is prepared but off. Set the repository variable
+   `HELM_AUTO_MERGE` to `true` (Settings > Secrets and variables > Actions >
+   Variables) and the job enables auto-merge on that pull request. Before you do,
+   make the chart test (`Lint and Test Charts`) a required check on `main` of
+   `taskmedia/helm`: GitHub waits only for required checks and merges at once
+   when there are none.
+
 Publishing lives in the same workflow on purpose: a tag or release created
 with the default `GITHUB_TOKEN` does not trigger other workflows, so a separate
 `on: push: tags` workflow would never run.
