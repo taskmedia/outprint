@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/netip"
+	"net/url"
 	"time"
 
 	"github.com/taskmedia/outprint/internal/admission"
@@ -75,6 +77,7 @@ func Run(ctx context.Context, cfg RunConfig) error {
 	if outlineClient, err = outlineClient.WithImages(outline.ImageOptions{Hosts: cfg.ImageHosts, PublicURL: cfg.OutlinePublicURL}); err != nil {
 		return err
 	}
+	warnCleartextOutline(cfg.Logger, cfg.OutlineURL)
 	workerClient, err := workerapi.NewClient(cfg.WorkerURL, cfg.WorkerToken, renderLimit+workerMargin)
 	if err != nil {
 		return err
@@ -118,4 +121,21 @@ func Run(ctx context.Context, cfg RunConfig) error {
 		_ = srv.Close()
 	}
 	return nil
+}
+
+// warnCleartextOutline logs when the user's cookie travels over plain http to
+// a host that is not loopback.
+func warnCleartextOutline(logger *slog.Logger, outlineURL string) {
+	u, err := url.Parse(outlineURL)
+	if err != nil || u.Scheme != "http" {
+		return
+	}
+	host := u.Hostname()
+	if host == "localhost" {
+		return
+	}
+	if addr, err := netip.ParseAddr(host); err == nil && addr.IsLoopback() {
+		return
+	}
+	logger.Warn("OUTLINE_URL is plain http and not loopback: the session cookie is sent in cleartext", "host", host)
 }

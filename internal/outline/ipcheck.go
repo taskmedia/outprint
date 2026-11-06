@@ -19,6 +19,11 @@ var blockedPrefixes = mustPrefixes(
 	"2001::/32",        // Teredo: embeds an IPv4 address
 	"2001:db8::/32",    // documentation
 	"2002::/16",        // 6to4: embeds an IPv4 address
+	"64:ff9b:1::/48",   // local-use NAT64: embeds an IPv4 address
+	"::/96",            // IPv4-compatible (deprecated): embeds an IPv4 address
+	"fec0::/10",        // site-local (deprecated)
+	"192.88.99.0/24",   // 6to4 relay anycast (deprecated)
+	"2001:20::/28",     // ORCHIDv2
 )
 
 func mustPrefixes(cidrs ...string) []netip.Prefix {

@@ -135,6 +135,10 @@ type rendered struct {
 }
 
 func (g *Gateway) render(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Sec-Fetch-Site") == "cross-site" {
+		fail(http.StatusForbidden, PhaseRequest, "cross_site", "cross-site requests are not allowed", nil).write(w)
+		return
+	}
 	start := time.Now()
 	reqID := newRequestID()
 	docID := r.PathValue("documentId")
