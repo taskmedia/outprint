@@ -2,7 +2,9 @@ package packages
 
 import (
 	"fmt"
+	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -190,6 +192,9 @@ func checkInput(rest string, sharedHas func(string) bool) string {
 	m := sharedInputRE.FindStringSubmatch(arg)
 	if m == nil || strings.Contains(arg, "..") {
 		return fmt.Sprintf("\\input{%s} is not allowed: only \\input{shared/NAME} of a file in the package's shared directory", sanitizeForMessage(arg))
+	}
+	if ext := strings.ToLower(filepath.Ext(m[1])); !slices.Contains(texExtensions, ext) {
+		return fmt.Sprintf("\\input{%s}: only files with a scanned TeX extension (%s) may be input", sanitizeForMessage(arg), strings.Join(texExtensions, " "))
 	}
 	if !sharedHas(m[1]) {
 		return fmt.Sprintf("\\input{%s}: no such file in the package's shared directory", arg)
