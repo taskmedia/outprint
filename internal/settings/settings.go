@@ -102,7 +102,7 @@ var registry = []Setting{
 	{Name: EnvWorkerURL, Component: Gateway, Type: "`URL`", Tier: MustSet,
 		Description: "The base URL of the Worker. The Gateway does not start without it. The Compose file sets it."},
 	{Name: EnvOutlinePublicURL, Component: Gateway, Type: "`URL`", Tier: Tuning,
-		Description: "The URL Outline names itself, when `OUTLINE_URL` is an internal address. The Gateway uses it to recognise the images of a document."},
+		Description: "The URL Outline names itself, when `OUTLINE_URL` is an internal address. The Gateway uses it to recognise the images of a document. When it is an `https` URL and `OUTLINE_URL` is `http`, the Gateway also sends `X-Forwarded-Proto: https` to Outline. Without it, Outline redirects every call to `https` (its `FORCE_HTTPS`), and the PDF fails with `unavailable`."},
 	{Name: EnvAdmissionSlots, Component: Gateway, Type: "`integer`", Default: "`1`", Tier: Tuning,
 		Description: "How many PDFs are made at once. At least 1. Overrides `slots` in the service configuration."},
 	{Name: EnvAdmissionQueueDepth, Component: Gateway, Type: "`integer`", Default: "`4`", Tier: Tuning,

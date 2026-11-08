@@ -79,7 +79,7 @@ func (c *Client) WithImages(opts ImageOptions) (*Client, error) {
 		return nil, err
 	}
 	out := *c
-	out.images = &imageFetch{origin: c.base, public: public, allowed: allowed, opts: opts}
+	out.images = &imageFetch{origin: c.base, public: public, allowed: allowed, opts: opts, forwardedProto: c.forwardedProto}
 	return &out, nil
 }
 
@@ -96,10 +96,13 @@ func parsePublicURL(raw string) (*url.URL, error) {
 
 // imageFetch is the SSRF-safe fetcher of one client.
 type imageFetch struct {
-	origin  *url.URL
-	public  *url.URL // nil unless ImageOptions.PublicURL is set
-	allowed map[string]bool
-	opts    ImageOptions
+	origin *url.URL
+	public *url.URL // nil unless ImageOptions.PublicURL is set
+	// forwardedProto is sent as X-Forwarded-Proto to the configured origin
+	// only, never to another host.
+	forwardedProto string
+	allowed        map[string]bool
+	opts           ImageOptions
 }
 
 // allowedHostPorts is the set of host:port pairs a request may go to: the
@@ -239,6 +242,9 @@ func (f *imageFetch) get(ctx context.Context, u *url.URL, cookie string) (*http.
 	}
 	req.Header.Set("Accept", "image/*")
 	req.Header.Set("User-Agent", imageUserAgent)
+	if f.forwardedProto != "" && u.Host == f.origin.Host {
+		req.Header.Set("X-Forwarded-Proto", f.forwardedProto)
+	}
 	if cookie != "" {
 		req.Header.Set("Cookie", cookie)
 	}

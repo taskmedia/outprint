@@ -34,7 +34,7 @@ The base URL of the Worker. The Gateway does not start without it. The Compose f
 
 **Type:** `URL`. **Required:** no. **Default:** none.
 
-The URL Outline names itself, when `OUTLINE_URL` is an internal address. The Gateway uses it to recognise the images of a document.
+The URL Outline names itself, when `OUTLINE_URL` is an internal address. The Gateway uses it to recognise the images of a document. When it is an `https` URL and `OUTLINE_URL` is `http`, the Gateway also sends `X-Forwarded-Proto: https` to Outline. Without it, Outline redirects every call to `https` (its `FORCE_HTTPS`), and the PDF fails with `unavailable`.
 
 ### `OUTPRINT_ADMISSION_SLOTS`
 
