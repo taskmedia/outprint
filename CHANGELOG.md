@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/taskmedia/outprint/compare/v1.0.1...v1.1.0) (2026-11-08)
+
+
+### Features
+
+* **image:** add German hyphenation and babel support to the Worker image ([#163](https://github.com/taskmedia/outprint/issues/163)) ([f25799d](https://github.com/taskmedia/outprint/commit/f25799dc847f3e56a94f23def5352450e7bfcae5))
+
 ## [1.0.1](https://github.com/taskmedia/outprint/compare/v1.0.0...v1.0.1) (2026-11-06)
 
 
