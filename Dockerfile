@@ -26,6 +26,7 @@ RUN apt-get update \
       texlive-luatex \
       texlive-latex-base \
       texlive-latex-recommended \
+      texlive-lang-german \
       fonts-texgyre \
  && rm -rf /var/lib/apt/lists/*
 COPY --from=build /out/outprint /usr/local/bin/outprint
