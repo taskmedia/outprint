@@ -32,6 +32,8 @@
   var UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   var ITEM_ATTR = 'data-olp-item';
+  var ITEM_DOC_ATTR = 'data-olp-doc';
+  var MAX_SUBMENU_DEPTH = 4;
   var HEADER_WRAP_ATTR = 'data-olp-header';
   var METADATA_ATTR = 'data-olp-metadata';
   var METADATA_TOGGLE_ID = 'olp-metadata-toggle';
@@ -357,6 +359,11 @@
     token: 0,
     busy: false,
     busyId: null,
+    // Texts of the other documents the sidebar offers an item for, by id: an
+    // object when the document has a Binding, false when it has none or is
+    // not known yet.
+    docStatus: {},
+    menuPending: false,
     base: DEFAULT_BASE,
     attribute: function () { return null; },
     options: parseOptions(function () { return null; }),
@@ -427,6 +434,22 @@
       svg.appendChild(path);
     });
     return svg;
+  }
+
+  // The document an Export submenu belongs to. The header menu exports the
+  // document in the URL; a menu opened from the sidebar's document tree
+  // exports the document that row links to, or none when the row is no
+  // document (a collection, say).
+  function menuDocumentId(fromHeader, href, currentId) {
+    if (fromHeader) return currentId;
+    if (!href) return null;
+    var path;
+    try {
+      path = new URL(href, 'http://outline.invalid').pathname;
+    } catch (e) {
+      return null;
+    }
+    return documentIdFromPath(path);
   }
 
   // ---- finding Outline's anchors -----------------------------------------
@@ -503,6 +526,69 @@
     return found;
   }
 
+  // The button that opened a menu; Radix points the menu at it with
+  // aria-labelledby. The Export submenu is opened by an item of the root
+  // menu: follow that to the button that opened the root menu.
+  function findMenuTrigger(menu) {
+    var trigger = null;
+    for (var depth = 0; depth < MAX_SUBMENU_DEPTH && menu; depth++) {
+      var id = menu.getAttribute('aria-labelledby');
+      trigger = id ? document.getElementById(id) : null;
+      menu = trigger && trigger.closest('[role="menu"]');
+    }
+    return trigger;
+  }
+
+  // The document link of the row a sidebar trigger sits in: found on the
+  // nearest ancestor that holds one. An ancestor that holds several different
+  // links spans more than one row (a collection with its documents), so it
+  // names no document.
+  function findRowDocumentHref(trigger) {
+    for (var node = trigger.parentElement; node && node !== document.body; node = node.parentElement) {
+      var links = node.matches('a[href]') ? [node] : node.querySelectorAll('a[href*="/doc/"]');
+      if (!links.length) continue;
+      var first = links[0].getAttribute('href');
+      for (var i = 1; i < links.length; i++) {
+        if (links[i].getAttribute('href') !== first) return null;
+      }
+      return first;
+    }
+    return null;
+  }
+
+  // What the PDF item of an Export submenu renders: the document the menu
+  // belongs to, with the texts for it, and the element the progress panel
+  // hangs from. Null when the menu is none of a document that has a Binding.
+  // The header menu is that of the document in the URL; a menu of the
+  // sidebar's document tree is that of its row, whatever the URL says.
+  function resolveMenuTarget(menu) {
+    var trigger = findMenuTrigger(menu);
+    var optionsButton = findOptionsButton();
+    var fromHeader = !trigger || trigger === optionsButton;
+    var href = fromHeader ? null : findRowDocumentHref(trigger);
+    var id = menuDocumentId(fromHeader, href, state.id);
+    if (id === null) return null;
+    if (fromHeader) {
+      return state.available && state.options.placement === 'menu' ? { id: id, texts: state.texts, anchor: optionsButton } : null;
+    }
+    if (id === state.id) return state.available ? { id: id, texts: state.texts, anchor: trigger } : null;
+    var known = state.docStatus[id];
+    if (known === undefined) {
+      requestDocumentStatus(id);
+      return null;
+    }
+    return known ? { id: id, texts: known, anchor: trigger } : null;
+  }
+
+  function requestDocumentStatus(id) {
+    state.docStatus[id] = false;
+    fetchStatus(id).then(function (body) {
+      if (!body || body.available !== true) return;
+      state.docStatus[id] = textsForStatus(body);
+      scheduleMenus();
+    });
+  }
+
   // ---- placing the action ------------------------------------------------
 
   function setBusy(busy) {
@@ -532,10 +618,10 @@
     if (label) label.textContent = text;
   }
 
-  function startDownload(anchor) {
-    if (!state.id || (state.busy && state.busyId === state.id)) return;
+  function startDownload(id, anchor) {
+    if (!id || (state.busy && state.busyId === id)) return;
     state.panelAnchor = anchor;
-    download(state.id);
+    download(id);
   }
 
   function createFloatingButton() {
@@ -544,7 +630,7 @@
     button.type = 'button';
     button.setAttribute('aria-label', state.texts.tooltip);
     button.title = state.texts.tooltip;
-    button.addEventListener('click', function () { startDownload(button); });
+    button.addEventListener('click', function () { startDownload(state.id, button); });
     return button;
   }
 
@@ -568,7 +654,7 @@
     button.title = state.texts.tooltip;
     button.appendChild(createIcon());
     if (state.options.style === 'icon-label') button.appendChild(element('span', 'olp-label', state.texts.button));
-    button.addEventListener('click', function () { startDownload(button); });
+    button.addEventListener('click', function () { startDownload(state.id, button); });
     return button;
   }
 
@@ -608,20 +694,21 @@
     }
   }
 
-  function createMenuItem(template) {
+  function createMenuItem(template, target) {
     var item = template.cloneNode(true);
     ['id', 'data-highlighted', 'data-state', 'data-radix-collection-item', 'href', 'aria-haspopup', 'aria-expanded'].forEach(function (name) {
       item.removeAttribute(name);
     });
     item.setAttribute(ITEM_ATTR, 'menu');
+    item.setAttribute(ITEM_DOC_ATTR, target.id);
     item.setAttribute('role', 'menuitem');
     item.setAttribute('tabindex', '-1');
     // Items of a root menu start with an icon; the Export items do not. The
     // label is the first element that is not the icon.
     var icon = item.querySelector(':scope > [aria-hidden="true"]');
     var label = icon ? icon.nextElementSibling : item.firstElementChild;
-    if (label) label.textContent = state.texts.menu;
-    else item.textContent = state.texts.menu;
+    if (label) label.textContent = target.texts.menu;
+    else item.textContent = target.texts.menu;
     if (icon) {
       var old = icon.querySelector('svg');
       icon.replaceChildren(createIcon((old && old.getAttribute('width')) || '24'));
@@ -632,22 +719,22 @@
     item.addEventListener('blur', function () { item.removeAttribute('data-highlighted'); });
     item.addEventListener('click', function (event) {
       event.preventDefault();
-      selectMenuItem(item);
+      selectMenuItem(item, target);
     });
     return item;
   }
 
   // Closes the menu the way Radix does on Escape and starts the download
-  // anchored at the "…" button. Radix hands the focus back to that button as
-  // the menu unmounts; doing the same afterwards makes sure of it.
-  function selectMenuItem(item) {
+  // anchored at the button that opened the menu. Radix hands the focus back to
+  // that button as the menu unmounts; doing the same afterwards makes sure of it.
+  function selectMenuItem(item, target) {
     var menu = item.closest('[role="menu"]');
-    var options = findOptionsButton();
+    var options = target.anchor;
     if (menu) menu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
     root.setTimeout(function () {
       if (options && options.isConnected && !document.querySelector('[role="menu"]')) options.focus();
     }, 0);
-    startDownload(options);
+    startDownload(target.id, options);
   }
 
   // Radix moves between the items it knows; ours is not one of them. Steer
@@ -669,13 +756,15 @@
   function ensureMenuItems() {
     findExportMenus().forEach(function (menu) {
       if (menu.querySelector('[' + ITEM_ATTR + ']')) return;
+      var target = resolveMenuTarget(menu);
+      if (!target) return;
       var items = menu.querySelectorAll('[role="menuitem"]');
       var last = null;
       for (var i = 0; i < items.length; i++) {
         if (isExportItemText(items[i].textContent)) last = items[i];
       }
       if (!last) return;
-      last.parentNode.insertBefore(createMenuItem(last), last.nextSibling);
+      last.parentNode.insertBefore(createMenuItem(last, target), last.nextSibling);
       menu.addEventListener('keydown', onMenuKey, true);
     });
   }
@@ -758,7 +847,6 @@
       anchored = ensureHeaderButton();
     } else {
       anchored = !!findOptionsButton();
-      if (anchored) ensureMenuItems();
     }
     if (anchored) {
       state.anchored = true;
@@ -777,6 +865,20 @@
     };
     if (typeof root.requestAnimationFrame === 'function') root.requestAnimationFrame(run);
     else root.setTimeout(run, 16);
+  }
+
+  // Menus open and close independently of the document in the URL, and the
+  // sidebar's offer an item for documents other than it: watch the page for
+  // them for as long as the script runs.
+  function scheduleMenus() {
+    if (state.menuPending) return;
+    state.menuPending = true;
+    var run = function () {
+      state.menuPending = false;
+      ensureMenuItems();
+    };
+    if (typeof root.requestAnimationFrame === 'function') root.requestAnimationFrame(run);
+    else setTimeout(run, 16);
   }
 
   function startPlacing() {
@@ -979,13 +1081,19 @@
   }
 
   function report(id, response) {
-    if (state.id !== id) return;
+    if (state.busyId !== id) return;
     // Dismiss the busy panel first: setBusy(false) would remove the error.
     dismissPanel();
     showFailure(describeFailure(response));
   }
 
   // ---- availability and routing -------------------------------------------
+
+  function textsForStatus(body) {
+    var options = parseOptions(state.attribute, body.button);
+    var language = resolveLanguage(body.language, root.navigator && root.navigator.language, Object.keys(languagesOf(options.labels)));
+    return textsFor(language, options.labels);
+  }
 
   function show(body) {
     state.options = parseOptions(state.attribute, body.button);
@@ -994,6 +1102,7 @@
     removeInjected();
     state.available = true;
     startPlacing();
+    scheduleMenus();
   }
 
   function languagesOf(labels) {
@@ -1009,14 +1118,18 @@
     removeInjected();
   }
 
-  function checkStatus(id, token) {
-    fetch(state.base + '/status/' + encodeURIComponent(id), {
+  function fetchStatus(id) {
+    return fetch(state.base + '/status/' + encodeURIComponent(id), {
       credentials: 'same-origin',
       cache: 'no-store',
       headers: { Accept: 'application/json' }
     })
       .then(function (response) { return response.ok ? response.json() : null; })
-      .catch(function () { return null; })
+      .catch(function () { return null; });
+  }
+
+  function checkStatus(id, token) {
+    fetchStatus(id)
       .then(function (body) {
         if (token !== state.token) return;
         if (body && body.available === true) show(body);
@@ -1030,6 +1143,7 @@
   function sync(force) {
     var id = documentIdFromPath(root.location.pathname);
     if (id === state.id && !force) return;
+    if (force) state.docStatus = {};
     state.id = id;
     state.token += 1;
     if (!id) {
@@ -1060,6 +1174,7 @@
     state.attribute = function (name) { return script ? script.getAttribute(name) : null; };
     state.options = parseOptions(state.attribute);
     patchHistory();
+    new MutationObserver(scheduleMenus).observe(document.body, { childList: true, subtree: true });
     var onRoute = function () { sync(false); };
     root.addEventListener('popstate', onRoute);
     root.addEventListener('hashchange', onRoute);
@@ -1073,6 +1188,7 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
       documentIdFromPath: documentIdFromPath,
+      menuDocumentId: menuDocumentId,
       parseContentDisposition: parseContentDisposition,
       sanitizeFilename: sanitizeFilename,
       formatErrorItem: formatErrorItem,

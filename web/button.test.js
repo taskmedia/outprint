@@ -26,6 +26,20 @@ test('documentIdFromPath ignores other pages and unsafe ids', () => {
   }
 });
 
+test('menuDocumentId follows the header menu to the document in the URL', () => {
+  assert.equal(b.menuDocumentId(true, null, 'aB3dE5fGh1'), 'aB3dE5fGh1');
+});
+
+test('menuDocumentId follows a sidebar menu to the document of its row', () => {
+  assert.equal(b.menuDocumentId(false, '/doc/other-xY9zAbCdE2', 'aB3dE5fGh1'), 'xY9zAbCdE2');
+  assert.equal(b.menuDocumentId(false, 'https://outline.example/doc/other-xY9zAbCdE2?x=1', 'aB3dE5fGh1'), 'xY9zAbCdE2');
+});
+
+test('menuDocumentId finds no document for a row that is not one', () => {
+  assert.equal(b.menuDocumentId(false, '/collection/alpha-123', 'aB3dE5fGh1'), null);
+  assert.equal(b.menuDocumentId(false, null, 'aB3dE5fGh1'), null);
+});
+
 test('parseContentDisposition prefers filename* and decodes UTF-8', () => {
   const header = 'attachment; filename="Gruesse aus Koeln.pdf"; filename*=UTF-8\'\'Gr%C3%BC%C3%9Fe%20aus%20K%C3%B6ln.pdf';
   assert.equal(b.parseContentDisposition(header, 'x.pdf'), 'Grüße aus Köln.pdf');
