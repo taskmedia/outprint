@@ -84,6 +84,7 @@ the check passes. Then it restarts the Gateway and the Worker. A broken
 package therefore never replaces a working one. The Worker keeps its
 NetworkPolicy: only the CronJob has network access.
 
+{/* validate: skip Helm chart values, not an Outprint file */}
 ```yaml
 packages:
   git:
