@@ -62,6 +62,53 @@ default, the injector, with a random token shared by Gateway and Worker. The
 chart's README and `values.yaml` list every option; it is also published as
 `oci://ghcr.io/taskmedia/outprint`.
 
+### Your own Templates and Configurations
+
+The Gateway and the Worker both read the Template and Configuration packages
+when they start. The chart ships `neutral` and `example` in the image. To use
+your own, set one `packages` source; the chart then mounts the packages at
+`/opt/outprint/templates` and `/opt/outprint/configurations` in both
+Deployments, read-only, and points the [service configuration](../reference/service-configuration.md)
+at them. Allow the pairs you want in `serviceConfig.bindings`.
+
+| Source | Use it when | You set |
+|--------|-------------|---------|
+| `git` | the packages live in a Git repository (the usual case) | `packages.git.url`, `ref`, optional `sshKeySecret` |
+| `image` | you publish the packages as an OCI image or artifact | `packages.image.reference` |
+| `existingClaim` | you manage the files yourself | `packages.existingClaim` |
+
+Set one source. With `git`, a small CronJob resolves `ref` (a tag, a branch or a
+commit) to a commit, compares it with the commit in use, and on a change clones
+it (Git LFS files included), runs `outprint validate`, and switches over only if
+the check passes. Then it restarts the Gateway and the Worker. A broken
+package therefore never replaces a working one. The Worker keeps its
+NetworkPolicy: only the CronJob has network access.
+
+```yaml
+packages:
+  git:
+    url: git@github.com:example/letters.git
+    ref: v1.0.0                          # tag, branch or commit
+    commit: ""                           # optional: refuse any other commit
+    path: outprint                       # folder with templates/ and configurations/
+    sshKeySecret: letters-deploy-key     # Secret with key "ssh-privatekey"; omit for a public repo
+    interval: 5m
+serviceConfig:
+  bindings:
+    - template: letter
+      configuration: acme
+  defaultBinding:
+    template: letter
+    configuration: acme
+```
+
+A tag or a commit is the safest `ref`: it changes only when you change it. A
+branch follows new commits within one `interval`. If `commit` is set and `ref`
+resolves to another commit, the CronJob stops and keeps what runs.
+
+For other setups, `extraVolumes` and `extraVolumeMounts` (per component) let you
+mount the two folders yourself.
+
 </TabItem>
 </Tabs>
 
