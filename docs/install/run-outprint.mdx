@@ -173,7 +173,10 @@ come back.
 
 If a check fails: `docker compose -f deploy/compose/compose.yaml logs gateway worker`.
 A `500` with `outline: unavailable` means the Gateway cannot reach `OUTLINE_URL`;
-use the address the Gateway can reach, not the public one. The Worker refuses to
-start as UID 0.
+use the address the Gateway can reach, not the public one. If Outline's own URL
+setting is `https` and `OUTLINE_URL` is plain `http` (the usual setup inside a
+cluster), set `OUTLINE_PUBLIC_URL` to that `https` URL: the Gateway then sends
+`X-Forwarded-Proto: https`, and Outline does not answer every call with a
+redirect to `https` (its `FORCE_HTTPS`). The Worker refuses to start as UID 0.
 
 Next: [Add the button](add-the-button.mdx).

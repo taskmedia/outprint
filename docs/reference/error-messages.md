@@ -491,7 +491,9 @@ is one.
 **Cause:** Outprint got no answer from Outline, or Outline answered with an
 error.
 
-**What to do:** Retry in a minute. If it stays, tell the operator.
+**What to do:** Retry in a minute. If it stays, tell the operator. Operators:
+if Outline's URL setting is `https` but the Gateway reaches it over `http`, set
+`OUTLINE_PUBLIC_URL` (see [Run Outprint](../install/run-outprint.mdx)).
 
 ### `unreachable`
 

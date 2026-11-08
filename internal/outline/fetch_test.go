@@ -135,3 +135,38 @@ func TestPublicOriginDoesNotWidenTheAllowList(t *testing.T) {
 		t.Error("a public URL that is not http(s) was accepted")
 	}
 }
+
+func TestForwardedProtoGoesToTheOutlineOriginOnly(t *testing.T) {
+	var seen []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seen = append(seen, r.URL.Path+" proto="+r.Header.Get("X-Forwarded-Proto"))
+		switch r.URL.Path {
+		case "/api/attachments.redirect":
+			http.Redirect(w, r, "http://wiki.example.invalid:8090/api/files.get?sig=1", http.StatusFound)
+		default:
+			_, _ = w.Write([]byte("image-bytes"))
+		}
+	}))
+	defer srv.Close()
+
+	c, err := NewClient(srv.URL, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Order must not matter: set before and after WithImages.
+	c, err = c.WithImages(ImageOptions{PublicURL: "http://wiki.example.invalid:8090"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, err = c.WithForwardedProto("https")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Image(t.Context(), "/api/attachments.redirect?id=x", Session{Cookie: "accessToken=canary"}); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"/api/attachments.redirect proto=https", "/api/files.get proto=https"}
+	if strings.Join(seen, "|") != strings.Join(want, "|") {
+		t.Errorf("requests %v, want %v", seen, want)
+	}
+}

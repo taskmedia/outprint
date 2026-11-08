@@ -195,3 +195,45 @@ func TestUserLanguageMayBeAbsent(t *testing.T) {
 		t.Errorf("UserLanguage = %q, %v; want empty and no error", lang, err)
 	}
 }
+
+func TestForwardedProtoIsDerivedFromTheTwoURLs(t *testing.T) {
+	for _, tc := range []struct{ internal, public, want string }{
+		{"http://outline:3000", "https://docs.example.invalid", "https"},
+		{"http://outline:3000", "http://docs.example.invalid", ""},
+		{"https://docs.example.invalid", "https://docs.example.invalid", ""},
+		{"http://outline:3000", "", ""},
+		{"", "https://docs.example.invalid", ""},
+	} {
+		if got := ForwardedProto(tc.internal, tc.public); got != tc.want {
+			t.Errorf("ForwardedProto(%q, %q) = %q, want %q", tc.internal, tc.public, got, tc.want)
+		}
+	}
+}
+
+func TestForwardedProtoIsSentWithEveryAPICall(t *testing.T) {
+	var got []string
+	c := newClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got = append(got, r.Header.Get("X-Forwarded-Proto"))
+		io.WriteString(w, `{"data":{"id":"d1"}}`)
+	}))
+	if _, err := c.Document(t.Context(), "a", Session{}); err != nil {
+		t.Fatal(err)
+	}
+	c, err := c.WithForwardedProto("https")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Document(t.Context(), "a", Session{}); err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{"", "https"}; strings.Join(got, "|") != strings.Join(want, "|") {
+		t.Errorf("X-Forwarded-Proto = %q, want %q", got, want)
+	}
+}
+
+func TestWithForwardedProtoRejectsOtherValues(t *testing.T) {
+	c := newClient(t, http.NotFoundHandler())
+	if _, err := c.WithForwardedProto("javascript"); err == nil {
+		t.Error("want an error for a value that is not http or https")
+	}
+}

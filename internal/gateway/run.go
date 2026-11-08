@@ -74,6 +74,12 @@ func Run(ctx context.Context, cfg RunConfig) error {
 	if err != nil {
 		return err
 	}
+	if proto := outline.ForwardedProto(cfg.OutlineURL, cfg.OutlinePublicURL); proto != "" {
+		if outlineClient, err = outlineClient.WithForwardedProto(proto); err != nil {
+			return err
+		}
+		cfg.Logger.Info("sending X-Forwarded-Proto to Outline: its URL setting is https and it is reached over http", "proto", proto)
+	}
 	if outlineClient, err = outlineClient.WithImages(outline.ImageOptions{Hosts: cfg.ImageHosts, PublicURL: cfg.OutlinePublicURL}); err != nil {
 		return err
 	}

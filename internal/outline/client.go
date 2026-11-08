@@ -64,6 +64,9 @@ type Client struct {
 	base   *url.URL
 	http   *http.Client
 	images *imageFetch
+	// forwardedProto is sent as X-Forwarded-Proto to the configured origin,
+	// or empty.
+	forwardedProto string
 }
 
 // NewClient returns a client for the Outline at rawURL, which must be an
@@ -90,6 +93,41 @@ func NewClient(rawURL string, timeout time.Duration) (*Client, error) {
 		// somewhere the operator did not configure.
 		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 	}}, nil
+}
+
+// ForwardedProto returns the value of X-Forwarded-Proto that the Gateway must
+// send so that Outline treats an internal http call as the https request its
+// URL setting asks for: "https" when Outline names itself with an https URL
+// (publicURL) but is reached over plain http (internalURL), else "". Outline
+// answers such a call with a redirect to https, which is never followed.
+func ForwardedProto(internalURL, publicURL string) string {
+	internal, err := url.Parse(strings.TrimSpace(internalURL))
+	if err != nil || internal.Scheme != "http" {
+		return ""
+	}
+	public, err := url.Parse(strings.TrimSpace(publicURL))
+	if err != nil || public.Scheme != "https" {
+		return ""
+	}
+	return "https"
+}
+
+// WithForwardedProto returns a copy of the client that sends proto as
+// X-Forwarded-Proto to the configured Outline origin, in API calls and in
+// image fetches from that origin, never to another host. proto is "http",
+// "https" or empty for none.
+func (c *Client) WithForwardedProto(proto string) (*Client, error) {
+	if proto != "" && proto != "http" && proto != "https" {
+		return nil, errors.New("forwarded proto must be http, https or empty")
+	}
+	out := *c
+	out.forwardedProto = proto
+	if c.images != nil {
+		images := *c.images
+		images.forwardedProto = proto
+		out.images = &images
+	}
+	return &out, nil
 }
 
 // BaseURL is the configured URL without a trailing slash, with its path
@@ -158,6 +196,9 @@ func (c *Client) call(ctx context.Context, method string, params map[string]stri
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
+	if c.forwardedProto != "" {
+		req.Header.Set("X-Forwarded-Proto", c.forwardedProto)
+	}
 	if s.Cookie != "" {
 		req.Header.Set("Cookie", s.Cookie)
 	}
