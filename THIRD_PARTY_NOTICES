@@ -30,8 +30,8 @@ The project publishes source code. It may also publish container images:
   * the OUTPRINT image (default target of the Dockerfile): the Go binary
     `outprint`, the Templates and Configurations of this repository, and the
     Debian packages pandoc, librsvg2-bin, texlive-luatex, texlive-latex-base,
-    texlive-latex-recommended and fonts-texgyre with their dependencies
-    (about 175 Debian packages in total);
+    texlive-latex-recommended, texlive-lang-german and fonts-texgyre with
+    their dependencies (about 176 Debian packages in total);
   * the INJECTOR image: the Go binary `outprint-injector` on gcr.io/distroless/static-debian13
     (no TeX toolchain, no shell, no package manager). The licences of the
     distroless base are in the image under /usr/share/doc; not verified in
@@ -110,15 +110,18 @@ beyond what the Debian copyright file of `pandoc` states.
   Packages (Debian trixie, TeX Live 2024 packaging):
     texlive-binaries 2024.20240313.70630+ds-6 (LuaTeX / LuaHBTeX, kpathsea;
                      GPL-2+, LPPL, MIT, TeX-Live per Debian's copyright file)
-    texlive-base, texlive-latex-base, texlive-latex-recommended, texlive-luatex
+    texlive-base, texlive-latex-base, texlive-latex-recommended, texlive-luatex,
+    texlive-lang-german (German hyphenation patterns and babel-german)
                      2024.20250309-1
     tex-common 6.19 (GPL-2+), fonts-lmodern / lmodern 2.005-1
   Upstream:   https://tug.org/texlive/, https://www.latex-project.org
   Source:     Debian source packages `texlive-bin` (binaries), `texlive-base`
-              (all four texlive-* packages above), `lmodern`, `tex-common`,
+              (the texlive-* packages above except texlive-lang-german),
+              `texlive-lang` (texlive-lang-german), `lmodern`, `tex-common`,
               at the same places as in section 2, e.g.
               apt-get source texlive-bin=2024.20240313.70630+ds-6
               apt-get source texlive-base=2024.20250309-1
+              apt-get source texlive-lang=2024.20250309-1
   Licence:    TeX Live is a collection of many packages, each under its own
               free licence. Debian's copyright file for these packages
               (/usr/share/doc/texlive-*/copyright) states: all software is

@@ -121,6 +121,13 @@ licence text, and list them in `THIRD_PARTY_NOTICES`. `neutral` ships TeX Gyre
 under the GUST Font License. Do not ship proprietary fonts in a public
 repository.
 
+### Languages
+
+The Worker image ships the English and German hyphenation patterns and `babel`
+support (`\usepackage[ngerman]{babel}`). A Template in another language needs
+the matching TeX Live language package in the image. The `language` field only
+sets how dates are written and the PDF language; it does not load `babel`.
+
 ### Images and logos
 
 A logo is an `asset` field. SVG files are converted to vector PDF; raster
