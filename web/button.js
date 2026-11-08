@@ -429,6 +429,22 @@
     return svg;
   }
 
+  // The document an Export submenu belongs to. The header menu exports the
+  // document in the URL; a menu opened from the sidebar's document tree
+  // exports the document that row links to, or none when the row is no
+  // document (a collection, say).
+  function menuDocumentId(fromHeader, href, currentId) {
+    if (fromHeader) return currentId;
+    if (!href) return null;
+    var path;
+    try {
+      path = new URL(href, 'http://outline.invalid').pathname;
+    } catch (e) {
+      return null;
+    }
+    return documentIdFromPath(path);
+  }
+
   // ---- finding Outline's anchors -----------------------------------------
   // Outline's DOM has no stable classes or test ids and its texts are
   // translated, so everything here goes by role, aria-haspopup and structure.
@@ -501,6 +517,41 @@
       }
     });
     return found;
+  }
+
+  // The trigger that opened a menu; Radix points the menu at it with
+  // aria-labelledby.
+  function findMenuTrigger(menu) {
+    var id = menu.getAttribute('aria-labelledby');
+    return id ? document.getElementById(id) : null;
+  }
+
+  // The document link of the row a sidebar trigger sits in: found on the
+  // nearest ancestor that holds one. An ancestor that holds several different
+  // links spans more than one row (a collection with its documents), so it
+  // names no document.
+  function findRowDocumentHref(trigger) {
+    for (var node = trigger.parentElement; node && node !== document.body; node = node.parentElement) {
+      var links = node.matches('a[href]') ? [node] : node.querySelectorAll('a[href*="/doc/"]');
+      if (!links.length) continue;
+      var first = links[0].getAttribute('href');
+      for (var i = 1; i < links.length; i++) {
+        if (links[i].getAttribute('href') !== first) return null;
+      }
+      return first;
+    }
+    return null;
+  }
+
+  // Whether the Export submenu is the one of the document being shown. Menus
+  // of other documents in the sidebar must not get an item: it would render
+  // the document in the URL instead of the one the menu is about.
+  function menuBelongsToCurrentDocument(menu) {
+    var trigger = findMenuTrigger(menu);
+    var fromHeader = !trigger || trigger === findOptionsButton();
+    var href = fromHeader ? null : findRowDocumentHref(trigger);
+    var id = menuDocumentId(fromHeader, href, state.id);
+    return id !== null && id === state.id;
   }
 
   // ---- placing the action ------------------------------------------------
@@ -669,6 +720,7 @@
   function ensureMenuItems() {
     findExportMenus().forEach(function (menu) {
       if (menu.querySelector('[' + ITEM_ATTR + ']')) return;
+      if (!menuBelongsToCurrentDocument(menu)) return;
       var items = menu.querySelectorAll('[role="menuitem"]');
       var last = null;
       for (var i = 0; i < items.length; i++) {
@@ -1073,6 +1125,7 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
       documentIdFromPath: documentIdFromPath,
+      menuDocumentId: menuDocumentId,
       parseContentDisposition: parseContentDisposition,
       sanitizeFilename: sanitizeFilename,
       formatErrorItem: formatErrorItem,
