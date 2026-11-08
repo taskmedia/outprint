@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/taskmedia/outprint/compare/v1.1.1...v1.1.2) (2026-11-08)
+
+
+### Bug Fixes
+
+* **button:** render the document a export menu belongs to ([#169](https://github.com/taskmedia/outprint/issues/169)) ([6f7718e](https://github.com/taskmedia/outprint/commit/6f7718e5bbd3a6741745fa181e811e675a96d76e))
+
 ## [1.1.1](https://github.com/taskmedia/outprint/compare/v1.1.0...v1.1.1) (2026-11-08)
 
 
