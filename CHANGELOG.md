@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/taskmedia/outprint/compare/v1.1.0...v1.1.1) (2026-11-08)
+
+
+### Bug Fixes
+
+* **gateway:** send X-Forwarded-Proto when Outline is reached over http but names itself https ([#166](https://github.com/taskmedia/outprint/issues/166)) ([5cf797b](https://github.com/taskmedia/outprint/commit/5cf797ba423faca07e68b79900dc84f993b849e8))
+
 ## [1.1.0](https://github.com/taskmedia/outprint/compare/v1.0.1...v1.1.0) (2026-11-08)
 
 
