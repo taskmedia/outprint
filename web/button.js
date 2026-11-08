@@ -33,6 +33,7 @@
 
   var ITEM_ATTR = 'data-olp-item';
   var ITEM_DOC_ATTR = 'data-olp-doc';
+  var MAX_SUBMENU_DEPTH = 4;
   var HEADER_WRAP_ATTR = 'data-olp-header';
   var METADATA_ATTR = 'data-olp-metadata';
   var METADATA_TOGGLE_ID = 'olp-metadata-toggle';
@@ -525,11 +526,17 @@
     return found;
   }
 
-  // The trigger that opened a menu; Radix points the menu at it with
-  // aria-labelledby.
+  // The button that opened a menu; Radix points the menu at it with
+  // aria-labelledby. The Export submenu is opened by an item of the root
+  // menu: follow that to the button that opened the root menu.
   function findMenuTrigger(menu) {
-    var id = menu.getAttribute('aria-labelledby');
-    return id ? document.getElementById(id) : null;
+    var trigger = null;
+    for (var depth = 0; depth < MAX_SUBMENU_DEPTH && menu; depth++) {
+      var id = menu.getAttribute('aria-labelledby');
+      trigger = id ? document.getElementById(id) : null;
+      menu = trigger && trigger.closest('[role="menu"]');
+    }
+    return trigger;
   }
 
   // The document link of the row a sidebar trigger sits in: found on the
