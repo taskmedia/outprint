@@ -617,3 +617,13 @@ test('trimAfterLabel copes with an Export item without a file type and with no l
   assert.doesNotThrow(() => b.trimAfterLabel(label, true));
   assert.doesNotThrow(() => b.trimAfterLabel(null, true));
 });
+
+test('panelPlacementAnchor keeps a header control and moves a sidebar trigger to the header', () => {
+  const options = {};
+  const headerButton = {};
+  const sidebarTrigger = {};
+  assert.equal(b.panelPlacementAnchor(options, [options, headerButton]), options);
+  assert.equal(b.panelPlacementAnchor(headerButton, [options, headerButton]), headerButton);
+  assert.equal(b.panelPlacementAnchor(sidebarTrigger, [options, headerButton]), options);
+  assert.equal(b.panelPlacementAnchor(sidebarTrigger, []), null);
+});

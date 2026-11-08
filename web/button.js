@@ -452,6 +452,13 @@
     return documentIdFromPath(path);
   }
 
+  // The control the feedback panel hangs from. It belongs beside the page, at
+  // the header, whichever control started the download: a sidebar trigger gets
+  // the header's "…" button instead, and none when the page has no such button.
+  function panelPlacementAnchor(anchor, headerControls) {
+    return headerControls.indexOf(anchor) !== -1 ? anchor : headerControls[0] || null;
+  }
+
   // ---- finding Outline's anchors -----------------------------------------
   // Outline's DOM has no stable classes or test ids and its texts are
   // translated, so everything here goes by role, aria-haspopup and structure.
@@ -940,12 +947,13 @@
     returnFocus();
   }
 
-  // Under the anchor, right-aligned with it; bottom right of the window when
-  // there is no anchor on the page (the floating button).
+  // Under the header's control, right-aligned with it; bottom right of the
+  // window when there is none on the page (the floating button).
   function positionPanel() {
     var panel = document.getElementById(PANEL_ID);
-    var anchor = state.panelAnchor;
     if (!panel) return;
+    var headerControls = [findOptionsButton()].concat(Array.prototype.slice.call(document.querySelectorAll('.olp-header-button'))).filter(Boolean);
+    var anchor = panelPlacementAnchor(state.panelAnchor, headerControls);
     if (!anchor || !anchor.isConnected || anchor.id === BUTTON_ID) {
       panel.style.top = '';
       panel.style.right = '';
@@ -1189,6 +1197,7 @@
     module.exports = {
       documentIdFromPath: documentIdFromPath,
       menuDocumentId: menuDocumentId,
+      panelPlacementAnchor: panelPlacementAnchor,
       parseContentDisposition: parseContentDisposition,
       sanitizeFilename: sanitizeFilename,
       formatErrorItem: formatErrorItem,
