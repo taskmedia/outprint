@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/taskmedia/outprint/compare/v1.1.2...v1.1.3) (2026-11-08)
+
+
+### Bug Fixes
+
+* **button:** anchor the progress panel beside the page, not at the sidebar ([#171](https://github.com/taskmedia/outprint/issues/171)) ([316e9a8](https://github.com/taskmedia/outprint/commit/316e9a8eeb6442c8abae04cf3fbb5ad91c10eeb6))
+
 ## [1.1.2](https://github.com/taskmedia/outprint/compare/v1.1.1...v1.1.2) (2026-11-08)
 
 
