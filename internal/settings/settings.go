@@ -136,8 +136,8 @@ var registry = []Setting{
 	{Name: EnvConfigsRoot, Component: GatewayAndWorker, Type: "`path`", Tier: Tuning,
 		Description: "The folder with the Configuration packages. Wins over `configurationsRoot` in the service configuration. The image sets `/opt/outprint/configurations`."},
 
-	{Name: EnvButtonPlacement, Component: PDFAction, Type: "one of `menu`, `button`", Default: "`menu`", Tier: Tuning,
-		Description: "Where the PDF action sits. `menu` puts it in the Export submenu of the document menu, `button` in a header button before Share."},
+	{Name: EnvButtonPlacement, Component: PDFAction, Type: "`menu`, `button` or a comma-separated list of them", Default: "`menu`", Tier: Tuning,
+		Description: "Where the PDF action sits. `menu` puts it in the Export submenu of the document menu, `button` in a header button before Share, `menu,button` in both."},
 	{Name: EnvButtonLabels, Component: PDFAction, Type: "`JSON object`", Default: "the built-in texts", Tier: Tuning,
 		Description: "Replaces the texts of the action. Keys are `menu`, `button` and `tooltip`, each a map from a language such as `de` to a text of 1 to 80 characters."},
 	{Name: EnvButtonStyle, Component: PDFAction, Type: "one of `icon-label`, `icon`", Default: "`icon-label`", Tier: Tuning,

@@ -250,6 +250,20 @@
     return allowed.indexOf(value) !== -1 ? value : fallback;
   }
 
+  // One placement or a comma-separated list of different ones, written in
+  // the order of PLACEMENTS; the menu for anything unusable.
+  function parsePlacement(value) {
+    if (typeof value !== 'string') return 'menu';
+    var chosen = value.split(',').map(function (part) { return part.trim(); });
+    var usable = chosen.every(function (p, i) { return PLACEMENTS.indexOf(p) !== -1 && chosen.indexOf(p) === i; });
+    if (!usable) return 'menu';
+    return PLACEMENTS.filter(function (p) { return chosen.indexOf(p) !== -1; }).join(',');
+  }
+
+  function hasPlacement(placement, name) {
+    return placement.split(',').indexOf(name) !== -1;
+  }
+
   // The options of the script. The Gateway sends them with the status
   // (remote, may be missing); a data attribute on the script tag overrides
   // the matching one. get(name) returns the attribute value or null. Anything
@@ -269,7 +283,7 @@
     }
     var delay = parseInt(pick('data-fallback-delay', 'fallbackDelayMs'), 10);
     return {
-      placement: oneOf(pick('data-placement', 'placement'), PLACEMENTS, 'menu'),
+      placement: parsePlacement(pick('data-placement', 'placement')),
       style: oneOf(pick('data-style', 'style'), STYLES, 'icon-label'),
       fallback: pick('data-fallback', 'fallback') !== 'off',
       metadataBlock: oneOf(pick('data-metadata-block', 'metadataBlock'), METADATA_BLOCK_MODES, 'collapse'),
@@ -576,7 +590,7 @@
     var id = menuDocumentId(fromHeader, href, state.id);
     if (id === null) return null;
     if (fromHeader) {
-      return state.available && state.options.placement === 'menu' ? { id: id, texts: state.texts, anchor: optionsButton } : null;
+      return state.available && hasPlacement(state.options.placement, 'menu') ? { id: id, texts: state.texts, anchor: optionsButton } : null;
     }
     if (id === state.id) return state.available ? { id: id, texts: state.texts, anchor: trigger } : null;
     var known = state.docStatus[id];
@@ -849,12 +863,9 @@
   function place() {
     if (!state.available) return;
     syncMetadataBlock();
-    var anchored;
-    if (state.options.placement === 'button') {
-      anchored = ensureHeaderButton();
-    } else {
-      anchored = !!findOptionsButton();
-    }
+    var inHeader = hasPlacement(state.options.placement, 'button') && ensureHeaderButton();
+    var inMenu = hasPlacement(state.options.placement, 'menu') && !!findOptionsButton();
+    var anchored = inHeader || inMenu;
     if (anchored) {
       state.anchored = true;
       removeById(BUTTON_ID);
@@ -1207,6 +1218,7 @@
       safeDocsUrl: safeDocsUrl,
       docsHome: docsHome,
       parseOptions: parseOptions,
+      hasPlacement: hasPlacement,
       resolveLanguage: resolveLanguage,
       textsFor: textsFor,
       isExportItemText: isExportItemText,

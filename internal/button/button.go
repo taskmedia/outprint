@@ -49,8 +49,8 @@ var (
 // the defaults: placement menu, style icon-label, fallback on, the script's
 // own wait, the built-in texts, the Metadata Block hidden in the reading view.
 type Config struct {
-	// Placement is "menu" (Export submenu of the document menu) or "button"
-	// (header button before Share).
+	// Placement is "menu" (Export submenu of the document menu), "button"
+	// (header button before Share), or both as a comma-separated list.
 	Placement string
 	// Style is "icon-label" or "icon" and applies to the header button.
 	Style string
@@ -118,8 +118,8 @@ func (c Config) Options() (Options, error) {
 		return Options{}, err
 	}
 	var o Options
-	if c.Placement == placementButton {
-		o.Placement = c.Placement
+	if p := normalizePlacement(c.Placement); p != placementMenu {
+		o.Placement = p
 	}
 	if c.Style == styleIcon {
 		o.Style = c.Style
@@ -144,7 +144,7 @@ func (c Config) Options() (Options, error) {
 }
 
 func (c Config) check() error {
-	if err := oneOf(envButtonPlacement, c.Placement, placementMenu, placementButton); err != nil {
+	if err := checkPlacement(c.Placement); err != nil {
 		return err
 	}
 	if err := oneOf(envButtonStyle, c.Style, styleIconLabel, styleIcon); err != nil {
@@ -172,8 +172,8 @@ func (c Config) Attributes() (string, error) {
 	if err := c.check(); err != nil {
 		return "", err
 	}
-	if c.Placement == placementButton {
-		add("placement", c.Placement)
+	if p := normalizePlacement(c.Placement); p != placementMenu {
+		add("placement", p)
 	}
 	if c.Style == styleIcon {
 		add("style", c.Style)
@@ -207,6 +207,48 @@ func oneOf(name, value string, allowed ...string) error {
 		}
 	}
 	return fmt.Errorf("%s must be %s, got %q", name, strings.Join(allowed, " or "), value)
+}
+
+// placements is the fixed order in which several placements are written.
+var placements = []string{placementMenu, placementButton}
+
+// checkPlacement accepts one placement or a comma-separated list of
+// different ones.
+func checkPlacement(raw string) error {
+	if raw == "" {
+		return nil
+	}
+	seen := map[string]bool{}
+	for _, part := range strings.Split(raw, ",") {
+		p := strings.TrimSpace(part)
+		if err := oneOf(envButtonPlacement, p, placements...); err != nil || p == "" {
+			return fmt.Errorf("%s must be menu, button or a comma-separated list of them, got %q", envButtonPlacement, raw)
+		}
+		if seen[p] {
+			return fmt.Errorf("%s names %q twice", envButtonPlacement, p)
+		}
+		seen[p] = true
+	}
+	return nil
+}
+
+// normalizePlacement returns a checked placement in the fixed order, the
+// default menu for an empty one.
+func normalizePlacement(raw string) string {
+	if raw == "" {
+		return placementMenu
+	}
+	chosen := map[string]bool{}
+	for _, part := range strings.Split(raw, ",") {
+		chosen[strings.TrimSpace(part)] = true
+	}
+	var out []string
+	for _, p := range placements {
+		if chosen[p] {
+			out = append(out, p)
+		}
+	}
+	return strings.Join(out, ",")
 }
 
 // normalizeLabels checks the override texts and returns them as compact JSON
