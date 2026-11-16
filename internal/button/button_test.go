@@ -41,6 +41,9 @@ func TestOptionsRejectBadValues(t *testing.T) {
 		key  string
 	}{
 		{"placement", Config{Placement: "floating"}, envButtonPlacement},
+		{"placement in a list", Config{Placement: "menu,floating"}, envButtonPlacement},
+		{"placement twice", Config{Placement: "button,button"}, envButtonPlacement},
+		{"empty placement in a list", Config{Placement: "menu,"}, envButtonPlacement},
 		{"style", Config{Style: "label"}, envButtonStyle},
 		{"fallback", Config{Fallback: "maybe"}, envButtonFallback},
 		{"metadata block", Config{MetadataBlock: "fold"}, envButtonMetadataBlock},
@@ -52,6 +55,40 @@ func TestOptionsRejectBadValues(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			if _, err := tc.cfg.Options(); err == nil || !strings.Contains(err.Error(), tc.key) {
 				t.Errorf("err = %v, want mention of %s", err, tc.key)
+			}
+		})
+	}
+}
+
+func TestOptionsAndAttributesNormalizeSeveralPlacements(t *testing.T) {
+	tests := []struct {
+		placement string
+		want      string
+	}{
+		{"menu", ""},
+		{"button", "button"},
+		{"menu,button", "menu,button"},
+		{" button , menu ", "menu,button"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.placement, func(t *testing.T) {
+			o, err := Config{Placement: tc.placement}.Options()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if o.Placement != tc.want {
+				t.Errorf("Options().Placement = %q, want %q", o.Placement, tc.want)
+			}
+			attrs, err := Config{Placement: tc.placement}.Attributes()
+			if err != nil {
+				t.Fatal(err)
+			}
+			wantAttrs := ""
+			if tc.want != "" {
+				wantAttrs = ` data-placement="` + tc.want + `"`
+			}
+			if attrs != wantAttrs {
+				t.Errorf("Attributes() = %q, want %q", attrs, wantAttrs)
 			}
 		})
 	}

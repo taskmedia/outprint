@@ -493,6 +493,22 @@ test('parseOptions ignores unusable options of the Gateway', () => {
   assert.equal(b.parseOptions(attrs({}), 'nonsense').placement, 'menu');
 });
 
+test('parseOptions accepts several placements as a comma-separated list', () => {
+  assert.equal(b.parseOptions(attrs({ 'data-placement': 'menu,button' })).placement, 'menu,button');
+  assert.equal(b.parseOptions(attrs({ 'data-placement': ' button , menu ' })).placement, 'menu,button');
+  assert.equal(b.parseOptions(attrs({}), { placement: 'menu,button' }).placement, 'menu,button');
+  assert.equal(b.parseOptions(attrs({ 'data-placement': 'menu,floating' })).placement, 'menu');
+  assert.equal(b.parseOptions(attrs({ 'data-placement': 'button,button' })).placement, 'menu');
+  assert.equal(b.parseOptions(attrs({ 'data-placement': 'button,' })).placement, 'menu');
+});
+
+test('hasPlacement tells whether a place is among the chosen ones', () => {
+  assert.equal(b.hasPlacement('menu,button', 'menu'), true);
+  assert.equal(b.hasPlacement('menu,button', 'button'), true);
+  assert.equal(b.hasPlacement('button', 'menu'), false);
+  assert.equal(b.hasPlacement('menu', 'button'), false);
+});
+
 test('resolveLanguage follows the Outline language, then the browser, then English', () => {
   assert.equal(b.resolveLanguage('de_DE', 'en-US'), 'de');
   assert.equal(b.resolveLanguage('en_US', 'de-DE'), 'en');

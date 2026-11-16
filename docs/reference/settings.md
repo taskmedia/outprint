@@ -122,9 +122,9 @@ The folder with the Configuration packages. Wins over `configurationsRoot` in th
 
 ### `OUTPRINT_BUTTON_PLACEMENT`
 
-**Type:** one of `menu`, `button`. **Required:** no. **Default:** `menu`.
+**Type:** `menu`, `button` or a comma-separated list of them. **Required:** no. **Default:** `menu`.
 
-Where the PDF action sits. `menu` puts it in the Export submenu of the document menu, `button` in a header button before Share.
+Where the PDF action sits. `menu` puts it in the Export submenu of the document menu, `button` in a header button before Share, `menu,button` in both.
 
 ### `OUTPRINT_BUTTON_LABELS`
 
