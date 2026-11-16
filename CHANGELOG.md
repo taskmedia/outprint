@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/taskmedia/outprint/compare/v1.1.2...v1.2.0) (2026-11-16)
+
+
+### Features
+
+* **button:** allow several placements of the pdf action at once ([#178](https://github.com/taskmedia/outprint/issues/178)) ([a9a1b8b](https://github.com/taskmedia/outprint/commit/a9a1b8b14286af3720ef532bdb573e42272879f6))
+
+
+### Bug Fixes
+
+* **button:** anchor the progress panel beside the page, not at the sidebar ([#171](https://github.com/taskmedia/outprint/issues/171)) ([316e9a8](https://github.com/taskmedia/outprint/commit/316e9a8eeb6442c8abae04cf3fbb5ad91c10eeb6))
+* **button:** give the header pdf button room beside share ([#179](https://github.com/taskmedia/outprint/issues/179)) ([1d17ef1](https://github.com/taskmedia/outprint/commit/1d17ef1cc9b1cfe0062a6e461d4c1da8bac9d952))
+
 ## [1.1.2](https://github.com/taskmedia/outprint/compare/v1.1.1...v1.1.2) (2026-11-08)
 
 
