@@ -343,6 +343,9 @@
     '#olp-pdf-button:focus-visible,#olp-pdf-panel button:focus-visible,.olp-header-button:focus-visible{outline:3px solid var(--olp-focus,#1d4ed8);outline-offset:2px}',
     '#olp-pdf-button:disabled,.olp-header-button:disabled{cursor:progress;opacity:.7}',
     '.olp-header-button{display:inline-flex;align-items:center;gap:6px;cursor:pointer}',
+    // Doubled class outranks the neighbour's single-class padding from Outline.
+    '.olp-header-button.olp-header-button{padding-left:12px;padding-right:12px}',
+    '[data-olp-header]{margin:0 4px}',
     '.olp-header-button svg,.olp-icon{flex:none;width:18px;height:18px}',
     '@media (prefers-reduced-motion:no-preference){#olp-pdf-button{transition:filter .15s,opacity .15s}}',
     '#olp-pdf-panel{position:fixed;right:20px;bottom:56px;z-index:900;box-sizing:border-box;width:28rem;max-width:calc(100vw - 40px);',
