@@ -23,6 +23,9 @@
 % pages with a repeated header, lists, and images that never overflow.
 \usepackage{longtable,booktabs,array}
 \usepackage{calc}
+% Pandoc writes ~~text~~ as \st{...}; lua-ul provides it under LuaLaTeX.
+\usepackage{luacolor}
+\usepackage[soul]{lua-ul}
 \usepackage{etoolbox}
 \makeatletter
 \patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
