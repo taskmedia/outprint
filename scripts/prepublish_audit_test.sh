@@ -112,6 +112,11 @@ reset_fake; with_url_comment; printf '# only a comment\nissuecomment-43  # other
 expect 1 "allowlist entry for another comment does not help" "matches the generic"
 rm .sanitize/audit-allow.txt
 
+reset_fake; sed -i.bak "s/\"body\":\"plain\",\"comments\":\[\],/\"body\":\"$w_generic\",\"comments\":[],/" fake/prs.json
+printf 'PR #9 body  # other PR\n' > .sanitize/audit-allow.txt
+expect 1 "allowlist entry with # in its anchor covers only that PR" "PR #2 body matches"
+rm .sanitize/audit-allow.txt
+
 reset_fake; mv LICENSE LICENSE.off
 expect 1 "missing LICENSE fails" "LICENSE is missing"
 mv LICENSE.off LICENSE

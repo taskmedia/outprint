@@ -43,7 +43,7 @@ trap 'rm -rf "$tmp"' EXIT
 patterns() { grep -vE '^\s*(#|$)' "$1"; }
 patterns "$generic" > "$tmp/generic"
 : > "$tmp/allow"
-[[ -r "$allow" ]] && sed -E 's/[[:space:]]*#.*$//; /^[[:space:]]*$/d' "$allow" > "$tmp/allow"
+[[ -r "$allow" ]] && sed -E '/^[[:space:]]*#/d; s/[[:space:]]+#[[:space:]].*$//; /^[[:space:]]*$/d' "$allow" > "$tmp/allow"
 : > "$tmp/private"
 if [[ -n "${SANITIZE_DENYLIST:-}" ]]; then
   if [[ ! -r "$SANITIZE_DENYLIST" ]]; then
