@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test, type Download, type Page } from '@playwright/test';
-import { MENU_LABEL, breakMenuAnchor, clickSubmenuItem, openExportSubmenu, optionsButton, setScriptAttributes, signIn, statusResponse, useLocalScript } from '../support/placement';
+import { MENU_LABEL, breakMenuAnchor, clickSubmenuItem, openExportSubmenu, optionsButton, setOutlineLanguage, setScriptAttributes, signIn, statusResponse, useLocalScript } from '../support/placement';
 import { loadSeed } from '../support/seed';
 
 const seed = loadSeed();
@@ -143,22 +143,16 @@ test('fallback=off shows nothing when the anchor is missing', async ({ page }) =
   await expect(page.locator(HEADER_BUTTON)).toHaveCount(0);
 });
 
-test('the labels follow the language of the Outline user', async ({ page, context }) => {
-  const token = (await context.cookies()).find((c) => c.name === 'accessToken')?.value;
-  expect(token, 'the sign-in left a session cookie').toBeTruthy();
-  const headers = { Authorization: `Bearer ${token}` };
-  const info = await page.request.post('/api/auth.info', { headers, data: {} });
-  const previous: string = (await info.json()).data.user.language ?? 'en_US';
-  const setLanguage = (language: string) => page.request.post('/api/users.update', { headers, data: { language } });
+test('the labels follow the language of the Outline user', async ({ page }) => {
+  const restoreLanguage = await setOutlineLanguage(page, 'de_DE');
   try {
-    expect((await setLanguage('de_DE')).ok()).toBeTruthy();
     await setScriptAttributes(page, { placement: 'button' });
     const status = statusResponse(page);
     await page.goto(seed.bound.documentPath);
     expect(await (await status).json()).toMatchObject({ available: true, language: 'de_DE' });
     await expect(page.locator(HEADER_BUTTON)).toHaveAttribute('title', 'Formatiertes PDF herunterladen');
   } finally {
-    await setLanguage(previous);
+    await restoreLanguage();
   }
 });
 

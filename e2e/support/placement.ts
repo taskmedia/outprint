@@ -103,9 +103,19 @@ export async function setOutlineLanguage(page: Page, language: string): Promise<
   const previous: string = (await info.json()).data.user.language ?? 'en_US';
   const update = (value: string) => page.request.post('/api/users.update', { headers, data: { language: value } });
   expect((await update(language)).ok()).toBeTruthy();
+  await startFreshLanguageLookup(page);
   return async () => {
     await update(previous);
+    await startFreshLanguageLookup(page);
   };
+}
+
+// The gateway reuses a session's language for limits.StatusTTL (60 s), keyed
+// by the whole Cookie header, so a change would only show after that. A new
+// marker cookie makes the next status request look the language up again.
+async function startFreshLanguageLookup(page: Page): Promise<void> {
+  const url = new URL(seed.baseUrl);
+  await page.context().addCookies([{ name: 'outprint-e2e-lookup', value: `${Date.now()}`, domain: url.hostname, path: '/' }]);
 }
 
 // Simulates a markup change in Outline: the menu triggers lose the attribute
