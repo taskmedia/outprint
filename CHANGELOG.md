@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/taskmedia/outprint/compare/v1.2.0...v1.2.1) (2026-11-27)
+
+
+### Bug Fixes
+
+* **templates:** support strikethrough in the neutral template ([#182](https://github.com/taskmedia/outprint/issues/182)) ([5a4057c](https://github.com/taskmedia/outprint/commit/5a4057c53eb18979dd6cae7ba93379f74cf146ee))
+
 ## [1.2.0](https://github.com/taskmedia/outprint/compare/v1.1.2...v1.2.0) (2026-11-16)
 
 
