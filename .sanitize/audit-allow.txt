@@ -5,3 +5,4 @@
 # Every entry needs a reason. Review the comment again before adding it.
 
 issuecomment-6301236678  # issue #11 resolution: quotes the POC name in the port decision; reviewed by the maintainer
+PR #182 body  # mentions a sibling package repo by name as an example; reviewed by the maintainer
